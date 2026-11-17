@@ -1,7 +1,8 @@
 import "server-only";
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 
-export async function getOwnerAccess() {
+export const getOwnerAccess = cache(async function getOwnerAccess() {
   const supabase = await createClient();
   if (!supabase) return { kind: "unconfigured" } as const;
 
@@ -13,4 +14,4 @@ export async function getOwnerAccess() {
   if (allowed !== true) return { kind: "denied", userId: user.id } as const;
 
   return { kind: "authorized", supabase, user } as const;
-}
+});

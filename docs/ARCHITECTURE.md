@@ -28,3 +28,9 @@
 - 데이터 내보내기/복구: 별도 후속 개발 항목.
 
 현재 Supabase 프로젝트/Google OAuth/배포 주소 설정이 없어 실로그인 및 DB 저장은 검증되지 않았다.
+
+## ChatGPT 조사 결과 GitHub 전송 시험 — 미배포
+
+전송: ChatGPT 조사 → 비공개 GitHub의 `lib/ai-research-inbox.ts` 커밋 → (Git 연동 시) Vercel 배포 → 권한 검사되는 `GET /api/ai-research-inbox` → 모드 등록 미리보기 → 사용자 승인 후 기존 `POST /api/mods`.
+
+이 시험은 앱에서 링크를 입력하는 것만으로 ChatGPT 조사를 실행하지 않는다. 추가 AI API 키나 공개 쓰기 API 없이 진행할 수 있으나 ChatGPT의 GitHub 쓰기 도구, Git 연동 Vercel 배포 및 갱신 지연이 따른다. 브랜치: `feature/chatgpt-research-inbox-poc`. 세부: [전송 시험](AI_RESEARCH_INBOX_POC.md).

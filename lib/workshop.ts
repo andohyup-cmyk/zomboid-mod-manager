@@ -116,9 +116,11 @@ export function parseResearchPayload(input: string):
   const seen = new Set<string>();
   items.forEach((item, index) => {
     const result = normalizeResearchRecord(item);
-    if (result.error) errors.push((index + 1) + "번 항목: " + result.error);
-    else if (seen.has(result.record.workshopId)) errors.push((index + 1) + "번 항목: 중복 Workshop ID");
-    else {
+    if (result.record === undefined) {
+      errors.push((index + 1) + "번 항목: " + (result.error ?? "조사 결과가 올바르지 않습니다."));
+    } else if (seen.has(result.record.workshopId)) {
+      errors.push((index + 1) + "번 항목: 중복 Workshop ID");
+    } else {
       seen.add(result.record.workshopId);
       records.push(result.record);
     }

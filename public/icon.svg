@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192" role="img" aria-label="PZ Mods">
+  <rect width="192" height="192" rx="36" fill="#0b111a"/>
+  <rect x="14" y="14" width="164" height="164" rx="24" fill="#141e2b" stroke="#8fcb85" stroke-width="4"/>
+  <path d="M43 124V67h29c16 0 24 8 24 22s-8 22-24 22H60v13H43Zm17-28h11c6 0 9-2 9-7s-3-7-9-7H60v14Z" fill="#ecf2f8"/>
+  <path d="M99 67h49v15l-29 27h30v15H98v-15l29-27H99V67Z" fill="#8fcb85"/>
+</svg>

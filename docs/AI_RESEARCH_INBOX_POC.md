@@ -45,3 +45,23 @@ Workshop `3552615247`, `[B42] Quality of Life and Miscellaneous Tweaks`의 Steam
 6. 검증 후 프로덕션 반영 여부 결정
 
 *코드 작성은 실행·배포·사용자 모바일 검증 완료와 다른 단계다.*
+
+## 실제 미리보기 주소 및 로그인 이동 점검
+
+GitHub PR #2의 Vercel 봇 댓글에서 확인한 **실제 Preview URL**:
+
+https://zomboid-mod-manager-git-feature-chatgpt-re-8935cb-andohyup-cmyk.vercel.app/register
+
+`https://zomboid-mod-manager.vercel.app/register`는 **운영(Production) URL**이며 시험 브랜치가 아니다. Vercel 프로젝트의 `vercel.com/...` 주소는 관리 화면이지 앱 URL이 아니다.
+
+- 검증 완료: PR의 Vercel 상태 `Ready`, GitHub 시험 브랜치에 새로고침 UI 코드 포함.
+- 사용자 화면: 로그인한 뒤 운영 앱 URL의 기존 등록 화면 표시. 시험 앱 자체의 로그인 후 상태는 미검증.
+- 앱 로그인 코드: `redirectTo: window.location.origin + "/auth/callback"`로 시작 호스트를 사용. 콜백도 요청 URL 호스트 기준.
+- **우선 가설:** Supabase Authentication → URL Configuration의 Redirect URLs 허용 목록에 시험 배포의 콜백 URL이 빠져, Supabase Site URL(운영 앱)로 돌아감. 실제 Supabase 설정은 이 도구로 읽지 못했으므로 확정 원인 아님.
+- 확인/수정할 *정확한 1개 URL*: `https://zomboid-mod-manager-git-feature-chatgpt-re-8935cb-andohyup-cmyk.vercel.app/auth/callback`
+- Site URL(운영 주소)은 그대로 두고, 시험 콜백만 Redirect URLs 목록에 **추가**한다. 설정 값을 확인하기 전에는 추가 여부를 단정하지 않는다.
+- 광범위한 `https://*.vercel.app/**` 허용은 보안상 피한다.
+- Google Cloud OAuth Client의 Authorized redirect URI는 Supabase 공급자 콜백을 사용하므로 시험 URL을 Google Cloud에 추가하지 않는다.
+- 공식 근거: https://supabase.com/docs/guides/auth/redirect-urls
+
+이것은 설정 확인 가이드이며 직접 Supabase 설정을 변경하거나 운영 앱에 병합하지 않았다.

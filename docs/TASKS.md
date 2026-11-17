@@ -136,3 +136,14 @@
 - [ ] Vercel의 `NEXT_PUBLIC_SUPABASE_URL` 환경별 실제 지정 프로젝트가 같은지 확인(비밀값 공유 금지).
 - [ ] 독립 시험 DB 검증 전에 테스트 승인/삭제/복구/원자성 시험 금지.
 - [ ] Supabase RLS 자체의 DB 격리 검증은 별도 시험 환경에서 수행.
+
+### 2026-11-18 별도 무료 Supabase 시험 프로젝트 준비
+
+- [x] Supabase 공식 문서 기준 Free 플랜 활성 프로젝트 최대 2개임을 확인(2026-11-18), 개인 계정의 잔여 슬롯은 아직 미확인.
+- [x] 운영·시험 Supabase 분리, 별도 OAuth, Vercel Production/Preview 변수 범위 분리, 검증 체크리스트를 `docs/SEPARATE_TEST_SUPABASE.md`에 기록.
+- [ ] 모바일 Supabase 대시보드에서 운영 프로젝트 외 무료 프로젝트 잔여 슬롯 확인.
+- [ ] `Zomboid Mod Manager Test` 신규 Free 프로젝트 생성(사용자 본인 조작 필요, 과금 없이).
+- [ ] 신규 시험 프로젝트 전용 SQL/Auth/Google Provider 설정. 기존 운영 데이터와 인증 설정은 유지.
+- [ ] Vercel Production의 기존 URL/공개키를 보존한 채 Preview를 새 시험 프로젝트 URL/공개키로 분리하고 새 Preview 배포.
+- [ ] 운영/시험 각자의 실제 데이터 조회 및 권한/RLS 테스트.
+- [ ] 상기 검증 전까지 Preview의 저장 API 읽기 전용 가드를 해제하지 않음.

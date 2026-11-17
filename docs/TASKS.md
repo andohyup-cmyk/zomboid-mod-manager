@@ -126,3 +126,13 @@
 - [ ] `lib/ai-research-inbox.ts`: GitHub/배포 기반 정적 PoC이며 앱 원클릭 AI 조사 아님.
 - [ ] RLS/승인 RPC 실제 통합시험, 자동 typecheck/lint/unit/build 체크, 데이터 내보내기·복원 미확인 또는 미구현.
 - [x] 20개 점검 항목과 개선 시 부작용을 `docs/AUDIT_2026-11-18.md`에 기록. 우선순위 조정 및 설계 변경은 사용자 협의 후.
+
+### 2026-11-18 후속 안전 조치 (시험 브랜치에만 적용)
+
+- [x] 운영 DB와 Preview DB의 실제 동일 여부는 Vercel 환경변수 접근이 없어 확정 불가하다는 점 확인.
+- [x] Preview에서 카탈로그 승인 버튼을 비활성화하고 `POST /api/mods`도 서버에서 403으로 차단하는 fail-closed 코드 작성.
+- [x] Production/Preview/Development/미설정 환경 구분 단위 테스트 소스 추가.
+- [ ] GitHub/Vercel 빌드 및 테스트 상태, 모바일 시험 앱의 '읽기 전용' 경고 표시 확인.
+- [ ] Vercel의 `NEXT_PUBLIC_SUPABASE_URL` 환경별 실제 지정 프로젝트가 같은지 확인(비밀값 공유 금지).
+- [ ] 독립 시험 DB 검증 전에 테스트 승인/삭제/복구/원자성 시험 금지.
+- [ ] Supabase RLS 자체의 DB 격리 검증은 별도 시험 환경에서 수행.

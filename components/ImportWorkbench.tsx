@@ -9,7 +9,7 @@ import {
 
 type Result = { state: "saving" | "saved" | "error"; message?: string };
 
-export function ImportWorkbench() {
+export function ImportWorkbench({ readOnlyPreview = false }: { readOnlyPreview?: boolean }) {
   const [links, setLinks] = useState("");
   const [rawJson, setRawJson] = useState("");
   const [inboxRecords, setInboxRecords] = useState<ResearchRecord[]>([]);
@@ -58,6 +58,7 @@ export function ImportWorkbench() {
   }
 
   async function approve(item: ResearchRecord) {
+    if (readOnlyPreview) return;
     setResults((current) => ({ ...current, [item.workshopId]: { state: "saving" } }));
     try {
       const response = await fetch("/api/mods", {
@@ -93,6 +94,11 @@ export function ImportWorkbench() {
 
   return (
     <div className="space-y-7">
+      {readOnlyPreview && (
+        <div className="rounded-xl border border-amber-600/60 bg-amber-950/20 px-4 py-3 text-sm text-amber-100" role="status">
+          시험 앱 · 읽기 전용 — 운영 데이터 보호를 위해 모드 최종 등록은 비활성화되어 있습니다. 조사 결과 조회와 미리보기는 가능합니다.
+        </div>
+      )}
       <section className="panel p-5 sm:p-6">
         <h2 className="text-lg font-bold">1. Workshop 링크 준비</h2>
         <p className="muted mt-2 text-sm leading-6">Steam Workshop 링크를 한 번에 여러 개 붙여넣을 수 있습니다. 링크를 입력하는 것만으로 저장되지는 않습니다.</p>
@@ -193,9 +199,9 @@ export function ImportWorkbench() {
                 type="button"
                 className="action w-full"
                 onClick={() => approve(item)}
-                disabled={status?.state === "saving" || status?.state === "saved"}
+                disabled={readOnlyPreview || status?.state === "saving" || status?.state === "saved"}
               >
-                {status?.state === "saving" ? "등록 중..." : status?.state === "saved" ? "등록 완료" : "확인 후 추가하기"}
+                {readOnlyPreview ? "시험 앱에서는 등록할 수 없음" : status?.state === "saving" ? "등록 중..." : status?.state === "saved" ? "등록 완료" : "확인 후 추가하기"}
               </button>
               {status?.state === "error" && <p role="alert" className="text-sm text-red-300">{status.message}</p>}
               {status?.state === "saved" && <p role="status" className="text-sm text-[#b9efb0]">카탈로그에 저장했습니다.</p>}

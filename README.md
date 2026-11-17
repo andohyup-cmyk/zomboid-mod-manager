@@ -83,3 +83,7 @@ npm run build
 - `docs/ARCHITECTURE.md`: 앱 구조와 보안 경계
 - `docs/DATA_MODEL.md`: 초기 스키마와 미결정 사항
 - `docs/TASKS.md`: 작업 현황
+
+## 실제 로그인 연결 안내
+
+[Supabase + Google OAuth 단계별 설정](docs/SETUP_GOOGLE_SUPABASE.md)을 참고합니다. 아직 실서비스 연결 및 배포는 완료되지 않았습니다.

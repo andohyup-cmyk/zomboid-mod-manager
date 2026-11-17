@@ -7,17 +7,23 @@ export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
   if (!url || !key) return response;
 
+  // Request-scoped client: never share a user's cookies across requests.
   const supabase = createServerClient(url, key, {
     cookies: {
-      getAll() { return request.cookies.getAll(); },
-      setAll(items) {
-        items.forEach(({ name, value }) => request.cookies.set(name, value));
+      getAll() {
+        return request.cookies.getAll();
+      },
+      setAll(cookiesToSet, headers) {
+        cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
         response = NextResponse.next({ request });
-        items.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
+        cookiesToSet.forEach(({ name, value, options }) =>
+          response.cookies.set(name, value, options)
+        );
+        // Supabase SSR sends private/no-store headers when it refreshes a session.
+        Object.entries(headers).forEach(([name, value]) => response.headers.set(name, value));
       }
     }
   });
-  // Refresh and validate the authentication claims, never rely on getSession for authorization.
   await supabase.auth.getClaims();
   return response;
 }

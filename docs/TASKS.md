@@ -39,3 +39,12 @@
 ## 원칙
 
 사용자의 승인 없이 외부 계정 변경·결제·공개 배포 또는 실제 서버 설정 변경을 하지 않는다. 테스트하지 않은 부분은 미검증으로 보고한다.
+
+## Google OAuth/Supabase 연동 준비 보완
+
+- [x] Supabase 공식 Next.js 16 SSR 가이드와 인증 코드 비교
+- [x] Supabase SSR 의존성 버전 갱신, Proxy의 세션 갱신 캐시 헤더 전달 처리
+- [x] OAuth 콜백/로그아웃의 no-store 응답 설정
+- [x] 모바일용 설정 순서 문서 작성
+- [ ] Supabase/Vercel/Google OAuth 실계정 연결과 로그인·DB 동작 검증(서비스 연결 필요)
+- [ ] npm 의존성 설치·실빌드 테스트(현재 실행 환경 npm 외부 연결 불가)

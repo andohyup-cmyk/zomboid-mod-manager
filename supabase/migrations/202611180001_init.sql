@@ -187,6 +187,20 @@ $$;
 revoke all on function public.approve_research_record(jsonb) from public;
 grant execute on function public.approve_research_record(jsonb) to authenticated;
 
+-- Explicit API privileges for projects with "Automatically expose new tables" disabled.
+-- RLS still restricts each operation to the authorized owner.
+revoke all on table public.mods, public.mod_ids, public.research_records,
+  public.profiles, public.profile_mods from anon, authenticated;
+grant usage on schema public to authenticated;
+grant select, insert on table public.mods, public.mod_ids, public.research_records
+  to authenticated;
+grant select on table public.profiles, public.profile_mods to authenticated;
+
+-- RPC is the only supported mod approval write flow in this MVP.
+-- PostgreSQL table privileges do not bypass the RLS policies above.
+-- The allowlist itself remains inaccessible to client roles.
+revoke all on table public.authorized_users from anon, authenticated;
+
 -- AFTER the authorized user signs in with Google and sees their UUID on the access-restricted screen:
 -- INSERT INTO public.authorized_users (user_id) VALUES ('YOUR_AUTH_USER_UUID');
 -- Never enable direct public insert access to authorized_users.

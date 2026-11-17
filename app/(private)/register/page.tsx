@@ -1,4 +1,5 @@
 import { ImportWorkbench } from "@/components/ImportWorkbench";
+import { isReadOnlyDeployment } from "@/lib/deployment-safety";
 
 export default function RegisterPage() {
   return (
@@ -11,7 +12,7 @@ export default function RegisterPage() {
           링크 입력만으로 카탈로그에 등록되지는 않습니다.
         </p>
       </div>
-      <ImportWorkbench />
+      <ImportWorkbench readOnlyPreview={isReadOnlyDeployment(process.env.VERCEL_ENV)} />
     </section>
   );
 }

@@ -115,3 +115,14 @@
 - [ ] Supabase Authentication → URL Configuration에 시험 도메인 `/auth/callback` 허용 여부 확인(도구로 설정 조회 불가).
 - [ ] 실제 Preview 도메인에서 로그인 및 UI/API 동작 확인.
 - 추정 원인: 시험 콜백 미허용 시 운영 Site URL로 이동. 설정값 미확인으로 단정 금지. 운영 앱과 main 브랜치는 수정하지 않음.
+
+## 2026-11-18 프로젝트 전반 점검 — 실제 화면 검증 및 개선 위험
+
+- [x] Supabase Redirect URLs에 시험 콜백 추가 후 사용자가 시험 앱에서 Google 로그인 및 시험 도메인 유지 확인.
+- [x] 모바일 시험 등록 화면에 `ChatGPT 조사 결과 새로고침` 버튼과 `등록 대기 1개` 상태 메시지 표시 확인.
+- [ ] 이 시험에서 최종 모드 승인 저장은 수행하지 않음. Preview와 운영 Supabase DB의 데이터 격리 여부를 먼저 확인할 것.
+- [ ] `lib/workshop.ts`: 숫자 ID 단독 입력 미지원, 사용자 요구는 URL/ID 혼합 지원.
+- [ ] `components/ImportWorkbench.tsx`: 사용자 요청한 선택 등록 최종 확인 모달·영구 대기함 미구현.
+- [ ] `lib/ai-research-inbox.ts`: GitHub/배포 기반 정적 PoC이며 앱 원클릭 AI 조사 아님.
+- [ ] RLS/승인 RPC 실제 통합시험, 자동 typecheck/lint/unit/build 체크, 데이터 내보내기·복원 미확인 또는 미구현.
+- [x] 20개 점검 항목과 개선 시 부작용을 `docs/AUDIT_2026-11-18.md`에 기록. 우선순위 조정 및 설계 변경은 사용자 협의 후.

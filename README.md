@@ -87,3 +87,9 @@ npm run build
 ## 실제 로그인 연결 안내
 
 [Supabase + Google OAuth 단계별 설정](docs/SETUP_GOOGLE_SUPABASE.md)을 참고합니다. 아직 실서비스 연결 및 배포는 완료되지 않았습니다.
+
+## GitHub 기반 AI 조사 결과 전달 시험
+
+`feature/chatgpt-research-inbox-poc` 브랜치에서 ChatGPT가 비공개 GitHub 저장소로 전달한 조사 결과를 앱이 읽는 **미배포 시험 기능**을 작성했다. 별도 유료 AI API를 사용하지 않고, 사용자 승인 전 카탈로그를 수정하지 않는다.
+
+앱의 링크 입력만으로 ChatGPT 조사를 시작하는 기능은 아직 없다. 실제 배포와 모바일 검증도 필요하다. [전송 시험 안내](docs/AI_RESEARCH_INBOX_POC.md)를 참고한다.

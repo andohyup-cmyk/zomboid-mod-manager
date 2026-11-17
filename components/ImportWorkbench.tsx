@@ -139,7 +139,7 @@ export function ImportWorkbench() {
         <h2 className="text-lg font-bold">기존 AI 조사 결과 가져오기</h2>
         <p className="muted mt-2 text-sm leading-6">
           ChatGPT에서 조사한 정보를 구조화된 JSON으로 가져오는 예비 방식(B)입니다.
-          앱에 직접 전달하는 A 방식은 연동 검증 전이므로 아직 동작하지 않습니다.
+          새 GitHub 전송 시험 기능이 정상 작동하지 않을 때 사용할 수 있도록 임시 유지합니다.
         </p>
         <details className="mt-4 text-sm">
           <summary className="cursor-pointer font-semibold text-[#b9efb0]">입력 형식 예시 보기 (실제 모드 정보 아님)</summary>

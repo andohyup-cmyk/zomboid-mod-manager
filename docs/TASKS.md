@@ -106,3 +106,12 @@
 - [ ] 다중 선택, 영구 대기 목록 DB, 삭제·재시도 등 사용자 요구사항 구현.
 
 시험 브랜치: `feature/chatgpt-research-inbox-poc`. 확인 전 기존 프로덕션 변경 없음. 작성은 실행 검증이 아님.
+
+### 2026-11-18 미리보기 접속 점검
+
+- [x] GitHub PR #2 Vercel 봇 댓글에서 실제 Preview URL 확인: `https://zomboid-mod-manager-git-feature-chatgpt-re-8935cb-andohyup-cmyk.vercel.app`.
+- [x] 시험 브랜치에 조사 결과 새로고침 UI 존재, Vercel 상태 Ready 확인.
+- [x] OAuth 시작 코드가 `window.location.origin + "/auth/callback"`로 접속한 호스트를 이용하는지 확인.
+- [ ] Supabase Authentication → URL Configuration에 시험 도메인 `/auth/callback` 허용 여부 확인(도구로 설정 조회 불가).
+- [ ] 실제 Preview 도메인에서 로그인 및 UI/API 동작 확인.
+- 추정 원인: 시험 콜백 미허용 시 운영 Site URL로 이동. 설정값 미확인으로 단정 금지. 운영 앱과 main 브랜치는 수정하지 않음.

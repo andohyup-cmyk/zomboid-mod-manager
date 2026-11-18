@@ -158,3 +158,12 @@
 - [ ] 사용자가 프로젝트 설정의 지침 텍스트를 교체하고, 프로젝트 소스에 올린 예전 `.md` 2개를 교체 파일로 다시 업로드해야 프로젝트 소스에도 최신 내용이 반영됨. GitHub 변경과 Project 소스 파일 업로드는 별개의 작업.
 - [ ] 시험용 Google OAuth 로그인 콜백 오류는 여전히 미해결. 인증 로그 확인 후 조치 예정.
 - [ ] 운영 브랜치와 실제 DB는 변경하지 않음. PR #2는 계속 draft로 유지.
+
+### 2026-11-18 시험 OAuth 세션 교환 오류 진단
+
+- [x] Chrome Network: 시험 앱 `/auth/callback?code=...` 요청이 `307`로 `/login?error=oauth`에 리디렉션됨. 응답 본문은 비어 있음.
+- [x] 시험 Supabase Auth: Google `login` 이벤트와 OAuth `/callback` 302 확인.
+- [x] 시험 Supabase Edge: `POST /auth/v1/token?grant_type=pkce` 요청이 401 응답. 정확한 에러 코드 아직 미확인.
+- [x] 시험 브랜치 `app/auth/callback/route.ts`에 Preview에서만 동작하는 서버 측 최소 오류 진단 로그 추가. 코드/토큰/쿠키 값은 기록하지 않고, 오류 코드·상태·이름·PKCE verifier 쿠키 존재 여부만 기록.
+- [ ] Vercel Preview 재배포 상태 확인, 새 로그인 재현 후 Vercel Runtime Logs에서 `[preview-oauth-diagnostic]` 확인. 코드 작성만 완료; 배포·실행·원인 검증은 미완료.
+- [ ] 원인 확인 후 임시 진단 코드 제거 및 필요한 수정 테스트. 운영 앱/DB/시험 쓰기 보호 장치는 변경하지 않음.

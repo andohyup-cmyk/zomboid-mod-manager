@@ -1,11 +1,11 @@
 import { canonicalWorkshopId, type ResearchRecord } from "./workshop";
 
 export type ResearchCandidate = {
-  source: "inbox" | "manual";
+  source: "inbox" | "manual" | "steam";
   record: ResearchRecord;
 };
 
-export function groupResearchCandidates(inbox: ResearchRecord[], manual: ResearchRecord[]) {
+export function groupResearchCandidates(inbox: ResearchRecord[], manual: ResearchRecord[], steam: ResearchRecord[] = []) {
   const groups = new Map<string, ResearchCandidate[]>();
   function add(source: ResearchCandidate["source"], record: ResearchRecord) {
     // Compare the Workshop identity, but keep each original payload for its own approval.
@@ -16,6 +16,7 @@ export function groupResearchCandidates(inbox: ResearchRecord[], manual: Researc
   }
   inbox.forEach(record => add("inbox", record));
   manual.forEach(record => add("manual", record));
+  steam.forEach(record => add("steam", record));
   return groups;
 }
 

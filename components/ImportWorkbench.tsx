@@ -2,24 +2,26 @@
 
 import { useMemo, useState } from "react";
 import {
-  extractWorkshopLinks,
   parseResearchPayload,
+  parseWorkshopInput,
   type ResearchRecord
 } from "@/lib/workshop";
 
 type Result = { state: "saving" | "saved" | "error"; message?: string };
 
-export function ImportWorkbench() {
-  const [links, setLinks] = useState("");
+export function ImportWorkbench({ readOnly }: { readOnly: boolean }) {
+  const [workshopInput, setWorkshopInput] = useState("");
   const [rawJson, setRawJson] = useState("");
   const [results, setResults] = useState<Record<string, Result>>({});
-  const workshopIds = useMemo(() => extractWorkshopLinks(links), [links]);
+  const { workshopIds, invalidPositions } = useMemo(() => parseWorkshopInput(workshopInput), [workshopInput]);
   const parsed = useMemo(
     () => rawJson.trim() ? parseResearchPayload(rawJson) : { records: [], errors: [] },
     [rawJson]
   );
 
   async function approve(item: ResearchRecord) {
+    if (readOnly) return;
+
     setResults((current) => ({ ...current, [item.workshopId]: { state: "saving" } }));
     try {
       const response = await fetch("/api/mods", {
@@ -55,28 +57,42 @@ export function ImportWorkbench() {
 
   return (
     <div className="space-y-7">
+      {readOnly && (
+        <p role="status" className="panel p-4 text-sm text-amber-200">
+          이 배포는 읽기 전용입니다. 입력과 미리보기를 이용할 수 있습니다.
+        </p>
+      )}
       <section className="panel p-5 sm:p-6">
-        <h2 className="text-lg font-bold">1. Workshop 링크 준비</h2>
-        <p className="muted mt-2 text-sm leading-6">Steam Workshop 링크를 한 번에 여러 개 붙여넣을 수 있습니다. 링크를 입력하는 것만으로 저장되지는 않습니다.</p>
-        <label htmlFor="workshop-links" className="mt-5 mb-2 block text-sm font-semibold">Workshop 링크</label>
+        <h2 className="text-lg font-bold">1. Workshop 항목 입력</h2>
+        <p id="workshop-input-help" className="muted mt-2 text-sm leading-6">
+          Steam Workshop URL과 숫자 Workshop ID를 공백, 줄바꿈 또는 쉼표로 구분해 입력하세요.
+        </p>
+        <label htmlFor="workshop-input" className="mt-5 mb-2 block text-sm font-semibold">Workshop URL 또는 ID</label>
         <textarea
-          id="workshop-links"
+          id="workshop-input"
           rows={4}
-          value={links}
-          onChange={(event) => setLinks(event.target.value)}
+          value={workshopInput}
+          onChange={(event) => setWorkshopInput(event.target.value)}
+          aria-describedby="workshop-input-help"
+          aria-invalid={invalidPositions.length > 0}
           className="field resize-y"
-          placeholder={"https://steamcommunity.com/sharedfiles/filedetails/?id=...\n여러 링크를 줄바꿈으로 구분"}
+          placeholder={"https://steamcommunity.com/sharedfiles/filedetails/?id=1234567890\n9876543210"}
         />
-        {links && (
-          <div className="mt-4">
-            <p className="text-sm font-semibold">인식된 Workshop ID: {workshopIds.length}개</p>
-            {workshopIds.length ? (
-              <div className="mt-2 flex flex-wrap gap-2">
-                {workshopIds.map((id) => <span key={id} className="rounded-lg bg-[#294535] px-2 py-1 text-xs">{id}</span>)}
-              </div>
-            ) : <p className="mt-2 text-sm text-amber-200">인식 가능한 Steam Workshop 링크가 없습니다.</p>}
-          </div>
-        )}
+        <div role="status">
+          {(workshopIds.length > 0 || invalidPositions.length > 0) && (
+            <p className="mt-4 text-sm font-semibold">인식된 Workshop ID {workshopIds.length}개</p>
+          )}
+          {workshopIds.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-2">
+              {workshopIds.map((id) => <span key={id} className="rounded-lg bg-[#294535] px-2 py-1 text-xs">{id}</span>)}
+            </div>
+          )}
+          {invalidPositions.length > 0 && (
+            <p className="mt-2 text-sm text-amber-200">
+              인식할 수 없는 입력이 {invalidPositions.length}개 있습니다. {invalidPositions.join(", ")}번 항목을 Steam Workshop URL 또는 5~20자리 숫자 ID로 입력해 주세요.
+            </p>
+          )}
+        </div>
       </section>
 
       <section className="panel p-5 sm:p-6">
@@ -136,9 +152,10 @@ export function ImportWorkbench() {
                 type="button"
                 className="action w-full"
                 onClick={() => approve(item)}
-                disabled={status?.state === "saving" || status?.state === "saved"}
+                disabled={readOnly || status?.state === "saving" || status?.state === "saved"}
               >
-                {status?.state === "saving" ? "등록 중..." : status?.state === "saved" ? "등록 완료" : "확인 후 추가하기"}
+                {readOnly ? "이 환경에서는 저장할 수 없음"
+                  : status?.state === "saving" ? "등록 중..." : status?.state === "saved" ? "등록 완료" : "확인 후 추가하기"}
               </button>
               {status?.state === "error" && <p role="alert" className="text-sm text-red-300">{status.message}</p>}
               {status?.state === "saved" && <p role="status" className="text-sm text-[#b9efb0]">카탈로그에 저장했습니다.</p>}

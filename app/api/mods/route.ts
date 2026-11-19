@@ -1,8 +1,16 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getOwnerAccess } from "@/lib/auth";
+import { isCatalogWriteAllowed } from "@/lib/catalog-write-protection";
 import { normalizeResearchRecord } from "@/lib/workshop";
 
 export async function POST(request: NextRequest) {
+  if (!isCatalogWriteAllowed(process.env, process.env.NEXT_PUBLIC_SUPABASE_URL)) {
+    return NextResponse.json(
+      { error: "이 배포에서는 모드 등록을 저장할 수 없습니다." },
+      { status: 403, headers: { "Cache-Control": "private, no-store" } }
+    );
+  }
+
   const access = await getOwnerAccess();
   if (access.kind !== "authorized") {
     return NextResponse.json({ error: "이 작업을 수행할 권한이 없습니다." }, { status: 403 });

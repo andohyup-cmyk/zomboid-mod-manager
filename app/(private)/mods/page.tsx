@@ -50,7 +50,7 @@ export default async function ModsPage({
       {!error && items.length === 0 && (
         <div className="panel p-7 text-center">
           <p className="font-semibold">{query ? "검색 결과가 없습니다." : "아직 등록한 모드가 없습니다."}</p>
-          <p className="muted mt-2 text-sm">모드는 조사 결과를 확인하고 '추가하기'를 누른 후 나타납니다.</p>
+          <p className="muted mt-2 text-sm">등록 화면에서 조사 결과를 검토하고 최종 승인하면 여기에 표시됩니다.</p>
         </div>
       )}
       <div className="grid gap-3">

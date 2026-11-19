@@ -2,9 +2,12 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 export async function proxy(request: NextRequest) {
+  let response = NextResponse.next({ request });
+  // Refreshing an expired session here can clear the verifier for the new sign-in.
+  if (request.nextUrl.pathname === "/auth/callback") return response;
+
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  let response = NextResponse.next({ request });
   if (!url || !key) return response;
 
   // Request-scoped client: never share a user's cookies across requests.

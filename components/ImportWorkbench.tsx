@@ -1,45 +1,136 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { groupResearchCandidates, type ResearchCandidate } from "@/lib/research-candidates";
 import {
   parseResearchPayload,
   parseWorkshopInput,
   type ResearchRecord
 } from "@/lib/workshop";
 
-type Result = { state: "saving" | "saved" | "error"; message?: string };
+const sourceLabels = { inbox: "조사함", manual: "수동 JSON" } as const;
+
+type Result = {
+  state: "saving" | "saved" | "registered" | "error";
+  candidate: ResearchCandidate;
+  message?: string;
+};
+type InboxResponse = { records: ResearchRecord[]; alreadyRegistered: number; errors: string[] };
+
+function RecordDetails({ item }: { item: ResearchRecord }) {
+  return (
+    <>
+      <p className="muted text-xs">Workshop ID {item.workshopId}</p>
+      <p className="text-sm">Mod ID: {item.modIds.length ? item.modIds.join(", ") : "미확인"}</p>
+      <p className="muted whitespace-pre-wrap text-sm">{item.description || "설명 없음"}</p>
+      <div className="grid grid-cols-2 gap-2 text-xs">
+        <p>조사 상태: {item.verificationStatus}</p>
+        <p>확인일: {item.checkedAt || "미확인"}</p>
+        <p>B42.22: {item.buildCompatibility}</p>
+        <p>멀티: {item.multiplayerCompatibility}</p>
+      </div>
+      <a href={item.sourceUrl} target="_blank" rel="noopener noreferrer" className="block break-all text-xs text-[#b9efb0] underline">
+        Steam 원문 · {item.sourceUrl}
+      </a>
+      {item.sources.map(url => (
+        <a key={url} href={url} target="_blank" rel="noopener noreferrer" className="block break-all text-xs text-[#b9efb0] underline">
+          추가 출처 · {url}
+        </a>
+      ))}
+    </>
+  );
+}
+
+function ApprovalDialog({ candidate, onCancel, onApprove }: {
+  candidate: ResearchCandidate;
+  onCancel: () => void;
+  onApprove: () => void;
+}) {
+  const dialog = useRef<HTMLDialogElement>(null);
+  useEffect(() => { dialog.current?.showModal(); }, []);
+  return (
+    <dialog ref={dialog} aria-labelledby="approval-title" onCancel={onCancel}
+      onClick={event => { if (event.target === event.currentTarget) onCancel(); }}
+      className="panel m-auto max-h-[90dvh] w-[calc(100%_-_2rem)] max-w-lg p-0 text-[#ecf2f8] backdrop:bg-[#060b12cc]">
+      <div className="space-y-3 p-5">
+        <h2 id="approval-title" className="text-lg font-bold">등록 내용 확인</h2>
+        <p>{sourceLabels[candidate.source]} · {candidate.record.title}</p>
+        <RecordDetails item={candidate.record} />
+        <div className="flex flex-wrap gap-3">
+          <button type="button" className="secondary-action" onClick={onCancel}>취소</button>
+          <button type="button" className="action" onClick={onApprove}>최종 승인</button>
+        </div>
+      </div>
+    </dialog>
+  );
+}
 
 export function ImportWorkbench({ readOnly }: { readOnly: boolean }) {
   const [workshopInput, setWorkshopInput] = useState("");
   const [rawJson, setRawJson] = useState("");
+  const [inbox, setInbox] = useState<InboxResponse | null>(null);
+  const [loadingInbox, setLoadingInbox] = useState(false);
+  const [inboxError, setInboxError] = useState("");
   const [results, setResults] = useState<Record<string, Result>>({});
+  const [selection, setSelection] = useState<{ id: string; candidate: ResearchCandidate } | null>(null);
+  const lockedIds = useRef(new Set<string>());
   const { workshopIds, invalidPositions } = useMemo(() => parseWorkshopInput(workshopInput), [workshopInput]);
   const parsed = useMemo(
     () => rawJson.trim() ? parseResearchPayload(rawJson) : { records: [], errors: [] },
     [rawJson]
   );
+  const groups = useMemo(() => groupResearchCandidates(inbox?.records ?? [], parsed.records), [inbox, parsed.records]);
 
-  async function approve(item: ResearchRecord) {
-    if (readOnly) return;
+  async function loadInbox() {
+    if (loadingInbox) return;
+    setLoadingInbox(true);
+    setInboxError("");
+    setInbox(null);
+    setSelection(current => current?.candidate.source === "inbox" ? null : current);
+    try {
+      const response = await fetch("/api/ai-research-inbox", { cache: "no-store" });
+      const body = await response.json();
+      if (!response.ok || !Array.isArray(body.records)) {
+        throw new Error(body.error || "조사함을 불러오지 못했습니다.");
+      }
+      setInbox({ records: body.records, errors: body.errors ?? [], alreadyRegistered: body.alreadyRegistered ?? 0 });
+    } catch (error) {
+      setInboxError(error instanceof Error ? error.message : "조사함을 불러오지 못했습니다.");
+    } finally {
+      setLoadingInbox(false);
+    }
+  }
 
-    setResults((current) => ({ ...current, [item.workshopId]: { state: "saving" } }));
+  // An edit or refresh can replace a source record while its confirmation is open.
+  const selected = selection && groups.get(selection.id)?.find(
+    ({ source, record }) => source === selection.candidate.source && record === selection.candidate.record
+  );
+  async function approve() {
+    if (readOnly || !selection || !selected || lockedIds.current.has(selection.id)) return;
+    const { id } = selection;
+    const candidate = selected;
+    lockedIds.current.add(id);
+    setSelection(null);
+    setResults(current => ({ ...current, [id]: { state: "saving", candidate } }));
     try {
       const response = await fetch("/api/mods", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(item)
+        body: JSON.stringify(candidate.record)
       });
-      const body = await response.json() as { error?: string };
-      if (!response.ok) throw new Error(body.error || "저장에 실패했습니다.");
-      setResults((current) => ({ ...current, [item.workshopId]: { state: "saved" } }));
+      if (response.status === 409) {
+        setResults(current => ({ ...current, [id]: { state: "registered", candidate } }));
+        return;
+      }
+      const body = await response.json() as { id?: string; error?: string };
+      if (!response.ok || response.status !== 201 || !body.id) {
+        throw new Error(body.error || "등록 결과를 확인하지 못했습니다. 카탈로그를 확인해 주세요.");
+      }
+      setResults(current => ({ ...current, [id]: { state: "saved", candidate } }));
     } catch (error) {
-      setResults((current) => ({
-        ...current,
-        [item.workshopId]: {
-          state: "error",
-          message: error instanceof Error ? error.message : "저장할 수 없습니다."
-        }
-      }));
+      lockedIds.current.delete(id);
+      const message = error instanceof Error ? error.message : "저장할 수 없습니다.";
+      setResults(current => ({ ...current, [id]: { state: "error", candidate, message } }));
     }
   }
 
@@ -78,6 +169,7 @@ export function ImportWorkbench({ readOnly }: { readOnly: boolean }) {
           className="field resize-y"
           placeholder={"https://steamcommunity.com/sharedfiles/filedetails/?id=1234567890\n9876543210"}
         />
+        <button type="button" className="secondary-action mt-2" disabled={!workshopInput} onClick={() => setWorkshopInput("")}>입력 비우기</button>
         <div role="status">
           {(workshopIds.length > 0 || invalidPositions.length > 0) && (
             <p className="mt-4 text-sm font-semibold">인식된 Workshop ID {workshopIds.length}개</p>
@@ -96,10 +188,15 @@ export function ImportWorkbench({ readOnly }: { readOnly: boolean }) {
       </section>
 
       <section className="panel p-5 sm:p-6">
-        <h2 className="text-lg font-bold">2. AI 조사 결과 가져오기</h2>
+        <h2 className="text-lg font-bold">2. 조사 결과 가져오기</h2>
+        <button type="button" className="secondary-action mt-3" onClick={loadInbox} disabled={loadingInbox}>
+          {loadingInbox ? "조회 중..." : "조사함 새로고침"}
+        </button>
+        {inbox && <p role="status" className="muted mt-2 text-sm">조사함 {inbox.records.length}건 · 기존 등록 {inbox.alreadyRegistered}건 제외</p>}
+        {inbox?.errors.map((message, index) => <p key={index} role="alert" className="text-sm text-amber-200">{message}</p>)}
+        {inboxError && <p role="alert" className="text-sm text-amber-200">{inboxError}</p>}
         <p className="muted mt-2 text-sm leading-6">
-          ChatGPT에서 조사한 정보를 구조화된 JSON으로 가져오는 예비 방식(B)입니다.
-          앱에 직접 전달하는 A 방식은 연동 검증 전이므로 아직 동작하지 않습니다.
+          수동으로 등록할 조사 결과는 아래에 JSON으로 붙여넣으세요.
         </p>
         <details className="mt-4 text-sm">
           <summary className="cursor-pointer font-semibold text-[#b9efb0]">입력 형식 예시 보기 (실제 모드 정보 아님)</summary>
@@ -110,7 +207,10 @@ export function ImportWorkbench({ readOnly }: { readOnly: boolean }) {
           id="research-json"
           rows={8}
           value={rawJson}
-          onChange={(event) => { setRawJson(event.target.value); setResults({}); }}
+          onChange={event => {
+            setRawJson(event.target.value);
+            setSelection(current => current?.candidate.source === "manual" ? null : current);
+          }}
           className="field resize-y font-mono text-xs leading-5"
           placeholder='[{"workshopId":"...","title":"...","modIds":["..."]}]'
         />
@@ -124,45 +224,43 @@ export function ImportWorkbench({ readOnly }: { readOnly: boolean }) {
       <section className="space-y-3">
         <div>
           <h2 className="text-lg font-bold">3. 모드별 검토 및 승인</h2>
-          <p className="muted mt-2 text-sm">각 항목의 정보를 확인하고 개별적으로 '추가하기'를 누른 경우에만 저장합니다.</p>
+          <p className="muted mt-2 text-sm">저장할 출처와 내용을 선택한 뒤 확인창에서 최종 승인하세요.</p>
         </div>
-        {parsed.records.length === 0 && (
-          <div className="panel p-6 text-sm muted">조사 결과를 입력하면 여기에서 항목별 미리보기를 볼 수 있습니다.</div>
+        {!groups.size && (
+          <div className="panel p-6 text-sm muted">조사함을 조회하거나 수동 JSON을 입력하면 항목별 미리보기가 표시됩니다.</div>
         )}
-        {parsed.records.map((item) => {
-          const status = results[item.workshopId];
+        {Array.from(groups, ([id, candidates]) => {
+          const result = results[id];
+          const blocked = readOnly || result?.state === "saving" || result?.state === "saved" || result?.state === "registered";
           return (
-            <article key={item.workshopId} className="panel space-y-3 p-5">
-              <div className="flex items-start justify-between gap-3">
-                <h3 className="text-lg font-bold">{item.title}</h3>
-                <span className="shrink-0 rounded-lg border border-[#304154] px-2 py-1 text-[11px] text-[#b9efb0]">검토 필요</span>
-              </div>
-              <p className="muted text-xs">Workshop ID {item.workshopId}</p>
-              <p className="text-sm">Mod ID: {item.modIds.length ? item.modIds.join(", ") : "미확인"}</p>
-              <p className="muted whitespace-pre-wrap text-sm">{item.description || "설명 없음"}</p>
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <p>조사 상태: {item.verificationStatus}</p>
-                <p>확인일: {item.checkedAt || "미확인"}</p>
-                <p>B42.22: {item.buildCompatibility}</p>
-                <p>멀티: {item.multiplayerCompatibility}</p>
-              </div>
-              <a href={item.sourceUrl} target="_blank" rel="noopener noreferrer" className="block break-all text-xs text-[#b9efb0] underline">Steam 원문 보기</a>
-              {item.sources.map((url) => <a key={url} href={url} target="_blank" rel="noopener noreferrer" className="block break-all text-xs text-[#b9efb0] underline">추가 확인 출처</a>)}
-              <button
-                type="button"
-                className="action w-full"
-                onClick={() => approve(item)}
-                disabled={readOnly || status?.state === "saving" || status?.state === "saved"}
-              >
-                {readOnly ? "이 환경에서는 저장할 수 없음"
-                  : status?.state === "saving" ? "등록 중..." : status?.state === "saved" ? "등록 완료" : "확인 후 추가하기"}
-              </button>
-              {status?.state === "error" && <p role="alert" className="text-sm text-red-300">{status.message}</p>}
-              {status?.state === "saved" && <p role="status" className="text-sm text-[#b9efb0]">카탈로그에 저장했습니다.</p>}
-            </article>
+            <div key={id} className="space-y-3">
+              {candidates.length > 1 && (
+                <p className="text-sm text-amber-200">같은 Workshop ID의 후보 {candidates.length}개입니다. 내용을 비교하고 저장할 항목을 선택하세요.</p>
+              )}
+              {candidates.map(candidate => (
+                <article key={candidate.source + candidate.record.workshopId} className="panel space-y-3 p-5">
+                  <p className="text-xs font-semibold text-[#b9efb0]">{sourceLabels[candidate.source]}</p>
+                  <h3 className="text-lg font-bold">{candidate.record.title}</h3>
+                  <RecordDetails item={candidate.record} />
+                  <button type="button" className="action w-full" disabled={blocked}
+                    onClick={() => setSelection({ id, candidate })}>
+                    {readOnly ? "이 환경에서는 저장할 수 없음" : "확인 후 추가하기"}
+                  </button>
+                </article>
+              ))}
+              {result?.state === "saving" && <p role="status" className="text-sm">등록 중…</p>}
+              {result?.state === "saved" && (
+                <p role="status" className="text-sm text-[#b9efb0]">
+                  등록 완료 · {sourceLabels[result.candidate.source]} · {result.candidate.record.title}
+                </p>
+              )}
+              {result?.state === "registered" && <p role="status" className="text-sm text-amber-200">이미 등록된 Workshop ID입니다.</p>}
+              {result?.state === "error" && <p role="alert" className="text-sm text-red-300">{result.message}</p>}
+            </div>
           );
         })}
       </section>
+      {!readOnly && selected && <ApprovalDialog candidate={selected} onCancel={() => setSelection(null)} onApprove={approve} />}
     </div>
   );
 }

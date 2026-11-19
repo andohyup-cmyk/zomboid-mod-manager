@@ -1,30 +1,27 @@
-# 초기 아키텍처
+# 아키텍처
 
-상태: **코드 작성 / 실동작 검증 대기**.
+모바일과 PC는 같은 Next.js App Router를 사용한다. 허용 사용자 검사는 서버의 `getOwnerAccess()`가 Supabase `auth.getUser()`와 `is_authorized_user()`로 수행한다.
 
-1. 웹: Next.js App Router + Tailwind CSS, 모바일 하단 메뉴 / PC 사이드 메뉴
-2. 인증: Supabase Google OAuth → /auth/callback에서 PKCE 세션 교환
-3. 세션: @supabase/ssr 서버/브라우저 클라이언트와 Next.js proxy.ts에서 토큰 갱신
-4. 접근 제어: 보호 페이지 및 쓰기 API에서 auth.getUser() + is_authorized_user() 확인
-5. DB: Supabase Postgres RLS는 승인된 auth.uid()의 데이터만 허용
-6. 데이터 승인: 사용자가 '추가하기' 누름 → /api/mods → 서버 입력 검증 → SQL 함수 approve_research_record → 단일 트랜잭션에서 mods/mod_ids/research_records 저장
+| 경로 | 역할 |
+|---|---|
+| `/login`, `/auth/callback`, `/logout` | Google OAuth 시작, PKCE 세션 교환, 로그아웃 |
+| `/dashboard`, `/mods` | 소유자 카탈로그 현황·목록·검색 |
+| `/register` | 혼합 Workshop 입력, 읽기 전용 조사함과 수동 JSON 미리보기, 출처별 개별 승인 |
+| `/profiles`, `/profiles/editor` | 저장된 프로필 이름 목록, 카탈로그 후보를 선택하는 메모리 편집기와 서버 출력 |
+| `/dev/server-profile-preview` | 개발 환경에서 활성화하는 가상 카탈로그 기반 출력 예시 |
 
-클라이언트 UI의 버튼은 보안 경계가 아니다. 실제 인증과 권한 검사는 서버 및 RLS에서 수행한다.
+## 등록과 카탈로그 쓰기
 
-## 페이지
+`parseWorkshopInput`은 URL과 숫자 ID의 순서를 보존하며 중복을 제거한다. 수동 JSON은 기존 검사 함수로 검증한다. `GET /api/ai-research-inbox`는 인증 및 허용 목록 확인 후 저장소의 조사 자료를 읽고, 소유자가 이미 등록한 Workshop을 제외한다. 한 ID의 조사함·JSON 후보를 화면에서 출처별로 확인할 수 있다. 사용자별 영구 대기 레코드와 복수 후보의 일괄 승인은 후속 범위다.
 
-- /login : Google 로그인
-- /dashboard : 등록 현황
-- /mods : 카탈로그 조회/검색
-- /register : Workshop 링크, 조사 JSON 검토 및 개별 승인
-- /profiles : 후속 서버 관리용 초기 읽기 화면
+`isCatalogWriteAllowed`는 Vercel 환경과 대상 환경이 모두 `production`인지, 프로젝트 ID가 허용된 운영 프로젝트와 일치하는지, Supabase 주소가 허용된 HTTPS origin과 일치하는지 검사한다. 승인된 프로젝트와 주소는 서버 전용 `CATALOG_WRITE_PRODUCTION_VERCEL_PROJECT_ID`와 `CATALOG_WRITE_PRODUCTION_SUPABASE_ORIGIN`에 둔다. 환경 정보가 없거나 불일치하면 등록 버튼·클라이언트 승인 함수·`POST /api/mods`에서 쓰기를 막는다. 서버는 허용된 요청에 대해 사용자와 자료를 검증한 뒤 `approve_research_record`를 호출한다. 이 함수는 `mods`, `mod_ids`, `research_records`를 한 트랜잭션에서 저장한다.
 
-## 연동 상태
+초기 SQL에는 `authenticated`의 카탈로그 테이블 직접 쓰기 및 RPC 실행 권한이 있다. DB의 소유자 RLS와 앱 배포 정책은 각각 검증해야 한다. 관리형 프로젝트의 실효 권한과 환경별 데이터 격리는 별도 점검 대상이다.
 
-- A (ChatGPT 조사 결과 앱 직접 전달): 연결 방법 검증 전, 미구현. 공개 무인증 쓰기 API는 만들지 않음.
-- B (구조화된 JSON 붙여넣기): 코드 작성, 실제 Supabase 연동 테스트 대기.
-- C (앱 내부 AI 조사): 후속 확장, 별도 API 비용 검토.
-- 서버 구성 문자열: 복수 Mod ID 옵션 및 로드 순서 정책 확정 전 미구현.
-- 데이터 내보내기/복구: 별도 후속 개발 항목.
+## 세션과 프로필
 
-현재 Supabase 프로젝트/Google OAuth/배포 주소 설정이 없어 실로그인 및 DB 저장은 검증되지 않았다.
+`proxy.ts`는 일반 페이지에서 요청별 세션을 갱신한다. OAuth 콜백에서는 사전 갱신을 생략하고, 서버 클라이언트가 이전 세션을 읽지 않고 현재 프로젝트의 verifier로 교환을 시도한다. 콜백 실패 시 Preview 진단에는 오류 코드·상태·이름과 verifier 쿠키 존재 여부만 남긴다. 실제 Preview의 PKCE 401 원인은 미확인이다.
+
+프로필 편집기는 `GET /api/profile-catalog`로 소유자의 후보를 읽는다. 선택 상태에는 공급 Workshop ID, 게임 Mod ID, 활성 여부와 순서가 있다. 비활성화해도 행의 위치는 보존한다. 추천 미리보기 적용과 경고를 확인한 설정 문자열 복사는 사용자 동작으로 수행한다. 출력기는 활성 행과 명시적 다운로드 전용 Workshop을 읽는다. 실제 카테고리 우선순위·관계 근거가 없으면 검증 범위를 제한하며, 실제 게임 호환성은 후속 검사로 남긴다.
+
+편집 세션을 다시 열면 선택을 복원할 프로필 저장 경로는 아직 없다. 기존 `profile_mods.mod_id`는 카탈로그 행 `mods.id`를 가리킨다. 개별 후보 `mod_ids.id`에 연결하는 저장 구조와 레거시 전환은 별도 설계 대상이다.

@@ -8,9 +8,19 @@ function noStoreRedirect(destination: URL) {
 }
 
 // Temporary preview-only diagnostics. Never log auth codes, tokens or cookie values.
+function classifyAuthFailure(message: string): string {
+  const normalized = message.toLowerCase();
+  if (normalized.includes("code verifier") || normalized.includes("code_verifier")) return "code_verifier";
+  if (normalized.includes("invalid flow") || normalized.includes("flow state")) return "flow_state";
+  if (normalized.includes("expired") || normalized.includes("already used")) return "expired_or_reused_code";
+  if (normalized.includes("invalid grant") || normalized.includes("invalid_grant")) return "invalid_grant";
+  if (normalized.includes("invalid api key") || normalized.includes("invalid jwt")) return "api_key_or_jwt";
+  return "unclassified";
+}
+
 function reportOAuthFailure(
   reason: string,
-  details?: { status?: number; code?: string; name?: string; verifierCookiePresent?: boolean }
+  details?: { status?: number; code?: string; name?: string; verifierCookiePresent?: boolean; errorCategory?: string; flowIdPresent?: boolean }
 ) {
   if (process.env.VERCEL_ENV !== "preview") return;
   console.error("[preview-oauth-diagnostic]", {
@@ -18,7 +28,9 @@ function reportOAuthFailure(
     status: details?.status ?? null,
     errorCode: details?.code ?? null,
     errorName: details?.name ?? null,
-    verifierCookiePresent: details?.verifierCookiePresent ?? null
+    verifierCookiePresent: details?.verifierCookiePresent ?? null,
+    errorCategory: details?.errorCategory ?? null,
+    flowIdPresent: details?.flowIdPresent ?? null
   });
 }
 
@@ -50,7 +62,9 @@ export async function GET(request: NextRequest) {
     status: error.status,
     code: error.code,
     name: error.name,
-    verifierCookiePresent
+    verifierCookiePresent,
+    errorCategory: classifyAuthFailure(error.message),
+    flowIdPresent: request.nextUrl.searchParams.has("sb_flow_id")
   });
   return noStoreRedirect(new URL("/login?error=oauth", request.url));
 }

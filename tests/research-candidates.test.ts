@@ -59,3 +59,23 @@ test("preserves existing manual JSON and inbox review when no Workshop ID is ent
   assert.deepEqual(result.missingIds, []);
   assert.deepEqual(result.excludedIds, []);
 });
+
+test("Steam lookup for requested ID is kept separate from unrelated preloaded inbox", () => {
+  const oldInbox = normalizeResearchRecord({ workshopId: "3552615247", title: "Old inbox" }).record!;
+  const steam = normalizeResearchRecord({
+    workshopId: "3640496116",
+    title: "Steam public metadata",
+    modIds: [],
+    verificationStatus: "unverified",
+    buildCompatibility: "unverified",
+    multiplayerCompatibility: "unverified"
+  }).record!;
+  const groups = groupResearchCandidates([oldInbox], [], [steam]);
+  const result = matchResearchCandidatesToInput(groups, ["3640496116"]);
+  assert.deepEqual([...result.groups.keys()], ["3640496116"]);
+  assert.deepEqual(result.groups.get("3640496116")?.map(c => c.source), ["steam"]);
+  assert.deepEqual(result.excludedIds, ["3552615247"]);
+  assert.deepEqual(result.missingIds, []);
+  assert.deepEqual(result.groups.get("3640496116")?.[0].record.modIds, []);
+  assert.equal(result.groups.get("3640496116")?.[0].record.buildCompatibility, "unverified");
+});

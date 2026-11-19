@@ -107,7 +107,7 @@ export function ImportWorkbench({ readOnly }: { readOnly: boolean }) {
   }
 
   async function loadSteamMetadata() {
-    if (loadingSteam || !workshopIds.length || invalidPositions.length) return;
+    if (loadingSteam || !workshopIds.length || workshopIds.length > 20 || invalidPositions.length) return;
     setLoadingSteam(true);
     setSteamErrors([]);
     setSteamRecords([]);
@@ -234,9 +234,10 @@ export function ImportWorkbench({ readOnly }: { readOnly: boolean }) {
         <p className="muted mt-2 text-sm leading-6">조사함에는 GitHub에 미리 저장된 결과만 있습니다. Workshop URL을 입력하거나 새로고침해도 해당 모드의 AI 조사가 자동 실행되지는 않습니다.</p>
         <div className="mt-3 space-y-2">
           <button type="button" className="action w-full" onClick={loadSteamMetadata}
-            disabled={loadingSteam || !workshopIds.length || invalidPositions.length > 0}>
+            disabled={loadingSteam || !workshopIds.length || workshopIds.length > 20 || invalidPositions.length > 0}>
             {loadingSteam ? "Steam 정보 확인 중..." : "입력한 모드 확인 (Steam 공개 정보)"}
           </button>
+          {workshopIds.length > 20 && <p role="alert" className="text-sm text-amber-200">한 번에 최대 20개까지 확인할 수 있습니다.</p>}
           <p className="muted text-xs">Steam의 공개 제목·설명만 조회합니다. AI 분석, Mod ID 및 B42.22·멀티 호환성 검증은 포함되지 않습니다. 카탈로그에 자동 저장하지 않습니다.</p>
           {steamErrors.map((message, index) => <p key={index} role="alert" className="text-sm text-amber-200">{message}</p>)}
         </div>

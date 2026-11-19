@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { groupResearchCandidates, type ResearchCandidate } from "@/lib/research-candidates";
+import { groupResearchCandidates, matchResearchCandidatesToInput, type ResearchCandidate } from "@/lib/research-candidates";
 import {
   parseResearchPayload,
   parseWorkshopInput,
@@ -80,6 +80,8 @@ export function ImportWorkbench({ readOnly }: { readOnly: boolean }) {
     [rawJson]
   );
   const groups = useMemo(() => groupResearchCandidates(inbox?.records ?? [], parsed.records), [inbox, parsed.records]);
+  const matched = useMemo(() => matchResearchCandidatesToInput(groups, workshopIds), [groups, workshopIds]);
+  const hasResearchData = inbox !== null || parsed.records.length > 0;
 
   async function loadInbox() {
     if (loadingInbox) return;
@@ -102,11 +104,11 @@ export function ImportWorkbench({ readOnly }: { readOnly: boolean }) {
   }
 
   // An edit or refresh can replace a source record while its confirmation is open.
-  const selected = selection && groups.get(selection.id)?.find(
+  const selected = selection && matched.groups.get(selection.id)?.find(
     ({ source, record }) => source === selection.candidate.source && record === selection.candidate.record
   );
   async function approve() {
-    if (readOnly || !selection || !selected || lockedIds.current.has(selection.id)) return;
+    if (readOnly || invalidPositions.length > 0 || !selection || !selected || lockedIds.current.has(selection.id)) return;
     const { id } = selection;
     const candidate = selected;
     lockedIds.current.add(id);
@@ -163,7 +165,10 @@ export function ImportWorkbench({ readOnly }: { readOnly: boolean }) {
           id="workshop-input"
           rows={4}
           value={workshopInput}
-          onChange={(event) => setWorkshopInput(event.target.value)}
+          onChange={(event) => {
+            setWorkshopInput(event.target.value);
+            setSelection(null);
+          }}
           aria-describedby="workshop-input-help"
           aria-invalid={invalidPositions.length > 0}
           className="field resize-y"
@@ -189,6 +194,7 @@ export function ImportWorkbench({ readOnly }: { readOnly: boolean }) {
 
       <section className="panel p-5 sm:p-6">
         <h2 className="text-lg font-bold">2. 조사 결과 가져오기</h2>
+        <p className="muted mt-2 text-sm leading-6">조사함에는 GitHub에 미리 저장된 결과만 있습니다. Workshop URL을 입력하거나 새로고침해도 해당 모드의 AI 조사가 자동 실행되지는 않습니다.</p>
         <button type="button" className="secondary-action mt-3" onClick={loadInbox} disabled={loadingInbox}>
           {loadingInbox ? "조회 중..." : "조사함 새로고침"}
         </button>
@@ -225,13 +231,26 @@ export function ImportWorkbench({ readOnly }: { readOnly: boolean }) {
         <div>
           <h2 className="text-lg font-bold">3. 모드별 검토 및 승인</h2>
           <p className="muted mt-2 text-sm">저장할 출처와 내용을 선택한 뒤 확인창에서 최종 승인하세요.</p>
+          {invalidPositions.length > 0 && (
+            <p role="alert" className="mt-2 text-sm text-amber-200">입력 형식 오류를 수정하기 전에는 등록을 승인할 수 없습니다.</p>
+          )}
+          {workshopIds.length > 0 && matched.excludedIds.length > 0 && (
+            <p role="status" className="mt-2 text-sm text-amber-200">입력하지 않은 Workshop ID {matched.excludedIds.join(", ")}의 조사 결과는 제외했습니다.</p>
+          )}
+          {workshopIds.length > 0 && hasResearchData && matched.missingIds.length > 0 && (
+            <p role="alert" className="mt-2 text-sm text-amber-200">입력한 Workshop ID {matched.missingIds.join(", ")}에 해당하는 조사 결과가 없습니다. 해당 ID의 조사 자료를 가져오거나 수동 JSON에 입력해 주세요.</p>
+          )}
         </div>
-        {!groups.size && (
-          <div className="panel p-6 text-sm muted">조사함을 조회하거나 수동 JSON을 입력하면 항목별 미리보기가 표시됩니다.</div>
+        {!matched.groups.size && (
+          <div className="panel p-6 text-sm muted">
+            {workshopIds.length > 0 && hasResearchData
+              ? "입력한 Workshop ID와 일치하는 조사 결과가 없습니다. 조사함 조회는 새 AI 조사가 아니며, 입력한 ID와 맞는 조사 자료가 필요합니다."
+              : "조사함을 조회하거나 수동 JSON을 입력하면 항목별 미리보기가 표시됩니다."}
+          </div>
         )}
-        {Array.from(groups, ([id, candidates]) => {
+        {Array.from(matched.groups, ([id, candidates]) => {
           const result = results[id];
-          const blocked = readOnly || result?.state === "saving" || result?.state === "saved" || result?.state === "registered";
+          const blocked = readOnly || invalidPositions.length > 0 || result?.state === "saving" || result?.state === "saved" || result?.state === "registered";
           return (
             <div key={id} className="space-y-3">
               {candidates.length > 1 && (

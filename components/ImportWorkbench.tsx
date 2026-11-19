@@ -8,7 +8,7 @@ import {
   type ResearchRecord
 } from "@/lib/workshop";
 
-const sourceLabels = { inbox: "조사함", manual: "수동 JSON" } as const;
+const sourceLabels = { inbox: "조사함", manual: "수동 JSON", steam: "Steam 공개 정보 · AI 미분석" } as const;
 
 type Result = {
   state: "saving" | "saved" | "registered" | "error";
@@ -70,6 +70,9 @@ export function ImportWorkbench({ readOnly }: { readOnly: boolean }) {
   const [rawJson, setRawJson] = useState("");
   const [inbox, setInbox] = useState<InboxResponse | null>(null);
   const [loadingInbox, setLoadingInbox] = useState(false);
+  const [steamRecords, setSteamRecords] = useState<ResearchRecord[]>([]);
+  const [steamErrors, setSteamErrors] = useState<string[]>([]);
+  const [loadingSteam, setLoadingSteam] = useState(false);
   const [inboxError, setInboxError] = useState("");
   const [results, setResults] = useState<Record<string, Result>>({});
   const [selection, setSelection] = useState<{ id: string; candidate: ResearchCandidate } | null>(null);
@@ -79,9 +82,9 @@ export function ImportWorkbench({ readOnly }: { readOnly: boolean }) {
     () => rawJson.trim() ? parseResearchPayload(rawJson) : { records: [], errors: [] },
     [rawJson]
   );
-  const groups = useMemo(() => groupResearchCandidates(inbox?.records ?? [], parsed.records), [inbox, parsed.records]);
+  const groups = useMemo(() => groupResearchCandidates(inbox?.records ?? [], parsed.records, steamRecords), [inbox, parsed.records, steamRecords]);
   const matched = useMemo(() => matchResearchCandidatesToInput(groups, workshopIds), [groups, workshopIds]);
-  const hasResearchData = inbox !== null || parsed.records.length > 0;
+  const hasResearchData = inbox !== null || parsed.records.length > 0 || steamRecords.length > 0 || steamErrors.length > 0;
 
   async function loadInbox() {
     if (loadingInbox) return;
@@ -100,6 +103,38 @@ export function ImportWorkbench({ readOnly }: { readOnly: boolean }) {
       setInboxError(error instanceof Error ? error.message : "조사함을 불러오지 못했습니다.");
     } finally {
       setLoadingInbox(false);
+    }
+  }
+
+  async function loadSteamMetadata() {
+    if (loadingSteam || !workshopIds.length || invalidPositions.length) return;
+    setLoadingSteam(true);
+    setSteamErrors([]);
+    setSteamRecords([]);
+    setSelection(null);
+    try {
+      const allRecords: ResearchRecord[] = [];
+      const allErrors: string[] = [];
+      for (let index = 0; index < workshopIds.length; index += 5) {
+        const response = await fetch("/api/workshop-metadata", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ workshopIds: workshopIds.slice(index, index + 5) })
+        });
+        const body = await response.json() as { records?: ResearchRecord[]; errors?: string[]; error?: string };
+        if (!response.ok) {
+          allErrors.push(body.error || "Steam 정보를 가져오지 못했습니다.");
+          break;
+        }
+        allRecords.push(...(body.records ?? []));
+        allErrors.push(...(body.errors ?? []));
+      }
+      setSteamRecords(allRecords);
+      setSteamErrors(allErrors);
+    } catch {
+      setSteamErrors(["Steam 연결에 실패했습니다. 나중에 다시 시도해 주세요."]);
+    } finally {
+      setLoadingSteam(false);
     }
   }
 
@@ -167,6 +202,8 @@ export function ImportWorkbench({ readOnly }: { readOnly: boolean }) {
           value={workshopInput}
           onChange={(event) => {
             setWorkshopInput(event.target.value);
+            setSteamRecords([]);
+            setSteamErrors([]);
             setSelection(null);
           }}
           aria-describedby="workshop-input-help"
@@ -174,7 +211,7 @@ export function ImportWorkbench({ readOnly }: { readOnly: boolean }) {
           className="field resize-y"
           placeholder={"https://steamcommunity.com/sharedfiles/filedetails/?id=1234567890\n9876543210"}
         />
-        <button type="button" className="secondary-action mt-2" disabled={!workshopInput} onClick={() => setWorkshopInput("")}>입력 비우기</button>
+        <button type="button" className="secondary-action mt-2" disabled={!workshopInput} onClick={() => { setWorkshopInput(""); setSteamRecords([]); setSteamErrors([]); }}>입력 비우기</button>
         <div role="status">
           {(workshopIds.length > 0 || invalidPositions.length > 0) && (
             <p className="mt-4 text-sm font-semibold">인식된 Workshop ID {workshopIds.length}개</p>
@@ -195,6 +232,14 @@ export function ImportWorkbench({ readOnly }: { readOnly: boolean }) {
       <section className="panel p-5 sm:p-6">
         <h2 className="text-lg font-bold">2. 조사 결과 가져오기</h2>
         <p className="muted mt-2 text-sm leading-6">조사함에는 GitHub에 미리 저장된 결과만 있습니다. Workshop URL을 입력하거나 새로고침해도 해당 모드의 AI 조사가 자동 실행되지는 않습니다.</p>
+        <div className="mt-3 space-y-2">
+          <button type="button" className="action w-full" onClick={loadSteamMetadata}
+            disabled={loadingSteam || !workshopIds.length || invalidPositions.length > 0}>
+            {loadingSteam ? "Steam 정보 확인 중..." : "입력한 모드 확인 (Steam 공개 정보)"}
+          </button>
+          <p className="muted text-xs">Steam의 공개 제목·설명만 조회합니다. AI 분석, Mod ID 및 B42.22·멀티 호환성 검증은 포함되지 않습니다. 카탈로그에 자동 저장하지 않습니다.</p>
+          {steamErrors.map((message, index) => <p key={index} role="alert" className="text-sm text-amber-200">{message}</p>)}
+        </div>
         <button type="button" className="secondary-action mt-3" onClick={loadInbox} disabled={loadingInbox}>
           {loadingInbox ? "조회 중..." : "조사함 새로고침"}
         </button>

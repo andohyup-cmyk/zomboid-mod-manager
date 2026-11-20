@@ -10,6 +10,8 @@ export type ResearchRecord = {
   verificationStatus: VerificationStatus;
   buildCompatibility: VerificationStatus;
   multiplayerCompatibility: VerificationStatus;
+  singleplayerCompatibility: VerificationStatus;
+  midServerAdditionCompatibility: VerificationStatus;
 };
 
 const WORKSHOP_ID = /^\d{5,20}$/;
@@ -121,7 +123,9 @@ export function normalizeResearchRecord(input: unknown):
       checkedAt: date as string | null,
       verificationStatus: statusOf(raw.verificationStatus),
       buildCompatibility: statusOf(raw.buildCompatibility),
-      multiplayerCompatibility: statusOf(raw.multiplayerCompatibility)
+      multiplayerCompatibility: statusOf(raw.multiplayerCompatibility),
+      singleplayerCompatibility: statusOf(raw.singleplayerCompatibility),
+      midServerAdditionCompatibility: statusOf(raw.midServerAdditionCompatibility)
     }
   };
 }

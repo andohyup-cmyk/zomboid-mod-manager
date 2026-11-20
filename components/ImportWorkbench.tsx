@@ -164,8 +164,12 @@ export function ImportWorkbench({ readOnly }: { readOnly: boolean }) {
   }, []);
 
   useEffect(() => {
-    // Until the queue migration and RLS tests are approved, Preview must not query or write it.
-    if (!readOnly) void loadQueue();
+    // Defer the initial fetch to avoid synchronous state updates during effect setup.
+    // Preview remains read-only until a separately approved DB/RLS rollout.
+    if (readOnly) return;
+    let active = true;
+    void Promise.resolve().then(() => { if (active) void loadQueue(); });
+    return () => { active = false; };
   }, [readOnly, loadQueue]);
 
   async function saveQueue(items: { source: "steam" | "manual" | "inbox"; record: ResearchRecord }[]) {

@@ -87,3 +87,16 @@ test("mobile editor preserves disabled positions while emitting only active Mod 
   await page.getByRole("button", { name: "Options · 12345 활성화", exact: true }).click();
   await expect(output).toContainText(lines("\\Core;\\Options;\\Patch"));
 });
+
+test("read-only Preview shows researched data but no batch approval or queue writes", async ({ page }) => {
+  test.skip(approved, "Preview protection only; write-enabled mock uses a separate test.");
+  await page.goto("/register");
+  await page.getByLabel("JSON 조사 결과").fill(JSON.stringify(manual));
+  await expect(page.getByText(manual.title)).toBeVisible();
+  await expect(page.getByRole("button", { name: "이 환경에서는 저장할 수 없음" })).toBeDisabled();
+  await expect(page.getByRole("button", { name: /선택 모드 등록/ })).toHaveCount(0);
+  const response = await page.request.post("/api/research-queue", {
+    data: { items: [{ source: "manual", record: manual }] }
+  });
+  expect(response.status()).toBe(403);
+});

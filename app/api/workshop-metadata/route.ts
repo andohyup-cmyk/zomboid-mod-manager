@@ -1,3 +1,4 @@
+import { isSameOriginRequest } from "@/lib/write-origin";
 import { NextRequest, NextResponse } from "next/server";
 import { getOwnerAccess } from "@/lib/auth";
 import { canonicalWorkshopId } from "@/lib/workshop";
@@ -20,6 +21,7 @@ function respond(body: unknown, status = 200) {
 // Steam's public metadata is not an AI compatibility assessment.
 // No catalog or database writes occur in this route.
 export async function POST(request: NextRequest) {
+  if (!isSameOriginRequest(request.url, request.headers.get("origin"))) return respond({ error: "요청 출처가 올바르지 않습니다." }, 403);
   const access = await getOwnerAccess();
   if (access.kind !== "authorized") {
     return respond({ error: "이 작업을 수행할 권한이 없습니다." }, 403);

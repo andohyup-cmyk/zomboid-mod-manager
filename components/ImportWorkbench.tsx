@@ -152,13 +152,24 @@ export function ImportWorkbench({ readOnly }: { readOnly: boolean }) {
     setLoadingQueue(true);
     setQueueError("");
     try {
-      const response = await fetch("/api/research-queue", { cache: "no-store" });
-      const body = await response.json() as { records?: QueueItem[]; error?: string; errors?: string[] };
-      if (!response.ok || !Array.isArray(body.records)) {
-        throw new Error(body.error || "영구 대기함을 불러오지 못했습니다.");
+      const all: QueueItem[] = [];
+      const errors: string[] = [];
+      let offset: number | null = 0;
+      for (let page = 0; offset !== null && page < 101; page++) {
+        const response = await fetch(`/api/research-queue?offset=${offset}`, { cache: "no-store" });
+        const body = await response.json() as {
+          records?: QueueItem[]; error?: string; errors?: string[]; nextOffset?: number | null;
+        };
+        if (!response.ok || !Array.isArray(body.records)) {
+          throw new Error(body.error || "영구 대기함을 불러오지 못했습니다.");
+        }
+        all.push(...body.records);
+        errors.push(...(body.errors ?? []));
+        offset = body.nextOffset ?? null;
       }
-      setQueueRecords(body.records);
-      if (body.errors?.length) setQueueError(body.errors.join(" / "));
+      if (offset !== null) throw new Error("대기함이 10,000개를 넘습니다. 범위를 좁혀 조회해야 합니다.");
+      setQueueRecords(all);
+      if (errors.length) setQueueError(errors.join(" / "));
     } catch (error) {
       setQueueError(error instanceof Error ? error.message : "영구 대기함을 불러오지 못했습니다.");
     } finally {

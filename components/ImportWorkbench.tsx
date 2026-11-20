@@ -66,6 +66,56 @@ function ApprovalDialog({ candidate, onCancel, onApprove }: {
   );
 }
 
+function BatchApprovalDialog({ candidates, onCancel, onApprove }: {
+  candidates: ResearchCandidate[];
+  onCancel: () => void;
+  onApprove: () => void;
+}) {
+  const dialog = useRef<HTMLDialogElement>(null);
+  useEffect(() => { dialog.current?.showModal(); }, []);
+  return (
+    <dialog ref={dialog} aria-labelledby="batch-approval-title" onCancel={onCancel}
+      onClick={event => { if (event.target === event.currentTarget) onCancel(); }}
+      className="panel m-auto max-h-[90dvh] w-[calc(100%_-_2rem)] max-w-lg p-0 text-[#ecf2f8] backdrop:bg-[#060b12cc]">
+      <div className="space-y-3 p-5">
+        <h2 id="batch-approval-title" className="text-lg font-bold">선택 모드 등록 확인</h2>
+        <p className="text-sm">다음 {candidates.length}개 Workshop 항목을 카탈로그에 등록합니다.</p>
+        <ul className="max-h-48 space-y-1 overflow-y-auto text-sm">
+          {candidates.map(item => (
+            <li key={item.record.workshopId}>{item.record.title} · {item.record.workshopId}</li>
+          ))}
+        </ul>
+        <p className="muted text-xs">Mod ID·B42.22·멀티 호환성의 미확인 정보는 검증 없이 확정되지 않습니다.</p>
+        <div className="flex flex-wrap gap-3">
+          <button type="button" className="secondary-action" onClick={onCancel}>취소</button>
+          <button type="button" className="action" onClick={onApprove}>선택 항목 최종 승인</button>
+        </div>
+      </div>
+    </dialog>
+  );
+}
+
+function DismissDialog({ title, onCancel, onConfirm }: {
+  title: string;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  const dialog = useRef<HTMLDialogElement>(null);
+  useEffect(() => { dialog.current?.showModal(); }, []);
+  return (
+    <dialog ref={dialog} aria-labelledby="queue-dismiss-title" onCancel={onCancel}
+      onClick={event => { if (event.target === event.currentTarget) onCancel(); }}
+      className="panel m-auto w-[calc(100%_-_2rem)] max-w-lg p-5 text-[#ecf2f8] backdrop:bg-[#060b12cc]">
+      <h2 id="queue-dismiss-title" className="text-lg font-bold">대기 항목 숨기기</h2>
+      <p className="mt-3 text-sm">{title} 항목을 대기 목록에서 숨길까요? 카탈로그와 실제 서버 설정은 변경되지 않습니다.</p>
+      <div className="mt-4 flex gap-3">
+        <button type="button" className="secondary-action" onClick={onCancel}>취소</button>
+        <button type="button" className="action" onClick={onConfirm}>숨기기 확인</button>
+      </div>
+    </dialog>
+  );
+}
+
 export function ImportWorkbench({ readOnly }: { readOnly: boolean }) {
   const [workshopInput, setWorkshopInput] = useState("");
   const [rawJson, setRawJson] = useState("");
@@ -78,6 +128,10 @@ export function ImportWorkbench({ readOnly }: { readOnly: boolean }) {
   const [loadingQueue, setLoadingQueue] = useState(false);
   const [queueError, setQueueError] = useState("");
   const [savingManual, setSavingManual] = useState(false);
+  const [batchChoices, setBatchChoices] = useState<Record<string, ResearchCandidate>>({});
+  const [batchOpen, setBatchOpen] = useState(false);
+  const [approvingBatch, setApprovingBatch] = useState(false);
+  const [queueDismiss, setQueueDismiss] = useState<{ id: string; title: string } | null>(null);
   const [inboxError, setInboxError] = useState("");
   const [results, setResults] = useState<Record<string, Result>>({});
   const [selection, setSelection] = useState<{ id: string; candidate: ResearchCandidate } | null>(null);
@@ -200,16 +254,31 @@ export function ImportWorkbench({ readOnly }: { readOnly: boolean }) {
     }
   }
 
+  async function dismissQueue() {
+    if (readOnly || !queueDismiss) return;
+    const { id } = queueDismiss;
+    setQueueDismiss(null);
+    try {
+      const response = await fetch("/api/research-queue", {
+        method: "PATCH", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: [id] })
+      });
+      const body = await response.json() as { error?: string };
+      if (!response.ok) throw new Error(body.error || "대기 항목을 숨기지 못했습니다.");
+      setQueueRecords(current => current.filter(item => item.id !== id));
+      setBatchChoices({});
+    } catch (error) {
+      setQueueError(error instanceof Error ? error.message : "대기 항목을 숨기지 못했습니다.");
+    }
+  }
+
   // An edit or refresh can replace a source record while its confirmation is open.
   const selected = selection && matched.groups.get(selection.id)?.find(
     ({ source, record }) => source === selection.candidate.source && record === selection.candidate.record
   );
-  async function approve() {
-    if (readOnly || invalidPositions.length > 0 || !selection || !selected || lockedIds.current.has(selection.id)) return;
-    const { id } = selection;
-    const candidate = selected;
+  async function registerCandidate(id: string, candidate: ResearchCandidate) {
+    if (readOnly || invalidPositions.length > 0 || lockedIds.current.has(id)) return;
     lockedIds.current.add(id);
-    setSelection(null);
     setResults(current => ({ ...current, [id]: { state: "saving", candidate } }));
     try {
       const response = await fetch("/api/mods", {
@@ -226,10 +295,50 @@ export function ImportWorkbench({ readOnly }: { readOnly: boolean }) {
         throw new Error(body.error || "등록 결과를 확인하지 못했습니다. 카탈로그를 확인해 주세요.");
       }
       setResults(current => ({ ...current, [id]: { state: "saved", candidate } }));
+      // Dismiss approved queue entries without deleting their archived database rows.
+      const matchingQueueIds = queueRecords.filter(item => item.record.workshopId === id).map(item => item.id);
+      if (matchingQueueIds.length) {
+        const done = await fetch("/api/research-queue", {
+          method: "PATCH", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ids: matchingQueueIds })
+        });
+        if (done.ok) setQueueRecords(current => current.filter(item => !matchingQueueIds.includes(item.id)));
+        else setQueueError("카탈로그 등록은 완료됐지만 대기함 정리에 실패했습니다.");
+      }
     } catch (error) {
-      lockedIds.current.delete(id);
+      // Even a queue-dismissal error must not undo a successful catalog approval.
+      // A failed catalog write is retryable and keeps its original candidate.
       const message = error instanceof Error ? error.message : "저장할 수 없습니다.";
-      setResults(current => ({ ...current, [id]: { state: "error", candidate, message } }));
+      setResults(current => current[id]?.state === "saved" ? current : ({
+        ...current, [id]: { state: "error", candidate, message }
+      }));
+      if (message) lockedIds.current.delete(id);
+    }
+  }
+
+  async function approve() {
+    if (readOnly || !selection || !selected) return;
+    const { id } = selection;
+    const candidate = selected;
+    setSelection(null);
+    await registerCandidate(id, candidate);
+  }
+
+  const activeBatch = Object.entries(batchChoices).filter(([id, candidate]) =>
+    matched.groups.get(id)?.some(item => item === candidate)
+    && !["saving", "saved", "registered"].includes(results[id]?.state ?? "")
+  ).slice(0, 20);
+
+  async function approveBatch() {
+    if (readOnly || invalidPositions.length > 0 || approvingBatch || !activeBatch.length) return;
+    const candidates = [...activeBatch];
+    setBatchOpen(false);
+    setApprovingBatch(true);
+    try {
+      for (const [id, candidate] of candidates) await registerCandidate(id, candidate);
+    } finally {
+      setApprovingBatch(false);
+      setBatchChoices({});
     }
   }
 
@@ -354,6 +463,10 @@ export function ImportWorkbench({ readOnly }: { readOnly: boolean }) {
         <div>
           <h2 className="text-lg font-bold">3. 모드별 검토 및 승인</h2>
           <p className="muted mt-2 text-sm">저장할 출처와 내용을 선택한 뒤 확인창에서 최종 승인하세요.</p>
+          {!readOnly && <button type="button" className="action mt-3" disabled={!activeBatch.length || approvingBatch || invalidPositions.length > 0}
+            onClick={() => setBatchOpen(true)}>
+            {approvingBatch ? "선택 항목 등록 중..." : `선택 모드 등록 (${activeBatch.length}개)`}
+          </button>}
           {invalidPositions.length > 0 && (
             <p role="alert" className="mt-2 text-sm text-amber-200">입력 형식 오류를 수정하기 전에는 등록을 승인할 수 없습니다.</p>
           )}
@@ -379,11 +492,29 @@ export function ImportWorkbench({ readOnly }: { readOnly: boolean }) {
               {candidates.length > 1 && (
                 <p className="text-sm text-amber-200">같은 Workshop ID의 후보 {candidates.length}개입니다. 내용을 비교하고 저장할 항목을 선택하세요.</p>
               )}
-              {candidates.map(candidate => (
-                <article key={candidate.source + candidate.record.workshopId} className="panel space-y-3 p-5">
+              {candidates.map((candidate, candidateIndex) => (
+                <article key={candidate.source + candidate.record.workshopId + candidateIndex} className="panel space-y-3 p-5">
                   <p className="text-xs font-semibold text-[#b9efb0]">{sourceLabels[candidate.source]}</p>
                   <h3 className="text-lg font-bold">{candidate.record.title}</h3>
                   <RecordDetails item={candidate.record} />
+                  {!readOnly && (
+                    <label className="flex items-center gap-2 text-sm">
+                      <input type="checkbox" checked={batchChoices[id] === candidate} disabled={blocked || approvingBatch}
+                        onChange={event => setBatchChoices(current => {
+                          const next = { ...current };
+                          if (event.target.checked) next[id] = candidate;
+                          else if (next[id] === candidate) delete next[id];
+                          return next;
+                        })} />
+                      일괄 등록할 후보 선택
+                    </label>
+                  )}
+                  {!readOnly && candidate.source === "queue" && (
+                    <button type="button" className="secondary-action" onClick={() => {
+                      const item = queueRecords.find(row => row.record === candidate.record);
+                      if (item) setQueueDismiss({ id: item.id, title: item.record.title });
+                    }}>대기함에서 숨기기</button>
+                  )}
                   <button type="button" className="action w-full" disabled={blocked}
                     onClick={() => setSelection({ id, candidate })}>
                     {readOnly ? "이 환경에서는 저장할 수 없음" : "확인 후 추가하기"}
@@ -402,7 +533,15 @@ export function ImportWorkbench({ readOnly }: { readOnly: boolean }) {
           );
         })}
       </section>
-      {!readOnly && selected && <ApprovalDialog candidate={selected} onCancel={() => setSelection(null)} onApprove={approve} />}
+      {!readOnly && selected && <ApprovalDialog candidate={selected} onCancel={() => setSelection(null)} onApprove={() => void approve()} />}
+      {!readOnly && batchOpen && activeBatch.length > 0 && (
+        <BatchApprovalDialog candidates={activeBatch.map(([, candidate]) => candidate)}
+          onCancel={() => setBatchOpen(false)} onApprove={() => void approveBatch()} />
+      )}
+      {!readOnly && queueDismiss && (
+        <DismissDialog title={queueDismiss.title} onCancel={() => setQueueDismiss(null)}
+          onConfirm={() => void dismissQueue()} />
+      )}
     </div>
   );
 }

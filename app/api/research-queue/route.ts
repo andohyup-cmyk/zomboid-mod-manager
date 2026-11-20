@@ -47,7 +47,18 @@ export async function GET() {
       updatedAt: item.updated_at as string
     }];
   });
-  return respond({ records, errors });
+  if (records.length === 0) return respond({ records, errors, alreadyRegistered: 0 });
+  const { data: registered, error: registeredError } = await access.supabase.from("mods")
+    .select("workshop_id")
+    .eq("owner_id", access.user.id)
+    .in("workshop_id", [...new Set(records.map(item => item.record.workshopId))]);
+  if (registeredError) return respond({ error: "등록된 카탈로그를 확인하지 못했습니다." }, 500);
+  const approvedIds = new Set((registered ?? []).map(item => item.workshop_id));
+  return respond({
+    records: records.filter(item => !approvedIds.has(item.record.workshopId)),
+    alreadyRegistered: approvedIds.size,
+    errors
+  });
 }
 
 export async function POST(request: NextRequest) {

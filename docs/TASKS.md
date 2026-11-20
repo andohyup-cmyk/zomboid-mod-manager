@@ -1,5 +1,24 @@
 # 작업 현황
 
+## 2026-11-20 안전 범위 일괄 개발 (현재 작업 브랜치)
+
+- 작업 브랜치: `feature/remaining-mvp-safe-batch` (Draft PR [#7](https://github.com/andohyup-cmyk/zomboid-mod-manager/pull/7)), 이전 Draft PR [#6](https://github.com/andohyup-cmyk/zomboid-mod-manager/pull/6)을 기준으로 누적 개발. **main 병합 없음.**
+- **구현·테스트:** Steam GetPublishedFileDetails 응답을 ID/게임별 검사하고 1MB 스트리밍 제한 적용; 미확인 Mod ID/호환성 추정 금지. B42.22·싱글·멀티·서버 중간 추가 각각 조사 상태 구분.
+- **카탈로그:** 소유자 목록의 이름/Workshop ID 검색, 상태·보관·정렬 필터, 모드 상세·Mod ID·원본 출처 보기(조회 전용).
+- **조사함·승인:** 영구 대기함 페이지별 조회 및 중복 안전 재시도, 출처별 후보 구분, 중복 없는 항목 전체 선택, 최종 확인 후 일괄 승인, 성공·기존 등록·실패 건수 구분. 실제 DB 적용 전이므로 저장은 검증하지 않음.
+- **서버 설정:** 명시적인 선택 그룹 min/max 검증 엔진을 추가. 근거 URL이 있는 검증된 규칙만 복사 차단에 반영. 그룹 기본 규칙은 사용자가 확정하지 않았으므로 설정하지 않음.
+- **프로필:** 임시 선택·활성/비활성·순서·다운로드 전용 Workshop JSON 파일 내려받기와 불러오기(교체 확인). DB 저장과 게임 파일 수정 기능이 아님.
+- **백업:** 로그인 소유자 데이터의 JSON 내보내기(이전 브랜치) 및 브라우저 내부 파일 형식 검사. 미포함 테이블/미완전 데이터 표시, 복원·DB 쓰기 없음.
+- **보안:** 인증 POST/PATCH에서 외부 브라우저 Origin 차단 보완, 기존 로그인 소유권·RLS·시험 읽기 전용 보호 유지.
+- **PC 복귀 준비:** `scripts/pc-audit-workshop.ps1`, `scripts/pc-verify.ps1`, `docs/PC_VERIFICATION.md`. 아직 PC/게임에서 실행하지 않음.
+- **DB 설계 준비:** `docs/proposals/DB_SECURITY_AND_PERSISTENCE.md` — 신규 RLS/카탈로그 관계/프로필 영구화 방안. 실제 SQL 적용 없음.
+- **최신 실제 CI 시험:** Vercel Preview `dpl_2n3GmPFbXaHqdJxg6op2nYibHqCo`, 코드 `56b6f0b` — 단위 테스트 **150/150 통과**, TypeScript·ESLint·Next.js 빌드 통과, 배포 READY. 이후 브라우저 회귀 시험 소스 1건 추가(PC 브라우저에서는 미실행). Preview 비로그인 대기함 및 백업 API 403 확인.
+- **승인/연동 필요:** 시험 DB `research_queue`/RLS/권한 적용, 프로필·메타데이터 저장 스키마 결정/적용, 운영 배포·main 병합, 시험 OAuth 실제 로그인과 DB RLS 쓰기 검증. Supabase Advisor의 권한 함수 경고는 원인·수정 승인 전 변경 금지.
+- **추후 PC 검증:** 실제 B42.22 모드 `mod.info`, `Mods=`/`WorkshopItems=`, 서버 로드·멀티 동기화, PC/모바일 브라우저 실측. 기존 데이터·서버 설정은 수정하지 않음.
+
+## 과거 단계별 기록 (역사적 스냅샷)
+
+
 ## 2026-11-19 로컬 통합
 
 작업 브랜치는 `integration/local-stages-1-3`이다. 기준 `25568c2`에서 시작해 Codex `6a21a88`, 모바일 `62b4421`, PR #2 `a6daff7` 및 이 커밋을 기준으로 한 Windows OAuth 백업의 기능을 결합한다. DB·RLS 설계 `83a35bb`는 후속 영구 저장 검토 자료다.

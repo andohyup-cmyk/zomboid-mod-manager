@@ -10,9 +10,14 @@ try {
   git status --short
   if ($LASTEXITCODE -ne 0) { throw "Git status failed" }
 
-  Write-Host "=== Dependencies (locked versions) ==="
-  npm ci --no-audit
-  if ($LASTEXITCODE -ne 0) { throw "npm ci failed" }
+  Write-Host "=== Dependencies ==="
+  if (Test-Path -LiteralPath "package-lock.json") {
+    npm ci --no-audit
+  } else {
+    Write-Warning "No package-lock.json in the checkout; using npm install. Lockfile pinning remains a follow-up."
+    npm install --no-audit
+  }
+  if ($LASTEXITCODE -ne 0) { throw "npm dependency installation failed" }
 
   Write-Host "=== Tests / TypeScript / ESLint ==="
   npm run verify

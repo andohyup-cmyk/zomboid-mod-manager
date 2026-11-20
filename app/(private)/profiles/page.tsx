@@ -13,7 +13,10 @@ export default async function ProfilesPage() {
     <section className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-3xl font-bold">서버 프로필</h1>
-        <Link href="/profiles/editor" className="action text-sm">Mod ID 임시 편집</Link>
+        <div className="flex flex-wrap gap-2">
+          <Link href="/backup" className="secondary-action text-sm">JSON 데이터 내보내기</Link>
+          <Link href="/profiles/editor" className="action text-sm">Mod ID 임시 편집</Link>
+        </div>
       </div>
       {error && <p className="text-sm text-red-300">프로필 목록을 불러오지 못했습니다.</p>}
       {!error && data?.length === 0 && (

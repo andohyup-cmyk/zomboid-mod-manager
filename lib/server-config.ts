@@ -40,7 +40,9 @@ const ISSUE_SEVERITY = {
   "compatibility-reported-issue": "info",
   "dependency-unverified": "info",
   "load-order-unverified": "info",
-  "profile-rule-unverified": "info"
+  "profile-rule-unverified": "info",
+  "group-selection-violation": "error",
+  "group-rule-unverified": "info"
 } as const;
 
 type IssueCode = keyof typeof ISSUE_SEVERITY;

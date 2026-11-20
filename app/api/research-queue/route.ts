@@ -20,7 +20,13 @@ function writesAllowed(): boolean {
   return isCatalogWriteAllowed(process.env, process.env.NEXT_PUBLIC_SUPABASE_URL);
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const offsetText = request.nextUrl.searchParams.get("offset") ?? "0";
+  if (!/^(0|[1-9][0-9]*)$/.test(offsetText)) return respond({ error: "페이지 위치가 올바르지 않습니다." }, 400);
+  const offset = Number(offsetText);
+  if (!Number.isSafeInteger(offset) || offset > 10000 || offset % 100 !== 0) {
+    return respond({ error: "페이지 위치가 올바르지 않습니다." }, 400);
+  }
   const access = await getOwnerAccess();
   if (access.kind !== "authorized") return respond({ error: "접근 권한이 없습니다." }, 403);
 
@@ -29,12 +35,13 @@ export async function GET() {
     .eq("owner_id", access.user.id)
     .eq("status", "pending")
     .order("updated_at", { ascending: false })
-    .limit(100);
+    .range(offset, offset + 100);
 
   if (error) return respond({ error: "영구 대기함을 읽지 못했습니다. DB 적용 상태를 확인해 주세요." }, 503);
 
   const errors: string[] = [];
-  const records = (data ?? []).flatMap((item) => {
+  const nextOffset = (data ?? []).length > 100 ? offset + 100 : null;
+  const records = (data ?? []).slice(0, 100).flatMap((item) => {
     const normalized = normalizeResearchRecord(item.payload);
     if (!normalized.record || normalized.record.workshopId !== item.workshop_id) {
       errors.push(`Workshop ID ${item.workshop_id}: 저장된 조사 데이터 형식 오류`);
@@ -48,7 +55,7 @@ export async function GET() {
       updatedAt: item.updated_at as string
     }];
   });
-  if (records.length === 0) return respond({ records, errors, alreadyRegistered: 0 });
+  if (records.length === 0) return respond({ records, errors, alreadyRegistered: 0, nextOffset });
   const { data: registered, error: registeredError } = await access.supabase.from("mods")
     .select("workshop_id")
     .eq("owner_id", access.user.id)
@@ -58,6 +65,7 @@ export async function GET() {
   return respond({
     records: records.filter(item => !approvedIds.has(item.record.workshopId)),
     alreadyRegistered: approvedIds.size,
+    nextOffset,
     errors
   });
 }

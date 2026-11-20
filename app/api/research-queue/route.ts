@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
 
   const items = (body as { items?: unknown } | null)?.items;
   const validated = prepareResearchQueueBatch(items);
-  if (validated.error) return respond({ error: validated.error }, 400);
+  if (!validated.items) return respond({ error: validated.error ?? "대기함 입력 오류" }, 400);
 
   const updatedAt = new Date().toISOString();
   const rows = validated.items.map((item) => ({

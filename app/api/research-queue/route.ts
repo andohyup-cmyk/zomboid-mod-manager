@@ -1,3 +1,4 @@
+import { isSameOriginRequest } from "@/lib/write-origin";
 import { NextRequest, NextResponse } from "next/server";
 import { getOwnerAccess } from "@/lib/auth";
 import { isCatalogWriteAllowed } from "@/lib/catalog-write-protection";
@@ -62,6 +63,7 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  if (!isSameOriginRequest(request.url, request.headers.get("origin"))) return respond({ error: "요청 출처가 올바르지 않습니다." }, 403);
   if (!writesAllowed()) return respond({ error: "이 배포는 영구 대기함 쓰기가 차단되어 있습니다." }, 403);
   const access = await getOwnerAccess();
   if (access.kind !== "authorized") return respond({ error: "접근 권한이 없습니다." }, 403);
@@ -95,6 +97,7 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
+  if (!isSameOriginRequest(request.url, request.headers.get("origin"))) return respond({ error: "요청 출처가 올바르지 않습니다." }, 403);
   if (!writesAllowed()) return respond({ error: "이 배포는 영구 대기함 변경이 차단되어 있습니다." }, 403);
   const access = await getOwnerAccess();
   if (access.kind !== "authorized") return respond({ error: "접근 권한이 없습니다." }, 403);

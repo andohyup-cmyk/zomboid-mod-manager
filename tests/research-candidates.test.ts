@@ -122,3 +122,16 @@ test("repeated requested Workshop IDs do not duplicate candidate groups or missi
   assert.deepEqual(result.missingIds, ["3552615247"]);
   assert.deepEqual(result.excludedIds, []);
 });
+
+test("keeps the persistent queue candidate independent from temporary Steam metadata", () => {
+  const persisted = normalizeResearchRecord({ workshopId: "3640496116", title: "Saved for later" }).record!;
+  const fresh = normalizeResearchRecord({ workshopId: "3640496116", title: "New Steam details" }).record!;
+  const unrelated = normalizeResearchRecord({ workshopId: "3552615247", title: "Different mod" }).record!;
+  const groups = groupResearchCandidates([unrelated], [], [fresh], [persisted]);
+  const matched = matchResearchCandidatesToInput(groups, ["3640496116"]);
+
+  assert.deepEqual([...matched.groups.keys()], ["3640496116"]);
+  assert.deepEqual(matched.groups.get("3640496116")?.map(c => c.source), ["steam", "queue"]);
+  assert.deepEqual(matched.groups.get("3640496116")?.map(c => c.record.title), ["New Steam details", "Saved for later"]);
+  assert.deepEqual(matched.excludedIds, ["3552615247"]);
+});

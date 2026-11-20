@@ -2,6 +2,7 @@ import { isSameOriginRequest } from "@/lib/write-origin";
 import { NextRequest, NextResponse } from "next/server";
 import { getOwnerAccess } from "@/lib/auth";
 import { isCatalogWriteAllowed } from "@/lib/catalog-write-protection";
+import { isPreviewQueueWriteAllowed } from "@/lib/preview-queue-write";
 import { prepareResearchQueueBatch } from "@/lib/research-queue";
 import { normalizeResearchRecord } from "@/lib/workshop";
 
@@ -17,7 +18,8 @@ function respond(body: unknown, status = 200) {
 
 function writesAllowed(): boolean {
   // Keep all Preview deployments read-only until separate DB/RLS verification.
-  return isCatalogWriteAllowed(process.env, process.env.NEXT_PUBLIC_SUPABASE_URL);
+  return isCatalogWriteAllowed(process.env, process.env.NEXT_PUBLIC_SUPABASE_URL)
+    || isPreviewQueueWriteAllowed(process.env, process.env.NEXT_PUBLIC_SUPABASE_URL);
 }
 
 export async function GET(request: NextRequest) {

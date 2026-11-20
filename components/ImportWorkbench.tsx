@@ -118,7 +118,7 @@ function DismissDialog({ title, onCancel, onConfirm }: {
   );
 }
 
-export function ImportWorkbench({ readOnly }: { readOnly: boolean }) {
+export function ImportWorkbench({ readOnly, queueWritable = !readOnly }: { readOnly: boolean; queueWritable?: boolean }) {
   const [workshopInput, setWorkshopInput] = useState("");
   const [rawJson, setRawJson] = useState("");
   const [inbox, setInbox] = useState<InboxResponse | null>(null);
@@ -180,14 +180,14 @@ export function ImportWorkbench({ readOnly }: { readOnly: boolean }) {
   useEffect(() => {
     // Defer the initial fetch to avoid synchronous state updates during effect setup.
     // Preview remains read-only until a separately approved DB/RLS rollout.
-    if (readOnly) return;
+    if (!queueWritable) return;
     let active = true;
     void Promise.resolve().then(() => { if (active) void loadQueue(); });
     return () => { active = false; };
-  }, [readOnly, loadQueue]);
+  }, [queueWritable, loadQueue]);
 
   async function saveQueue(items: { source: "steam" | "manual" | "inbox"; record: ResearchRecord }[]) {
-    if (readOnly) return;
+    if (!queueWritable) return;
     for (let index = 0; index < items.length; index += 20) {
       const response = await fetch("/api/research-queue", {
         method: "POST",
@@ -201,7 +201,7 @@ export function ImportWorkbench({ readOnly }: { readOnly: boolean }) {
   }
 
   async function saveManualToQueue() {
-    if (readOnly || savingManual || parsed.errors.length || !parsed.records.length) return;
+    if (!queueWritable || savingManual || parsed.errors.length || !parsed.records.length) return;
     setSavingManual(true);
     setQueueError("");
     try {
@@ -258,7 +258,7 @@ export function ImportWorkbench({ readOnly }: { readOnly: boolean }) {
       }
       setSteamRecords(allRecords);
       setSteamErrors(allErrors);
-      if (!readOnly && allRecords.length > 0) {
+      if (queueWritable && allRecords.length > 0) {
         try {
           await saveQueue(allRecords.map(record => ({ source: "steam", record })));
         } catch (error) {
@@ -273,7 +273,7 @@ export function ImportWorkbench({ readOnly }: { readOnly: boolean }) {
   }
 
   async function dismissQueue() {
-    if (readOnly || !queueDismiss) return;
+    if (!queueWritable || !queueDismiss) return;
     const { id } = queueDismiss;
     setQueueDismiss(null);
     try {
@@ -400,7 +400,7 @@ export function ImportWorkbench({ readOnly }: { readOnly: boolean }) {
     <div className="space-y-7">
       {readOnly && (
         <p role="status" className="panel p-4 text-sm text-amber-200">
-          이 배포는 읽기 전용입니다. 입력과 미리보기를 이용할 수 있습니다.
+          {queueWritable ? "시험 환경: 영구 대기함 저장·조회·숨기기만 허용됩니다. 카탈로그 등록은 차단됩니다." : "이 배포는 읽기 전용입니다. 입력과 미리보기를 이용할 수 있습니다."}
         </p>
       )}
       <section className="panel p-5 sm:p-6">
@@ -460,7 +460,7 @@ export function ImportWorkbench({ readOnly }: { readOnly: boolean }) {
         {inbox && <p role="status" className="muted mt-2 text-sm">조사함 {inbox.records.length}건 · 기존 등록 {inbox.alreadyRegistered}건 제외</p>}
         {inbox?.errors.map((message, index) => <p key={index} role="alert" className="text-sm text-amber-200">{message}</p>)}
         {inboxError && <p role="alert" className="text-sm text-amber-200">{inboxError}</p>}
-        {!readOnly && (
+        {queueWritable && (
           <div className="mt-4 space-y-2">
             <button type="button" className="secondary-action" onClick={() => void loadQueue()} disabled={loadingQueue}>
               {loadingQueue ? "영구 대기함 조회 중..." : "영구 대기함 새로고침"}
@@ -488,7 +488,7 @@ export function ImportWorkbench({ readOnly }: { readOnly: boolean }) {
           className="field resize-y font-mono text-xs leading-5"
           placeholder='[{"workshopId":"...","title":"...","modIds":["..."]}]'
         />
-        {!readOnly && (
+        {queueWritable && (
           <button type="button" className="secondary-action mt-3" onClick={() => void saveManualToQueue()}
             disabled={savingManual || !parsed.records.length || parsed.errors.length > 0}>
             {savingManual ? "대기함 저장 중..." : "수동 JSON을 영구 대기함에 저장"}
@@ -565,7 +565,7 @@ export function ImportWorkbench({ readOnly }: { readOnly: boolean }) {
                       일괄 등록할 후보 선택
                     </label>
                   )}
-                  {!readOnly && candidate.source === "queue" && (
+                  {queueWritable && candidate.source === "queue" && (
                     <button type="button" className="secondary-action" onClick={() => {
                       const item = queueRecords.find(row => row.record === candidate.record);
                       if (item) setQueueDismiss({ id: item.id, title: item.record.title });

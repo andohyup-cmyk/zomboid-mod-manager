@@ -79,3 +79,46 @@ test("Steam lookup for requested ID is kept separate from unrelated preloaded in
   assert.deepEqual(result.groups.get("3640496116")?.[0].record.modIds, []);
   assert.equal(result.groups.get("3640496116")?.[0].record.buildCompatibility, "unverified");
 });
+
+test("mixed Workshop input keeps Steam and inbox candidates matched to their own IDs", () => {
+  const oldInbox = normalizeResearchRecord({ workshopId: "3552615247", title: "Existing inbox" }).record!;
+  const steam = normalizeResearchRecord({ workshopId: "3640496116", title: "Steam metadata", modIds: [] }).record!;
+  const groups = groupResearchCandidates([oldInbox], [], [steam]);
+  const result = matchResearchCandidatesToInput(groups, ["3640496116", "3552615247"]);
+
+  assert.deepEqual([...result.groups.keys()], ["3552615247", "3640496116"]);
+  assert.deepEqual(result.groups.get("3552615247")?.map(c => c.source), ["inbox"]);
+  assert.deepEqual(result.groups.get("3640496116")?.map(c => c.source), ["steam"]);
+  assert.deepEqual(result.missingIds, []);
+  assert.deepEqual(result.excludedIds, []);
+});
+
+test("partial Steam lookup keeps successful IDs and reports missing requested IDs", () => {
+  const steam = normalizeResearchRecord({
+    workshopId: "3640496116",
+    title: "Steam metadata",
+    modIds: [],
+    verificationStatus: "unverified",
+    buildCompatibility: "unverified",
+    multiplayerCompatibility: "unverified"
+  }).record!;
+  const result = matchResearchCandidatesToInput(groupResearchCandidates([], [], [steam]), [
+    "3640496116", "3552615247"
+  ]);
+
+  assert.deepEqual([...result.groups.keys()], ["3640496116"]);
+  assert.deepEqual(result.missingIds, ["3552615247"]);
+  assert.deepEqual(result.excludedIds, []);
+  assert.equal(result.groups.get("3640496116")?.[0].record.multiplayerCompatibility, "unverified");
+});
+
+test("repeated requested Workshop IDs do not duplicate candidate groups or missing IDs", () => {
+  const steam = normalizeResearchRecord({ workshopId: "3640496116", title: "Steam metadata" }).record!;
+  const result = matchResearchCandidatesToInput(groupResearchCandidates([], [], [steam]), [
+    "3640496116", "3640496116", "3552615247", "3552615247"
+  ]);
+
+  assert.deepEqual([...result.groups.keys()], ["3640496116"]);
+  assert.deepEqual(result.missingIds, ["3552615247"]);
+  assert.deepEqual(result.excludedIds, []);
+});

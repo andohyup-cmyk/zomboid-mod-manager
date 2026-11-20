@@ -52,7 +52,7 @@ export default async function ModDetailPage({ params }: { params: Promise<{ id: 
           <p>조사 상태: {mod.verification_status}</p><p>B42.22: {mod.build_compatibility}</p>
           <p>멀티: {mod.multiplayer_compatibility}</p><p>확인일: {mod.researched_at || "미확인"}</p>
         </div>
-        <p className="muted text-xs">싱글플레이 및 서버 중간 추가 가능 여부는 별도 검증이 필요합니다.</p>
+        <p className="muted text-xs">싱글플레이 및 서버 중간 추가는 별도 상태로 보관되며, 아래 조사 기록의 근거를 확인해야 합니다.</p>
       </div>
       <div className="panel space-y-3 p-5">
         <h2 className="text-lg font-bold">조사 기록과 출처</h2>
@@ -62,6 +62,10 @@ export default async function ModDetailPage({ params }: { params: Promise<{ id: 
           <article key={createdAt + index} className="space-y-2 border-t border-[#304154] pt-3">
             <p className="text-xs">기록: {createdAt} · 조사 확인일: {record.checkedAt || "미확인"}</p>
             <p className="text-sm">{record.title}</p>
+            <div className="flex flex-wrap gap-2 text-xs">
+              <span>싱글: {record.singleplayerCompatibility}</span>
+              <span>서버 중간 추가: {record.midServerAdditionCompatibility}</span>
+            </div>
             {record.sources.map(url => (
               <a key={url} href={url} target="_blank" rel="noopener noreferrer"
                 className="block break-all text-xs text-[#b9efb0] underline">{url}</a>

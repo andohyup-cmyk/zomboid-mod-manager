@@ -60,7 +60,8 @@ test("verified selection group constraints block copy, but unverified ones are i
   const rule = {
     id: "variants", label: "choose exactly one",
     members: [{ workshopId: "12345", modId: "Core" }, { workshopId: "12345", modId: "Optional" }],
-    minSelected: 1, maxSelected: 1, verified: true
+    minSelected: 1, maxSelected: 1, verified: true,
+    evidenceUrl: "https://steamcommunity.com/sharedfiles/filedetails/?id=12345"
   } as const;
   const all = [{ ...core, enabled: true }, { ...optional, enabled: true }];
   const blocked = buildProfileServerConfig(all, { catalog }, plain, options, [rule]);

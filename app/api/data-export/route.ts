@@ -14,11 +14,13 @@ export async function GET() {
     });
   }
 
+  const supabase = access.supabase;
+
   async function readRows(table: string, by: string, ids: string[], orderBy: string, secondOrder?: string) {
     const rows: Record<string, unknown>[] = [];
     if (!ids.length) return rows;
     for (let offset = 0; offset <= MAX_ROWS_PER_TABLE; offset += PAGE_SIZE) {
-      let query = access.supabase.from(table).select("*")
+      let query = supabase.from(table).select("*")
         .in(by, ids).order(orderBy, { ascending: true });
       if (secondOrder) query = query.order(secondOrder, { ascending: true });
       const { data, error } = await query.range(offset, offset + PAGE_SIZE - 1);

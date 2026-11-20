@@ -134,3 +134,24 @@ test("rejects mismatching Steam source and duplicate payload items", () => {
   assert.equal(payload.records.length, 1);
   assert.equal(payload.errors.length, 1);
 });
+
+test("never infers singleplayer or mid-server addition from B42.22 or multiplayer claims", () => {
+  const result = normalizeResearchRecord({
+    workshopId: "3552615247", title: "Independent claims",
+    buildCompatibility: "confirmed", multiplayerCompatibility: "confirmed"
+  });
+  assert.ok(result.record);
+  assert.equal(result.record.singleplayerCompatibility, "unverified");
+  assert.equal(result.record.midServerAdditionCompatibility, "unverified");
+});
+test("accepts independently sourced singleplayer and server-addition evidence statuses", () => {
+  const result = normalizeResearchRecord({
+    workshopId: "3552615247", title: "Four independent statuses",
+    singleplayerCompatibility: "confirmed",
+    midServerAdditionCompatibility: "reported_issue"
+  });
+  assert.ok(result.record);
+  assert.equal(result.record.singleplayerCompatibility, "confirmed");
+  assert.equal(result.record.midServerAdditionCompatibility, "reported_issue");
+  assert.equal(result.record.multiplayerCompatibility, "unverified");
+});

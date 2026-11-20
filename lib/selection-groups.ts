@@ -56,7 +56,14 @@ export function validateSelectionGroups(
     }
 
     const selected = rule.members.filter(x => active.has(key(x))).length;
-    if (!rule.verified) {
+    let evidenceValid = false;
+    if (typeof rule.evidenceUrl === "string") {
+      try {
+        const source = new URL(rule.evidenceUrl);
+        evidenceValid = source.protocol === "https:" || source.protocol === "http:";
+      } catch { evidenceValid = false; }
+    }
+    if (!rule.verified || !evidenceValid) {
       violations.push({ groupId: rule.id, severity: "info", code: "unverified",
         message: `${rule.label}: 규칙 확인 근거가 없어 권고 정보만 표시합니다.` });
       continue;

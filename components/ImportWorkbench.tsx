@@ -29,6 +29,8 @@ function RecordDetails({ item }: { item: ResearchRecord }) {
         <p>확인일: {item.checkedAt || "미확인"}</p>
         <p>B42.22: {item.buildCompatibility}</p>
         <p>멀티: {item.multiplayerCompatibility}</p>
+        <p>싱글: {item.singleplayerCompatibility}</p>
+        <p>서버 중간 추가: {item.midServerAdditionCompatibility}</p>
       </div>
       <a href={item.sourceUrl} target="_blank" rel="noopener noreferrer" className="block break-all text-xs text-[#b9efb0] underline">
         Steam 원문 · {item.sourceUrl}

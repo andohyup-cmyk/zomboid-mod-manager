@@ -131,6 +131,7 @@ export function ImportWorkbench({ readOnly }: { readOnly: boolean }) {
   const [batchChoices, setBatchChoices] = useState<Record<string, ResearchCandidate>>({});
   const [batchOpen, setBatchOpen] = useState(false);
   const [approvingBatch, setApprovingBatch] = useState(false);
+  const [batchSummary, setBatchSummary] = useState<{ saved: number; registered: number; errors: number } | null>(null);
   const [queueDismiss, setQueueDismiss] = useState<{ id: string; title: string } | null>(null);
   const [inboxError, setInboxError] = useState("");
   const [results, setResults] = useState<Record<string, Result>>({});
@@ -280,8 +281,8 @@ export function ImportWorkbench({ readOnly }: { readOnly: boolean }) {
   const selected = selection && matched.groups.get(selection.id)?.find(
     ({ source, record }) => source === selection.candidate.source && record === selection.candidate.record
   );
-  async function registerCandidate(id: string, candidate: ResearchCandidate) {
-    if (readOnly || invalidPositions.length > 0 || lockedIds.current.has(id)) return;
+  async function registerCandidate(id: string, candidate: ResearchCandidate): Promise<"saved" | "registered" | "error" | "skipped"> {
+    if (readOnly || invalidPositions.length > 0 || lockedIds.current.has(id)) return "skipped";
     lockedIds.current.add(id);
     setResults(current => ({ ...current, [id]: { state: "saving", candidate } }));
     try {
@@ -292,7 +293,7 @@ export function ImportWorkbench({ readOnly }: { readOnly: boolean }) {
       });
       if (response.status === 409) {
         setResults(current => ({ ...current, [id]: { state: "registered", candidate } }));
-        return;
+        return "registered";
       }
       const body = await response.json() as { id?: string; error?: string };
       if (!response.ok || response.status !== 201 || !body.id) {
@@ -309,6 +310,7 @@ export function ImportWorkbench({ readOnly }: { readOnly: boolean }) {
         if (done.ok) setQueueRecords(current => current.filter(item => !matchingQueueIds.includes(item.id)));
         else setQueueError("카탈로그 등록은 완료됐지만 대기함 정리에 실패했습니다.");
       }
+      return "saved";
     } catch (error) {
       // Even a queue-dismissal error must not undo a successful catalog approval.
       // A failed catalog write is retryable and keeps its original candidate.
@@ -316,7 +318,8 @@ export function ImportWorkbench({ readOnly }: { readOnly: boolean }) {
       setResults(current => current[id]?.state === "saved" ? current : ({
         ...current, [id]: { state: "error", candidate, message }
       }));
-      if (message) lockedIds.current.delete(id);
+      lockedIds.current.delete(id);
+      return "error";
     }
   }
 
@@ -333,14 +336,36 @@ export function ImportWorkbench({ readOnly }: { readOnly: boolean }) {
     && !["saving", "saved", "registered"].includes(results[id]?.state ?? "")
   ).slice(0, 20);
 
+  // Never implicitly choose between competing reports for the same Workshop ID.
+  const unambiguous = [...matched.groups].filter(([id, candidates]) =>
+    candidates.length === 1 && !["saving", "saved", "registered"].includes(results[id]?.state ?? "")
+  ).slice(0, 20);
+
+  function selectAllUnambiguous() {
+    setBatchSummary(null);
+    setBatchChoices(current => {
+      const next = { ...current };
+      for (const [id, candidates] of unambiguous) next[id] = candidates[0];
+      return next;
+    });
+  }
+
   async function approveBatch() {
     if (readOnly || invalidPositions.length > 0 || approvingBatch || !activeBatch.length) return;
     const candidates = [...activeBatch];
     setBatchOpen(false);
     setApprovingBatch(true);
+    setBatchSummary(null);
+    const summary = { saved: 0, registered: 0, errors: 0 };
     try {
-      for (const [id, candidate] of candidates) await registerCandidate(id, candidate);
+      for (const [id, candidate] of candidates) {
+        const result = await registerCandidate(id, candidate);
+        if (result === "saved") summary.saved++;
+        if (result === "registered") summary.registered++;
+        if (result === "error") summary.errors++;
+      }
     } finally {
+      setBatchSummary(summary);
       setApprovingBatch(false);
       setBatchChoices({});
     }
@@ -467,10 +492,24 @@ export function ImportWorkbench({ readOnly }: { readOnly: boolean }) {
         <div>
           <h2 className="text-lg font-bold">3. 모드별 검토 및 승인</h2>
           <p className="muted mt-2 text-sm">저장할 출처와 내용을 선택한 뒤 확인창에서 최종 승인하세요.</p>
-          {!readOnly && <button type="button" className="action mt-3" disabled={!activeBatch.length || approvingBatch || invalidPositions.length > 0}
-            onClick={() => setBatchOpen(true)}>
-            {approvingBatch ? "선택 항목 등록 중..." : `선택 모드 등록 (${activeBatch.length}개)`}
-          </button>}
+          {!readOnly && (
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button type="button" className="secondary-action" disabled={approvingBatch || !unambiguous.length}
+                onClick={selectAllUnambiguous}>중복 없는 항목 전체 선택 ({unambiguous.length}개)</button>
+              <button type="button" className="secondary-action" disabled={approvingBatch || !activeBatch.length}
+                onClick={() => setBatchChoices({})}>선택 해제</button>
+              <button type="button" className="action" disabled={!activeBatch.length || approvingBatch || invalidPositions.length > 0}
+                onClick={() => setBatchOpen(true)}>
+                {approvingBatch ? "선택 항목 등록 중..." : `선택 모드 등록 (${activeBatch.length}개)`}
+              </button>
+            </div>
+          )}
+          {!readOnly && unambiguous.length < matched.groups.size && (
+            <p className="muted mt-2 text-xs">서로 다른 출처의 후보가 있거나 이미 등록된 항목은 전체 선택에서 제외됩니다. 후보를 직접 비교해 선택하세요.</p>
+          )}
+          {batchSummary && <p role="status" className="mt-2 text-sm">
+            일괄 등록 결과: 성공 {batchSummary.saved}건 · 기존 등록 {batchSummary.registered}건 · 실패 {batchSummary.errors}건
+          </p>}
           {invalidPositions.length > 0 && (
             <p role="alert" className="mt-2 text-sm text-amber-200">입력 형식 오류를 수정하기 전에는 등록을 승인할 수 없습니다.</p>
           )}

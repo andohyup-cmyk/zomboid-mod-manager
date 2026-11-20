@@ -1,5 +1,15 @@
 # 작업 현황
 
+## 2026-11-20 시험 Preview 로그인·대기함 실제 검증 및 UI 개선
+
+- 시험 Supabase `smofdbjgcgdmscamknpw`의 Redirect URLs에 Preview OAuth 콜백 주소를 사용자가 추가한 뒤 Google 로그인이 성공했다. 운영 Supabase 및 운영 배포는 변경하지 않았다.
+- 시험 Preview `dpl_52txdGf7JPW1fYqCPFumVcQ3mmrY`: Steam Workshop `3552615247` 공개 정보 조회에 성공했고, 시험 DB `research_queue`에서 `source=steam, status=pending` 1건을 직접 확인했다. 정식 `mods`는 0건. 사용자가 등록 화면의 `영구 대기함 1개` 표시를 확인하여 실제 앱 조회까지 성공.
+- 화면 하단의 `이 환경에서는 저장할 수 없음`은 영구 대기함이 아닌 정식 카탈로그 등록을 막는 버튼이었다. 안내 문구의 혼동을 수정하여 대기함과 정식 등록을 분리했다.
+- 시험 Preview에서 `queueWritable=true`, `readOnly=true`일 때 대기함 숨기기 버튼은 보이지만 확인창이 `!readOnly` 조건으로 표시되지 않는 오류를 수정했다. 새 코드에서는 `queueWritable` 조건을 사용한다. 데이터 상태 변경 없이 코드만 수정했다.
+- `components/ImportWorkbench.tsx`에 대기함 제목/Workshop ID 목록과 구분 설명을 추가하고, `tests/preview-queue-ui.test.ts`에 SSR 렌더링 검사를 추가했다. 정식 카탈로그 등록과 운영 환경 쓰기 차단은 유지된다.
+- **남은 검증:** 새 Preview의 숨기기 확인창 표시/취소 및 실제 숨기기 동작은 브라우저에서 아직 실행하지 않았다. 사용자가 승인하기 전 실제 대기 항목은 숨기지 않는다. 새 배포의 OAuth Redirect URLs 등록 여부는 별도 확인이 필요하다.
+
+
 ## 2026-11-20 안전 범위 일괄 개발 (현재 작업 브랜치)
 
 - 작업 브랜치: `feature/remaining-mvp-safe-batch` (Draft PR [#7](https://github.com/andohyup-cmyk/zomboid-mod-manager/pull/7)), 이전 Draft PR [#6](https://github.com/andohyup-cmyk/zomboid-mod-manager/pull/6)을 기준으로 누적 개발. **main 병합 없음.**

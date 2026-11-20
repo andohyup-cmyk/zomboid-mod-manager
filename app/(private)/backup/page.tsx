@@ -1,3 +1,4 @@
+import { BackupInspector } from "@/components/BackupInspector";
 import { getOwnerAccess } from "@/lib/auth";
 
 export default async function BackupPage() {
@@ -27,6 +28,7 @@ export default async function BackupPage() {
           복구·가져오기는 안전성 검증 전까지 제공하지 않습니다.
         </p>
       </div>
+      <BackupInspector />
     </section>
   );
 }

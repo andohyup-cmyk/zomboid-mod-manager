@@ -44,3 +44,13 @@ test("keeps disabled selections and provider-qualified IDs distinct", () => {
   const wrongProvider = [{ workshopId: "2142622992", modId: "optionA", enabled: true }];
   assert.equal(validateSelectionGroups([rule], catalog, wrongProvider)[0].code, "too-few");
 });
+
+test("a verified flag without a usable evidence URL remains informational", () => {
+  const unknown = { ...rule, evidenceUrl: undefined };
+  const invalid = { ...rule, evidenceUrl: "javascript:alert(1)" };
+  for (const item of [unknown, invalid]) {
+    const issues = validateSelectionGroups([item], catalog, []);
+    assert.equal(issues[0].severity, "info");
+    assert.equal(issues[0].code, "unverified");
+  }
+});

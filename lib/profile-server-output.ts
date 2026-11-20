@@ -1,4 +1,5 @@
 import { getEnabledProfileMods, type ProfileModSelection } from "./profile-mod-id-state";
+import { validateSelectionGroups, type SelectionGroupRule } from "./selection-groups";
 import { recommendProfileModOrder, type ProfileOrderReference } from "./profile-mod-recommended-order";
 import type { ProfileOrderPreviewOptions } from "./profile-order-preview";
 import { buildServerConfig, type ProfileRuleIssue, type ServerConfigInput, type ServerConfigOptions } from "./server-config";
@@ -45,11 +46,22 @@ export function buildProfileServerConfig(
   selections: readonly ProfileModSelection[],
   input: Omit<ServerConfigInput, "selectedMods" | "profileRuleIssues">,
   recommendation: ProfileOrderPreviewOptions,
-  options: ServerConfigOptions
+  options: ServerConfigOptions,
+  selectionGroups: readonly SelectionGroupRule[] = []
 ) {
   return buildServerConfig({
     ...input,
     selectedMods: getEnabledProfileMods(selections),
-    profileRuleIssues: evaluateOrderRules(selections, recommendation)
+    profileRuleIssues: [
+      ...evaluateOrderRules(selections, recommendation),
+      ...validateSelectionGroups(
+        selectionGroups,
+        input.catalog.flatMap(item => item.modIds.map(modId => ({ workshopId: item.workshopId, modId }))),
+        selections
+      ).map(issue => ({
+        code: issue.severity === "error" ? "group-selection-violation" as const : "group-rule-unverified" as const,
+        message: issue.message
+      }))
+    ]
   }, options);
 }

@@ -5,8 +5,8 @@
 ## 1. 개발 PC에서 앱 검증
 
 1. PC의 GitHub 작업 폴더에서 브랜치 상태 확인: `git status --short`, `git branch --show-current`. 기존 미커밋 변경이 있으면 덮어쓰거나 브랜치를 임의 변경하지 않는다.
-2. 승인된 작업 브랜치에서 `node --version`, `npm --version` 확인. 프로젝트 `package.json`의 Node 요구사항을 따른다.
-3. PowerShell 프로젝트 루트에서 `./scripts/pc-verify.ps1` 실행. 스크립트는 `npm ci`, `npm run verify`, `npm run build`를 순서대로 호출하지만 배포하거나 DB를 변경하지 않는다.
+2. 승인된 작업 브랜치에서 `node --version`, `npm --version` 확인. 프로젝트 `package.json`의 Node 요구사항을 따른다. 현재 저장소에는 lockfile이 없으므로, 의존성 설치 후 버전 고정 및 lockfile 검토가 후속 품질 작업으로 남는다.
+3. PowerShell 프로젝트 루트에서 `./scripts/pc-verify.ps1` 실행. 스크립트는 lockfile이 있으면 `npm ci`, 없으면 `npm install`을 사용한 뒤 `npm run verify`, `npm run build`를 순서대로 호출하지만 배포하거나 DB를 변경하지 않는다.
 4. Chromium이 준비되어 있다면 `./scripts/pc-verify.ps1 -Browser`로 브라우저 시험까지 진행한다. 설치가 필요하면 `npx playwright install chromium`을 별도로 실행한다. 브라우저 설치가 불가능하면 해당 단계만 보류한다.
 5. Vercel Preview의 화면 테스트는 **운영 쓰기 테스트가 아니다.** 승인 전까지 영구 대기함/카탈로그 저장 보호를 우회하지 않는다.
 

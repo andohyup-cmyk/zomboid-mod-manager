@@ -96,9 +96,10 @@ export async function POST(request: NextRequest) {
     status: "pending",
     updated_at: updatedAt
   }));
+  // Never overwrite pending or previously dismissed research on a duplicate retry.
   // Does not touch mods or call approve_research_record: catalog approval is separate.
   const { data, error } = await access.supabase.from("research_queue")
-    .upsert(rows, { onConflict: "owner_id,workshop_id,source" })
+    .upsert(rows, { onConflict: "owner_id,workshop_id,source", ignoreDuplicates: true })
     .select("id");
   if (error) return respond({ error: "영구 대기함 저장에 실패했습니다." }, 500);
   return respond({ saved: data?.length ?? 0 }, 201);

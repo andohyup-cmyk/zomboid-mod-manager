@@ -12,7 +12,7 @@
 - **보안:** 인증 POST/PATCH에서 외부 브라우저 Origin 차단 보완, 기존 로그인 소유권·RLS·시험 읽기 전용 보호 유지.
 - **PC 복귀 준비:** `scripts/pc-audit-workshop.ps1`, `scripts/pc-verify.ps1`, `docs/PC_VERIFICATION.md`. 아직 PC/게임에서 실행하지 않음.
 - **DB 설계 준비:** `docs/proposals/DB_SECURITY_AND_PERSISTENCE.md` — 신규 RLS/카탈로그 관계/프로필 영구화 방안. 실제 SQL 적용 없음.
-- **최신 실제 CI 시험:** Vercel Preview `dpl_2n3GmPFbXaHqdJxg6op2nYibHqCo`, 코드 `56b6f0b` — 단위 테스트 **150/150 통과**, TypeScript·ESLint·Next.js 빌드 통과, 배포 READY. 이후 브라우저 회귀 시험 소스 1건 추가(PC 브라우저에서는 미실행). Preview 비로그인 대기함 및 백업 API 403 확인.
+- **최신 실제 CI 시험:** Vercel Preview `dpl_Gh2bKoLHh7fQ5LywsSynE2xiAarM`, 코드 `6932499` — 단위 테스트 **150/150 통과**, TypeScript·ESLint·Next.js 빌드 통과, 배포 READY. 브라우저 회귀 시험 소스는 추가했으나 실제 PC 브라우저에서는 미실행. Preview 비로그인 대기함 및 백업 API 403 확인.
 - **승인/연동 필요:** 시험 DB `research_queue`/RLS/권한 적용, 프로필·메타데이터 저장 스키마 결정/적용, 운영 배포·main 병합, 시험 OAuth 실제 로그인과 DB RLS 쓰기 검증. Supabase Advisor의 권한 함수 경고는 원인·수정 승인 전 변경 금지.
 - **추후 PC 검증:** 실제 B42.22 모드 `mod.info`, `Mods=`/`WorkshopItems=`, 서버 로드·멀티 동기화, PC/모바일 브라우저 실측. 기존 데이터·서버 설정은 수정하지 않음.
 

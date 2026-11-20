@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getOwnerAccess } from "@/lib/auth";
 import { canonicalWorkshopId } from "@/lib/workshop";
 import { parseSteamWorkshopDetails } from "@/lib/steam-metadata";
+import { readBoundedResponseText, ResponseTooLargeError } from "@/lib/response-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -56,15 +57,10 @@ export async function POST(request: NextRequest) {
     if (!response.ok) {
       return respond({ error: "Steam 조회에 실패했습니다. 잠시 후 다시 시도해 주세요." }, 502);
     }
-    if (Number(response.headers.get("content-length") ?? 0) > MAX_RESPONSE_BYTES) {
-      return respond({ error: "Steam 응답이 허용 크기를 초과했습니다." }, 502);
-    }
-    const raw = await response.text();
-    if (raw.length > MAX_RESPONSE_BYTES) {
-      return respond({ error: "Steam 응답이 허용 크기를 초과했습니다." }, 502);
-    }
+    const raw = await readBoundedResponseText(response, MAX_RESPONSE_BYTES);
     details = JSON.parse(raw);
-  } catch {
+  } catch (error) {
+    if (error instanceof ResponseTooLargeError) return respond({ error: "Steam 응답이 허용 크기를 초과했습니다." }, 502);
     return respond({ error: "Steam 연결에 실패했거나 시간이 초과됐습니다." }, 502);
   }
 

@@ -400,7 +400,7 @@ export function ImportWorkbench({ readOnly, queueWritable = !readOnly }: { readO
     <div className="space-y-7">
       {readOnly && (
         <p role="status" className="panel p-4 text-sm text-amber-200">
-          {queueWritable ? "시험 환경: 영구 대기함 저장·조회·숨기기만 허용됩니다. 카탈로그 등록은 차단됩니다." : "이 배포는 읽기 전용입니다. 입력과 미리보기를 이용할 수 있습니다."}
+          {queueWritable ? "시험 환경: Steam 공개 정보는 영구 대기함에 자동 저장되지만, 정식 모드 카탈로그 등록은 차단됩니다." : "이 배포는 읽기 전용입니다. 입력과 미리보기를 이용할 수 있습니다."}
         </p>
       )}
       <section className="panel p-5 sm:p-6">
@@ -443,7 +443,7 @@ export function ImportWorkbench({ readOnly, queueWritable = !readOnly }: { readO
       </section>
 
       <section className="panel p-5 sm:p-6">
-        <h2 className="text-lg font-bold">2. 조사 결과 가져오기</h2>
+        <h2 className="text-lg font-bold">2. Steam 조회 및 영구 대기함</h2>
         <p className="muted mt-2 text-sm leading-6">조사함에는 GitHub에 미리 저장된 결과만 있습니다. Workshop URL을 입력하거나 새로고침해도 해당 모드의 AI 조사가 자동 실행되지는 않습니다.</p>
         <div className="mt-3 space-y-2">
           <button type="button" className="action w-full" onClick={loadSteamMetadata}
@@ -461,11 +461,24 @@ export function ImportWorkbench({ readOnly, queueWritable = !readOnly }: { readO
         {inbox?.errors.map((message, index) => <p key={index} role="alert" className="text-sm text-amber-200">{message}</p>)}
         {inboxError && <p role="alert" className="text-sm text-amber-200">{inboxError}</p>}
         {queueWritable && (
-          <div className="mt-4 space-y-2">
+          <div className="mt-4 space-y-3 rounded-xl border border-[#36513b] bg-[#14231e] p-4">
+            <h3 className="font-semibold">영구 대기함 · 정식 등록 전 보관</h3>
+            <p className="muted text-sm leading-6">
+              Steam 공개 정보 조회 시 자동 저장됩니다. 저장된 항목은 새로고침 후에도 유지되며 정식 카탈로그에 자동 등록되지 않습니다.
+            </p>
             <button type="button" className="secondary-action" onClick={() => void loadQueue()} disabled={loadingQueue}>
               {loadingQueue ? "영구 대기함 조회 중..." : "영구 대기함 새로고침"}
             </button>
-            <p role="status" className="muted text-sm">영구 대기함 {queueRecords.length}개 · 로그인 계정에 저장</p>
+            <p role="status" className="text-sm">영구 대기함 {queueRecords.length}개 · 로그인 계정에 저장</p>
+            {queueRecords.map(item => (
+              <div key={item.id} className="space-y-2 rounded-lg border border-[#36513b] p-3">
+                <p className="text-sm font-semibold">{item.record.title}</p>
+                <p className="muted text-xs">Workshop ID {item.record.workshopId} · {sourceLabels[item.source]}</p>
+                <button type="button" className="secondary-action" onClick={() => setQueueDismiss({ id: item.id, title: item.record.title })}>
+                  대기함에서 숨기기
+                </button>
+              </div>
+            ))}
             {queueError && <p role="alert" className="text-sm text-amber-200">{queueError}</p>}
           </div>
         )}
@@ -504,7 +517,11 @@ export function ImportWorkbench({ readOnly, queueWritable = !readOnly }: { readO
       <section className="space-y-3">
         <div>
           <h2 className="text-lg font-bold">3. 모드별 검토 및 승인</h2>
-          <p className="muted mt-2 text-sm">저장할 출처와 내용을 선택한 뒤 확인창에서 최종 승인하세요.</p>
+          <p className="muted mt-2 text-sm">
+            {readOnly
+              ? "이 단계는 정식 카탈로그 등록용입니다. 시험 환경에서는 비활성화되며, 위 영구 대기함 저장은 정상적으로 사용할 수 있습니다."
+              : "저장할 출처와 내용을 선택한 뒤 확인창에서 최종 승인하세요."}
+          </p>
           {!readOnly && (
             <div className="mt-3 flex flex-wrap gap-2">
               <button type="button" className="secondary-action" disabled={approvingBatch || !unambiguous.length}
@@ -565,15 +582,9 @@ export function ImportWorkbench({ readOnly, queueWritable = !readOnly }: { readO
                       일괄 등록할 후보 선택
                     </label>
                   )}
-                  {queueWritable && candidate.source === "queue" && (
-                    <button type="button" className="secondary-action" onClick={() => {
-                      const item = queueRecords.find(row => row.record === candidate.record);
-                      if (item) setQueueDismiss({ id: item.id, title: item.record.title });
-                    }}>대기함에서 숨기기</button>
-                  )}
                   <button type="button" className="action w-full" disabled={blocked}
                     onClick={() => setSelection({ id, candidate })}>
-                    {readOnly ? "이 환경에서는 저장할 수 없음" : "확인 후 추가하기"}
+                    {readOnly ? "시험 환경: 정식 카탈로그 등록 불가" : "확인 후 추가하기"}
                   </button>
                 </article>
               ))}
@@ -594,7 +605,7 @@ export function ImportWorkbench({ readOnly, queueWritable = !readOnly }: { readO
         <BatchApprovalDialog candidates={activeBatch.map(([, candidate]) => candidate)}
           onCancel={() => setBatchOpen(false)} onApprove={() => void approveBatch()} />
       )}
-      {!readOnly && queueDismiss && (
+      {queueWritable && queueDismiss && (
         <DismissDialog title={queueDismiss.title} onCancel={() => setQueueDismiss(null)}
           onConfirm={() => void dismissQueue()} />
       )}

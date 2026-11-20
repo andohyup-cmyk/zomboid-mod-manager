@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useRef, useState, type KeyboardEvent } from "react";
+import { useMemo, useRef, useState, type ChangeEvent, type KeyboardEvent } from "react";
+import { createPortableProfile, parsePortableProfile } from "@/lib/profile-portable";
 import { ProfileModOrderList } from "@/components/ProfileModOrderList";
 import type { ServerConfigInput } from "@/lib/server-config";
 import { ProfileServerOutput } from "@/components/ProfileServerOutput";
@@ -153,6 +154,43 @@ export function ProfileModEditor({
     review.current?.close();
   }
 
+  function downloadPortableDraft() {
+    const json = JSON.stringify(createPortableProfile(selections, downloads), null, 2);
+    const url = URL.createObjectURL(new Blob([json], { type: "application/json" }));
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = "zomboid-profile-draft.json";
+    anchor.click();
+    URL.revokeObjectURL(url);
+    setNotice({ message: "임시 프로필 JSON 파일을 만들었습니다. DB 저장 및 서버 설정 변경은 없습니다." });
+  }
+
+  async function importPortableDraft(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    if (file.size > 250000) {
+      setNotice({ message: "프로필 JSON 파일은 250KB 이하여야 합니다.", error: true });
+      return;
+    }
+    try {
+      const parsed = parsePortableProfile(JSON.parse(await file.text()) as unknown);
+      if (!parsed.profile) {
+        setNotice({ message: parsed.error ?? "프로필 파일 형식이 올바르지 않습니다.", error: true });
+        return;
+      }
+      if (!window.confirm("현재 임시 선택 목록을 파일 내용으로 바꾸시겠습니까? DB와 게임 서버는 변경되지 않습니다.")) return;
+      setSelections(parsed.profile.selections);
+      setDownloads(parsed.profile.downloadOnlyWorkshopIds);
+      setPending([]);
+      setOrderPreview(null);
+      setErrors([]);
+      setNotice({ message: "프로필을 임시 편집 목록으로 불러왔습니다. 카탈로그 존재 여부·실제 게임 호환성을 검증해야 합니다." });
+    } catch {
+      setNotice({ message: "프로필 JSON 파일을 읽거나 검증할 수 없습니다.", error: true });
+    }
+  }
+
   return (
     <section className="mx-auto max-w-3xl space-y-5">
       <header>
@@ -164,6 +202,18 @@ export function ProfileModEditor({
           등록된 카탈로그로 편집합니다. 확정한 내용도 현재 탭에만 남으며 새로고침하면 사라집니다.
         </p>
       </header>
+
+      <div className="panel space-y-3 p-4">
+        <h2 className="font-bold">임시 프로필 파일</h2>
+        <p className="muted text-xs leading-5">DB 저장 기능이 준비되기 전에도 PC·모바일에서 사용 중인 조합을 JSON 파일로 보관할 수 있습니다. 실제 서버 파일은 변경하지 않습니다.</p>
+        <div className="flex flex-wrap gap-2">
+          <button type="button" className="secondary-action" onClick={downloadPortableDraft}>현재 선택 JSON 내려받기</button>
+          <label className="secondary-action cursor-pointer">
+            JSON 파일 불러오기
+            <input type="file" accept=".json,application/json" className="sr-only" onChange={event => { void importPortableDraft(event); }} />
+          </label>
+        </div>
+      </div>
 
       <div role="tablist" aria-label="Mod ID 편집" className="grid grid-cols-2 gap-1 rounded-2xl border border-[#304154] bg-[#111c29] p-1">
         {tabs.map(({ id, label }) => (

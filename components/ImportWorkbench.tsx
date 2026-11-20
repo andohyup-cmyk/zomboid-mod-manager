@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { groupResearchCandidates, matchResearchCandidatesToInput, type ResearchCandidate } from "@/lib/research-candidates";
 import {
   parseResearchPayload,
@@ -8,7 +8,7 @@ import {
   type ResearchRecord
 } from "@/lib/workshop";
 
-const sourceLabels = { inbox: "조사함", manual: "수동 JSON", steam: "Steam 공개 정보 · AI 미분석" } as const;
+const sourceLabels = { inbox: "조사함", manual: "수동 JSON", steam: "Steam 공개 정보 · AI 미분석", queue: "영구 대기함" } as const;
 
 type Result = {
   state: "saving" | "saved" | "registered" | "error";
@@ -16,6 +16,7 @@ type Result = {
   message?: string;
 };
 type InboxResponse = { records: ResearchRecord[]; alreadyRegistered: number; errors: string[] };
+type QueueItem = { id: string; source: "steam" | "manual" | "inbox"; record: ResearchRecord };
 
 function RecordDetails({ item }: { item: ResearchRecord }) {
   return (
@@ -73,6 +74,10 @@ export function ImportWorkbench({ readOnly }: { readOnly: boolean }) {
   const [steamRecords, setSteamRecords] = useState<ResearchRecord[]>([]);
   const [steamErrors, setSteamErrors] = useState<string[]>([]);
   const [loadingSteam, setLoadingSteam] = useState(false);
+  const [queueRecords, setQueueRecords] = useState<QueueItem[]>([]);
+  const [loadingQueue, setLoadingQueue] = useState(false);
+  const [queueError, setQueueError] = useState("");
+  const [savingManual, setSavingManual] = useState(false);
   const [inboxError, setInboxError] = useState("");
   const [results, setResults] = useState<Record<string, Result>>({});
   const [selection, setSelection] = useState<{ id: string; candidate: ResearchCandidate } | null>(null);
@@ -82,9 +87,59 @@ export function ImportWorkbench({ readOnly }: { readOnly: boolean }) {
     () => rawJson.trim() ? parseResearchPayload(rawJson) : { records: [], errors: [] },
     [rawJson]
   );
-  const groups = useMemo(() => groupResearchCandidates(inbox?.records ?? [], parsed.records, steamRecords), [inbox, parsed.records, steamRecords]);
+  const groups = useMemo(() => groupResearchCandidates(inbox?.records ?? [], parsed.records, steamRecords, queueRecords.map(item => item.record)), [inbox, parsed.records, steamRecords, queueRecords]);
   const matched = useMemo(() => matchResearchCandidatesToInput(groups, workshopIds), [groups, workshopIds]);
-  const hasResearchData = inbox !== null || parsed.records.length > 0 || steamRecords.length > 0 || steamErrors.length > 0;
+  const hasResearchData = inbox !== null || parsed.records.length > 0 || steamRecords.length > 0 || steamErrors.length > 0 || queueRecords.length > 0;
+
+  const loadQueue = useCallback(async () => {
+    setLoadingQueue(true);
+    setQueueError("");
+    try {
+      const response = await fetch("/api/research-queue", { cache: "no-store" });
+      const body = await response.json() as { records?: QueueItem[]; error?: string; errors?: string[] };
+      if (!response.ok || !Array.isArray(body.records)) {
+        throw new Error(body.error || "영구 대기함을 불러오지 못했습니다.");
+      }
+      setQueueRecords(body.records);
+      if (body.errors?.length) setQueueError(body.errors.join(" / "));
+    } catch (error) {
+      setQueueError(error instanceof Error ? error.message : "영구 대기함을 불러오지 못했습니다.");
+    } finally {
+      setLoadingQueue(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    // Until the queue migration and RLS tests are approved, Preview must not query or write it.
+    if (!readOnly) void loadQueue();
+  }, [readOnly, loadQueue]);
+
+  async function saveQueue(items: { source: "steam" | "manual" | "inbox"; record: ResearchRecord }[]) {
+    if (readOnly) return;
+    for (let index = 0; index < items.length; index += 20) {
+      const response = await fetch("/api/research-queue", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items: items.slice(index, index + 20) })
+      });
+      const body = await response.json() as { error?: string };
+      if (!response.ok) throw new Error(body.error || "대기함에 저장하지 못했습니다.");
+    }
+    await loadQueue();
+  }
+
+  async function saveManualToQueue() {
+    if (readOnly || savingManual || parsed.errors.length || !parsed.records.length) return;
+    setSavingManual(true);
+    setQueueError("");
+    try {
+      await saveQueue(parsed.records.map(record => ({ source: "manual", record })));
+    } catch (error) {
+      setQueueError(error instanceof Error ? error.message : "수동 조사 결과를 저장할 수 없습니다.");
+    } finally {
+      setSavingManual(false);
+    }
+  }
 
   async function loadInbox() {
     if (loadingInbox) return;
@@ -131,6 +186,13 @@ export function ImportWorkbench({ readOnly }: { readOnly: boolean }) {
       }
       setSteamRecords(allRecords);
       setSteamErrors(allErrors);
+      if (!readOnly && allRecords.length > 0) {
+        try {
+          await saveQueue(allRecords.map(record => ({ source: "steam", record })));
+        } catch (error) {
+          setQueueError(error instanceof Error ? error.message : "Steam 결과를 대기함에 저장하지 못했습니다.");
+        }
+      }
     } catch {
       setSteamErrors(["Steam 연결에 실패했습니다. 나중에 다시 시도해 주세요."]);
     } finally {
@@ -238,7 +300,7 @@ export function ImportWorkbench({ readOnly }: { readOnly: boolean }) {
             {loadingSteam ? "Steam 정보 확인 중..." : "입력한 모드 확인 (Steam 공개 정보)"}
           </button>
           {workshopIds.length > 20 && <p role="alert" className="text-sm text-amber-200">한 번에 최대 20개까지 확인할 수 있습니다.</p>}
-          <p className="muted text-xs">Steam의 공개 제목·설명만 조회합니다. AI 분석, Mod ID 및 B42.22·멀티 호환성 검증은 포함되지 않습니다. 카탈로그에 자동 저장하지 않습니다.</p>
+          <p className="muted text-xs">Steam의 공개 제목·설명만 조회합니다. AI 분석, Mod ID 및 B42.22·멀티 호환성 검증은 포함되지 않습니다. 쓰기 허용 환경에서는 영구 대기함에만 보관하며 카탈로그에 자동 등록하지 않습니다.</p>
           {steamErrors.map((message, index) => <p key={index} role="alert" className="text-sm text-amber-200">{message}</p>)}
         </div>
         <button type="button" className="secondary-action mt-3" onClick={loadInbox} disabled={loadingInbox}>
@@ -247,6 +309,15 @@ export function ImportWorkbench({ readOnly }: { readOnly: boolean }) {
         {inbox && <p role="status" className="muted mt-2 text-sm">조사함 {inbox.records.length}건 · 기존 등록 {inbox.alreadyRegistered}건 제외</p>}
         {inbox?.errors.map((message, index) => <p key={index} role="alert" className="text-sm text-amber-200">{message}</p>)}
         {inboxError && <p role="alert" className="text-sm text-amber-200">{inboxError}</p>}
+        {!readOnly && (
+          <div className="mt-4 space-y-2">
+            <button type="button" className="secondary-action" onClick={() => void loadQueue()} disabled={loadingQueue}>
+              {loadingQueue ? "영구 대기함 조회 중..." : "영구 대기함 새로고침"}
+            </button>
+            <p role="status" className="muted text-sm">영구 대기함 {queueRecords.length}개 · 로그인 계정에 저장</p>
+            {queueError && <p role="alert" className="text-sm text-amber-200">{queueError}</p>}
+          </div>
+        )}
         <p className="muted mt-2 text-sm leading-6">
           수동으로 등록할 조사 결과는 아래에 JSON으로 붙여넣으세요.
         </p>
@@ -266,6 +337,12 @@ export function ImportWorkbench({ readOnly }: { readOnly: boolean }) {
           className="field resize-y font-mono text-xs leading-5"
           placeholder='[{"workshopId":"...","title":"...","modIds":["..."]}]'
         />
+        {!readOnly && (
+          <button type="button" className="secondary-action mt-3" onClick={() => void saveManualToQueue()}
+            disabled={savingManual || !parsed.records.length || parsed.errors.length > 0}>
+            {savingManual ? "대기함 저장 중..." : "수동 JSON을 영구 대기함에 저장"}
+          </button>
+        )}
         {parsed.errors.length > 0 && (
           <ul role="alert" className="mt-3 list-inside list-disc text-sm text-red-300">
             {parsed.errors.map((error, index) => <li key={index}>{error}</li>)}

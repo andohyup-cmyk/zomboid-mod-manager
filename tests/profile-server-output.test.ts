@@ -55,3 +55,18 @@ test("download-only Workshop selection satisfies a verified Workshop dependency 
   const selected = { catalog, relationships, downloadOnlyWorkshopIds: [core.workshopId] };
   assert.equal(buildProfileServerConfig([patch], selected, plain, options).copyText, "Mods=\\Patch\nWorkshopItems=23456;12345");
 });
+
+test("verified selection group constraints block copy, but unverified ones are informational", () => {
+  const rule = {
+    id: "variants", label: "choose exactly one",
+    members: [{ workshopId: "12345", modId: "Core" }, { workshopId: "12345", modId: "Optional" }],
+    minSelected: 1, maxSelected: 1, verified: true
+  } as const;
+  const all = [{ ...core, enabled: true }, { ...optional, enabled: true }];
+  const blocked = buildProfileServerConfig(all, { catalog }, plain, options, [rule]);
+  assert.equal(blocked.copyStatus, "blocked");
+  assert.ok(blocked.issues.some(item => item.code === "group-selection-violation"));
+  const unverified = buildProfileServerConfig(all, { catalog }, plain, options, [{ ...rule, verified: false }]);
+  assert.equal(unverified.copyStatus, "ready");
+  assert.ok(unverified.issues.some(item => item.code === "group-rule-unverified"));
+});

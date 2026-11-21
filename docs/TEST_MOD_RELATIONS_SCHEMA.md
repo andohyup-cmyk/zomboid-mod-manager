@@ -76,3 +76,15 @@ using (
 ## 적용 후 검증
 
 적용 전 SQL·스키마를 기록한 다음 시험 DB에 한정해 마이그레이션을 수행하고 RLS, GRANT, 테이블/데이터 개수를 재확인한다. 실행 결과는 `docs/TASKS.md`와 Draft PR에 기록한다.
+
+
+## [후속 적용: 2026-11-21] 초안 등록·명시적 승인 권한
+
+이 문서 상단의 **읽기 전용** 상태는 최초 관계 테이블 생성 시점의 기록입니다. 같은 시험 DB에 사용자 후속 지시를 받아 `20261121143453_test_mod_relation_draft_approval_rls`를 추가 적용했습니다.
+
+- 인증 계정 중 소유자만 **초안 필드에 한정된 INSERT** 가능. 직접 `approved=true` 등록 불가.
+- 인증 계정 중 소유자만 **`approved`, `approved_at` 두 열에 한해 승인 UPDATE** 가능. 기존 승인 행과 다른 관계 정보 변경 불가.
+- 추가 정책은 본인 소유 양쪽 `mod_ids.id`, 실제 `research_records.raw_payload`의 출처·날짜·원래 승인된 상태를 검사.
+- 양방향 충돌 중복 인덱스 추가. 익명·DELETE 차단 유지.
+- 적용 SQL과 실DB 롤백 검사: `supabase/migrations/20261121143453_test_mod_relation_draft_approval_rls.sql`, `docs/reviews/MOD_RELATION_REVIEW_FLOW_20261121.md`.
+- 운영 DB, 기존 스키마/자료, `main` 브랜치 변경 없음.

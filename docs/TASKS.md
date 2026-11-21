@@ -6,7 +6,7 @@
 - `app/api/data-export/route.ts`에 `profile_revision`, `profile_mod_choices`, `profile_downloads`의 사용자 소유 데이터 조회·내보내기 추가, `schemaVersion:2`로 구분. 신규 테이블 조회 실패 시 전체 내보내기 중단(503); 테이블별 10k건·8MB 제한 및 인증/RLS 유지.
 - `lib/backup-preview.ts`, `components/BackupInspector.tsx`, `tests/backup-preview.test.ts`, `app/(private)/backup/page.tsx`를 새 백업 형식에 맞게 수정. **v1은 검사 가능하지만 신규 데이터가 없어 부분 백업으로 표시**. 새 v2에서는 누락된 신규 테이블에 완전성 판정을 부여하지 않음.
 - `docs/BACKUP_V2_PROFILE_REVISIONS.md`에 내보내기 범위와 비트랜잭션 스냅샷/복원 미지원 제약 기록. 홈·모드·서버·등록 화면과 DB 권한·데이터는 변경하지 않음.
-- Preview 테스트 결과 및 PR 링크는 검증 후 기록.
+- **실제 Vercel Preview 빌드 완료**: 배포 `dpl_fvjQa8hnV63HkqhujVDASmVj9TBY` **READY**, 커밋 `0b80b0d0594f80ee5b2b4aa5dae75abfac66af20`, 전체 테스트 **236/236 통과**, `npm run typecheck`, `npm run lint`, Next.js 빌드 통과. Draft PR #20. 로그인한 브라우저로 실제 JSON 다운로드 테스트는 아직 미수행.
 
 ## 2026-11-21 승인된 시험 Supabase 프로필 스키마 적용 완료
 

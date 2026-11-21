@@ -22,7 +22,6 @@ export type CatalogMutationResult =
   | Readonly<{ ok: true; modId: string; expectedUpdatedAt: string; patch: CatalogMutationPatch }>
   | Readonly<{ ok: false; reason: "invalid" | "stale" | "unchanged"; message: string }>;
 
-type CatalogMutationAction = "edit_metadata" | "archive" | "restore";
 const COMMON_KEYS = ["action", "modId", "expectedUpdatedAt"] as const;
 const EDIT_KEYS = ["title", "description"] as const;
 

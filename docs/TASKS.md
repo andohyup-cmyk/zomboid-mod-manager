@@ -1,5 +1,15 @@
 # 작업 현황
 
+## 2026-11-21 승인된 시험 DB 원자적 프로필 저장 RPC·API
+
+- **사용자 별도 승인**: 격리 시험 Supabase(`smofdbjgcgdmscamknpw`)에 `SECURITY INVOKER` 원자 저장 함수 추가, 이를 호출하는 서버 API 개발 및 검증. 운영 배포/main 병합/기존 데이터 삭제/홈·모드·서버 UI 변경 제외.
+- 실제 시험 DB 마이그레이션 `20261121105254_test_profile_atomic_snapshot_invoker` 적용. 소유자/허용 사용자/RLS 검증, `pg_advisory_xact_lock` + revision CAS, 게임 `mod_ids.id` 소유자 확인, 배열 순서와 비활성 선택 보존, 다운로드 전용 목록 별도 저장. `revoke PUBLIC/anon EXECUTE`, authenticated EXECUTE만 허용. 함수는 invoker, search_path 빈 값.
+- 실제 `BEGIN ... ROLLBACK` 통합 DB 검증 완료: 두 게임 Mod ID(활성·비활성)와 다운로드 전용 2건 저장, stale CAS/없는 Mod ID/임의 순서/중복/501건/ID 범위 오류 차단, 잘못된 입력 후 부분 기록 0건, 빈 초안 두 번째 회차 기록과 기존 이력 보존. 미허용 UUID와 익명 RPC 접근 차단, 원본 테이블 최종 0건, 기존 연구 대기함 유지.
+- `lib/profile-snapshot-write.ts`, `app/api/profile-snapshots/route.ts`, `tests/profile-snapshot-write.test.ts` 구현. POST는 owner 인증·same-origin·카탈로그 실 Mod ID 검증 후 RPC만 호출. **시험 Vercel Preview 특정 브랜치/프로젝트/DB 주소 및 명시적 env 플래그**가 없으면 HTTP 쓰기는 차단. 사용자가 설계하기 전 UI 버튼 미연결.
+- SQL 원문 `supabase/migrations/20261121105254_test_profile_atomic_snapshot_invoker.sql`, 상세 검증 `docs/reviews/PROFILE_ATOMIC_SAVE_20261121.md`.
+- **남은 한계**: 실제 서로 다른 계정/동시 네트워크 세션 E2E 미실행. SECURITY INVOKER를 위해 기존 테이블의 열 단위 INSERT는 유지되어 직접 Data API INSERT로 비원자 기록할 수 있으므로 운영 전 데이터 접근 구조 재검토 필요. 기존 `rls_auto_enable()` Advisor 경고 변경하지 않음.
+- Vercel Preview 및 코드 테스트 결과는 검증 후 추가 기록.
+
 ## 2026-11-21 프로필 신규 스키마 반영 후 JSON 백업 v2 누락 방지
 
 - `feature/backup-v2-profile-snapshots-20261121` (이전 시험 DB 스키마 브랜치 기준): 기존 JSON 내보내기가 신규 프로필 회차·게임 Mod ID 개별 선택·다운로드 전용 테이블을 누락한 채 complete:true가 될 수 있는 문제 확인.

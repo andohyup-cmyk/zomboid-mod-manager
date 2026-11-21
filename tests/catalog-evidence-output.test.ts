@@ -4,6 +4,7 @@ import {
   projectCatalogEvidence, type CatalogEvidenceParent, type CatalogEvidenceRecord
 } from "../lib/catalog-evidence-output";
 import type { SavedModIdentity } from "../lib/saved-profile-output";
+import { buildSavedProfileOutput } from "../lib/saved-profile-output";
 
 const owner = "11111111-1111-4111-8111-111111111111";
 const workshopId = "3552615247";
@@ -162,4 +163,44 @@ test("does not mutate frozen source or database rows", () => {
 test("large unbounded payload is rejected instead of truncating trust evidence", () => {
   const many = Array.from({ length: 1001 }, (_, i) => ({ ...row, id: String(i) }));
   assert.deepEqual(evaluate([parent], many), { ok: false, reason: "unbounded" });
+});
+
+test("matched catalog claims reach the existing settings validator without claiming B42.22", () => {
+  const projection = evaluate();
+  assert.equal(projection.ok, true);
+  if (!projection.ok) return;
+  const saved = {
+    selections: [{ workshopId, modId: "Main", modIdUuid: "uuid-main", enabled: true }],
+    downloadOnlyWorkshopIds: []
+  };
+  const output = buildSavedProfileOutput(saved, sources,
+    { catalog: projection.catalog, archivedWorkshopIds: projection.archivedWorkshopIds },
+    { categoryPriority: [] }, { modIdPrefix: "" });
+  assert.equal(output.ok, true);
+  if (output.ok) {
+    assert.equal(output.report.preview?.mods, "Mods=Main");
+    // The source-backed multiplayer claim is recorded, but Build 42.22
+    // and required dependencies remain unknown in the current schema.
+    assert.equal(output.report.issues.filter(i => i.code === "compatibility-unverified").length, 1);
+    assert.ok(output.report.issues.some(i => i.code === "dependency-unverified"));
+    assert.equal(output.report.issues.some(i => i.code === "compatibility-reported-issue"), false);
+  }
+});
+
+test("archived claimed Workshop produces the existing warning and requires confirmation", () => {
+  const projection = evaluate([{ ...parent, is_archived: true }]);
+  assert.equal(projection.ok, true);
+  if (!projection.ok) return;
+  const saved = {
+    selections: [{ workshopId, modId: "Main", modIdUuid: "uuid-main", enabled: true }],
+    downloadOnlyWorkshopIds: []
+  };
+  const output = buildSavedProfileOutput(saved, sources,
+    { catalog: projection.catalog, archivedWorkshopIds: projection.archivedWorkshopIds },
+    { categoryPriority: [] }, { modIdPrefix: "" });
+  assert.equal(output.ok, true);
+  if (output.ok) {
+    assert.equal(output.report.copyStatus, "confirmation-required");
+    assert.ok(output.report.issues.some(i => i.code === "archived-workshop"));
+  }
 });

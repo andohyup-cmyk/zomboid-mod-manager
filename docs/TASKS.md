@@ -152,6 +152,9 @@
 - [x] PC 조사 JSON을 브라우저 메모리에서만 읽는 파서 및 서버 출력 화면의 선택적 참고 검사 구현.
 - [x] Workshop/Mod ID 쌍, 복수 Mod ID, B42 경로/버전별 require 차이, 선언 의존성 누락·순서 경고를 별도 검사.
 - [x] 독립 로컬 테스트 8개 통과; 실제 jjinmac-1 활성 64개가 조사 파일의 ID 쌍과 일치, B42 경로 미확인 5개는 정보로 표시.
-- [ ] 전체 npm verify/Next 빌드 및 모바일 Preview 실기기 동작 최종 확인.
+- [x] 시험 Vercel Preview에서 `npm run verify`: 단위 테스트 163개 통과, TypeScript·ESLint 통과, Next.js 빌드 READY (커밋 `1857a29`, 배포 `dpl_GCd7M2b437c8eMSTtxCBv1Cd5tPp`).
+- [x] 신규 `mod.info` 검사 모바일 Chromium 자동 테스트 1개 통과 (GitHub Actions `44866198126`, 별도 승인 모의 환경은 1개 skip).
+- [ ] 기존 전체 브라우저 통합 테스트에서 별도 2건 실패: 조사함 입력 필터의 오래된 기대치, 동일 텍스트 선택자 strict 충돌. 현재 미해결.
+- [ ] 최신 시험 Preview의 Google OAuth 실로그인과 실제 갤럭시 화면 및 파일 선택 UI 확인은 사용자 실기기 검증이 필요함.
 - [ ] 정식 카탈로그/서버 프로필 저장과 실제 파일 반영은 별도 작업이며 이번 검사에서 수행하지 않음.
 - 이 변경은 선택 규칙을 확정하거나 실제 B42.22/멀티 호환성을 인증하지 않음. 상세: [LOCAL_MODINFO_VALIDATION.md](LOCAL_MODINFO_VALIDATION.md).

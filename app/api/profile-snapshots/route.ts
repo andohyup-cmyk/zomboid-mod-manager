@@ -5,6 +5,7 @@ import { planProfileSave } from "@/lib/profile-persistence-plan";
 import { reconstructProfileSnapshot } from "@/lib/profile-snapshot-read";
 import { projectCatalogEvidence, type CatalogEvidenceParent } from "@/lib/catalog-evidence-output";
 import { buildSavedProfileOutput } from "@/lib/saved-profile-output";
+import { projectReviewedRelations, type ReviewedRelationRow } from "@/lib/reviewed-mod-relations";
 import {
   isTestProfileSnapshotWriteAllowed,
   profileSnapshotErrorStatus,
@@ -266,11 +267,34 @@ export async function GET(request: NextRequest) {
   if (!projected.ok) {
     return reply({ error: "카탈로그 조사 근거의 소유권·출처 검증에 실패했습니다." }, 503);
   }
+  // Read only: relations are never created or approved by this endpoint.
+  // RLS checks the owner and both catalog endpoints, including research origin.
+  const relationResult = await access.supabase.from("mod_relations")
+    .select("id,owner_id,kind,subject_mod_id_entry_id,target_mod_id_entry_id,research_record_id,evidence_url,checked_at,approved")
+    .eq("owner_id", access.user.id)
+    .limit(501);
+  if (relationResult.error || !relationResult.data || relationResult.data.length > 500) {
+    return reply({ error: "모드 관계 기록을 완전히 조회할 수 없습니다." }, 503);
+  }
+  const relationRows: ReviewedRelationRow[] = relationResult.data.map(item => ({
+    id: item.id, ownerId: item.owner_id, kind: item.kind,
+    subjectModIdUuid: item.subject_mod_id_entry_id,
+    targetModIdUuid: item.target_mod_id_entry_id,
+    evidenceRecordId: item.research_record_id,
+    sourceUrl: item.evidence_url, checkedAt: item.checked_at,
+    approved: item.approved
+  }));
+  const reviewed = projectReviewedRelations(
+    access.user.id, sourceBindings, projected.evidence, relationRows
+  );
+  if (!reviewed.ok) {
+    return reply({ error: "모드 관계의 소유권·출처 검증에 실패했습니다." }, 503);
+  }
   const output = buildSavedProfileOutput(
     restored, sourceBindings,
     { catalog: projected.catalog, archivedWorkshopIds: projected.archivedWorkshopIds },
-    { categoryPriority: [] },
-    { modIdPrefix: prefixChoice === "backslash" ? "\\" : "" }
+    { categoryPriority: [], rules: reviewed.rules },
+    { modIdPrefix: prefixChoice === "backslash" ? "\\\\" : "" }
   );
   if (!output.ok) return reply({ error: "출력용 Mod ID 출처 검증에 실패했습니다." }, 503);
   return reply({
@@ -281,6 +305,7 @@ export async function GET(request: NextRequest) {
       preview: output.report.preview,
       issues: output.report.issues,
       catalogEvidence: projected.evidence,
+      reviewedRelations: { verifiedCount: reviewed.rules.length, withheld: reviewed.withheld },
       // No copy authorization: verified dependencies, group rules and B42.22
       // build-specific sources are not yet persisted/loaded.
       readyForCopy: false

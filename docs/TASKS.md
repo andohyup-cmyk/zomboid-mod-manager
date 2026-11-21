@@ -7,7 +7,7 @@
 - `tests/reviewed-mod-relations.test.ts`: 허위 근거·외부 소유자·동일 Mod ID를 제공하는 복수 Workshop·누락 대상·중복·검증된 의존성 차단·충돌 확인·로드 순서 권고를 검증. DB나 Steam 실데이터를 수정하지 않는 순수 단위 테스트.
 - `docs/proposals/REVIEWED_RELATIONS_MODEL.md`: 장래 `mod_relations` 관계/소유자/RLS/승인 출처 설계와 **별도 DB 변경 승인 필요** 경계 기록.
 - **미구현 유지**: DB `mod_relations` 테이블/RLS/GRANT, API의 실제 관계 조회, 홈·모드·서버 UI 수정, 운영 배포, main 병합, 실데이터 변경. 사용자의 현재 PC 사용 가능 상태는 기존 프로젝트 지침에 반영됨.
-- Preview 자동 테스트 및 빌드 검증 결과는 확인 후 추가.
+- **Vercel Preview** `dpl_CGX4n23RgYuD126m2Qv3oEDcD43z` **READY**, 검증 커밋 `29e1e7d5b25ddca867967ccbae70339644458eab`(이후 문서 커밋만 추가), **286/286 자동 테스트 통과**, TypeScript·ESLint·Next.js 빌드 완료. 새 관계 관련 회귀 테스트 **13개** 추가. 시험 DB 조회 결과 신규 `mod_relations` 테이블은 아직 없고 기존 카탈로그·프로필 데이터는 0건, 대기함 pending 1건 유지. 이번 기능 브랜치의 시험 프로필 저장 허용 플래그 없음.
 
 ## 2026-11-21 승인된 카탈로그 조사 근거를 서버 설정 출력 검사에 연결
 

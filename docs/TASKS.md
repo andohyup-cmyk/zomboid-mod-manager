@@ -1,5 +1,16 @@
 # 작업 현황
 
+## 2026-11-21 관계 초안·명시적 승인 API 및 관계 포함 백업 v3
+
+- 사용자 후속 `진행해` 지시에 따라 **시험 Supabase** `smofdbjgcgdmscamknpw`에서만 관계 등록·승인 정책 추가. 마이그레이션 `20261121143453_test_mod_relation_draft_approval_rls` 적용, SQL은 `supabase/migrations/20261121143453_test_mod_relation_draft_approval_rls.sql`에 그대로 보존.
+- `mod_relations`: 로그인 허용 사용자에게 **초안 필드만 INSERT**, **approved/approved_at만 UPDATE** 허용. RLS는 소유자·양쪽 Mod ID·주체 Workshop의 승인 조사 기록/URL/날짜/상태 검증, `approved=false→true`만 허용. anon·DELETE·기존 관계 정보 변경 불가. 반대 방향 중복 충돌 인덱스 추가.
+- 실제 시험 DB **`BEGIN ... SET LOCAL ROLE authenticated ... ROLLBACK`** 테스트: 초안→승인 성공; 다른 사용자 조회·등록·승인, 허위 URL, 승인 직접 삽입/취소, 불변 필드 수정, 양방향 중복 충돌 차단. 모든 테스트 자료 롤백. 원본 카탈로그·프로필·연구 기록·관계 **0건**, 기존 대기함 전체 **2건** 중 pending **1건** 유지.
+- `lib/mod-relation-review-input.ts`, `lib/mod-relation-review-server.ts`, `app/api/mod-relations/route.ts`, `app/api/mod-relations/approve/route.ts`: 시험 브랜치/프로젝트/DB/환경 플래그 고정, 인증·동일 출처 확인, 출처 재검증, 사용자 `confirm:true` 명시 요청. `GET /api/mod-relations` 본인 데이터 조회. 홈·모드·서버 UI는 변경하지 않았고 승인 확인 UI도 **미연결**.
+- Vercel Preview의 **`feature/test-mod-relation-review-flow-20261121` 브랜치에만** `MOD_RELATION_TEST_WRITE_ENABLED=true` 설정. 운영/다른 브랜치에는 미설정. 시험 Preview Supabase 주소가 승인된 시험 프로젝트와 일치하는지 재확인.
+- **백업 v3**: 새 관계/승인 행 `modRelations` 추가, 필수 10개 영역. v1·v2 파일 열람 가능하나 부분 백업으로 표시, 관계 누락 v3는 거부. 실 DB 복원·전체 DB/PITR 백업 구현 아니며 순차 조회는 단일 시점의 스냅샷을 보장하지 않음.
+- Preview `dpl_5HWipD5Q3G1bxT6Pf2FUuAcHzfZc` **READY**, 코드 검증 커밋 `d49294a679c3a485bc04a67b75bf7b69e9bc5b5a`, **297/297 자동 테스트 통과**, TypeScript·ESLint·Next.js 빌드 성공. 이후 문서 이력 커밋만 추가.
+- 상세 보고 `docs/reviews/MOD_RELATION_REVIEW_FLOW_20261121.md`; Draft PR **#26**. 실제 OAuth 브라우저 POST→승인→GET E2E와 실제 카탈로그 관계 등록은 미검증·미실행. 직접 Data API를 사용하는 **본인 계정은 RLS/열 권한 범위 안에서 승인 필드를 변경할 수 있음**을 명시. 운영 배포, `main` 병합, 데이터 삭제, 기존 화면 디자인 변경 없음.
+
 ## 2026-11-21 시험 DB 관계 테이블 및 읽기 경로 (승인 범위)
 
 - 사용자 `진행해` 승인에 따라 **시험 Supabase `smofdbjgcgdmscamknpw`만** `test_mod_relations_readonly_owner_rls` 마이그레이션 적용 성공.

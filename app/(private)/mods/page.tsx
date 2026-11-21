@@ -1,5 +1,11 @@
 import Link from "next/link";
 import { getOwnerAccess } from "@/lib/auth";
+import {
+  applyCatalogListFilters,
+  CATALOG_LIST_LIMIT,
+  parseCatalogListFilters,
+  type CatalogListInput
+} from "@/lib/catalog-read";
 
 type CatalogMod = {
   id: string;
@@ -13,39 +19,19 @@ type CatalogMod = {
   mod_ids: { value: string }[] | null;
 };
 
-type Filters = {
-  q?: string; archive?: string; build?: string; multiplayer?: string; sort?: string;
-};
-const states = ["unverified", "confirmed", "reported_issue"];
-
-export default async function ModsPage({ searchParams }: { searchParams: Promise<Filters> }) {
+export default async function ModsPage({ searchParams }: { searchParams: Promise<CatalogListInput> }) {
   const access = await getOwnerAccess();
   if (access.kind !== "authorized") return null;
-  const params = await searchParams;
-  const query = typeof params.q === "string" ? params.q.trim().slice(0, 80) : "";
-  const archive = ["active", "archived", "all"].includes(params.archive ?? "") ? params.archive : "active";
-  const sort = ["recent", "oldest", "name"].includes(params.sort ?? "") ? params.sort : "recent";
-  const build = states.includes(params.build ?? "") ? params.build : "";
-  const multiplayer = states.includes(params.multiplayer ?? "") ? params.multiplayer : "";
+  const { query, archive, sort, build, multiplayer } = parseCatalogListFilters(await searchParams);
 
-  let req = access.supabase.from("mods")
-    .select("id,title,workshop_id,verification_status,build_compatibility,multiplayer_compatibility,is_archived,created_at,mod_ids(value)")
-    .eq("owner_id", access.user.id)
-    .limit(100);
-
-  if (archive !== "all") req = req.eq("is_archived", archive === "archived");
-  if (build) req = req.eq("build_compatibility", build);
-  if (multiplayer) req = req.eq("multiplayer_compatibility", multiplayer);
-  if (query) {
-    if (/^\d{5,20}$/.test(query)) req = req.eq("workshop_id", query);
-    else {
-      // Escape LIKE wildcards so a search is literal, not an accidental broad query.
-      const literal = query.replace(/[\\%_]/g, "\\$&");
-      req = req.ilike("title", "%" + literal + "%");
-    }
-  }
-  if (sort === "name") req = req.order("title", { ascending: true });
-  else req = req.order("created_at", { ascending: sort === "oldest" });
+  // Scope the query to the signed-in owner before applying optional filters.
+  const req = applyCatalogListFilters(
+    access.supabase.from("mods")
+      .select("id,title,workshop_id,verification_status,build_compatibility,multiplayer_compatibility,is_archived,created_at,mod_ids(value)")
+      .eq("owner_id", access.user.id)
+      .limit(CATALOG_LIST_LIMIT),
+    { query, archive, sort, build, multiplayer }
+  );
 
   const { data, error } = await req;
   const items = (data ?? []) as CatalogMod[];
@@ -114,7 +100,7 @@ export default async function ModsPage({ searchParams }: { searchParams: Promise
           </Link>
         ))}
       </div>
-      {items.length >= 100 && <p className="muted text-xs">최대 100건만 표시됩니다. 조건을 좁혀 검색해 주세요.</p>}
+      {items.length >= CATALOG_LIST_LIMIT && <p className="muted text-xs">최대 100건만 표시됩니다. 조건을 좁혀 검색해 주세요.</p>}
     </section>
   );
 }

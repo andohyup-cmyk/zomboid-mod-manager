@@ -1,5 +1,14 @@
 # 작업 현황
 
+## 2026-11-21 3단계 모드 수정·보관·복원 안전 로직 준비
+
+- 사용자 요청: 다음 수동 작업/별도 승인이 필요하기 전까지 단계별로 개발·검증을 계속한다. 홈·모드·서버 UI는 추후 사용자가 조건을 정할 때 변경한다.
+- 실제 시험 DB 조사: `mods`에는 제목·설명·보관 플래그·수정 시각 필드가 있지만, authenticated UPDATE/DELETE 권한 및 UPDATE RLS 정책은 **없다**. `updated_at` 자동 갱신 트리거도 없다.
+- 별도 브랜치 `feature/catalog-mutation-validation-20261121`에 **호출되지 않는 순수 검증 로직** `lib/catalog-mutation-preview.ts` 및 테스트 `tests/catalog-mutation-preview.test.ts` 추가. 제목/설명 수정과 보관/복원만 계획하며 immutable Workshop/Mod IDs, 원본 조사, 프로필 선택 및 호환성 확인 상태를 변경하지 않는다.
+- 이전 `updated_at`과 스냅샷 불일치, 잘못된/과도한 값, 임의 변경 필드는 거부한다. 실제 API/DB 쓰기 경로는 생성하지 않는다.
+- `docs/proposals/CATALOG_MUTATION_PLAN.md`에 향후 DB UPDATE/RLS/GRANT·동시성·백업·사용자 승인 경계 명시. **DB 권한·실데이터, 운영 배포, main 병합 미변경**.
+- 테스트/Preview 결과: 자동 검증 후 별도 기록.
+
 ## 2026-11-21 모드 카탈로그 조회 회귀 테스트와 100건 초과 검토
 
 - 사용자 요청: 홈/모드/서버 메뉴 UI는 변경하지 않고 **목록·상세 조회 내부 검증을 먼저 보강**한다.

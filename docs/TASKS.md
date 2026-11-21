@@ -1,5 +1,12 @@
 # 작업 현황
 
+## 2026-11-21 7단계: 저장된 서버 프로필의 설정 출력 검증 연결
+
+- `feature/saved-profile-output-20261121` (원자적 프로필 저장 브랜치 기반): `lib/saved-profile-output.ts`로 최신 저장 스냅샷의 Workshop/게임 Mod ID/UUID 대응 관계와 원래 순서를 확인한 뒤 기존 `buildProfileServerConfig` 출력 엔진을 재사용.
+- 검증 대상: 비활성 항목 원위치 보존 및 출력 제외, 활성 Mod ID만 선택 순서로 출력, 다운로드 전용 Workshop 명시 포함, 중복·출처 불일치·빈 초안 차단, 기존 확인된 관계·배타 그룹 규칙·경고 확인 유지.
+- `GET /api/profile-snapshots`에 선택형 `outputPrefix=none|backslash` 기초 미리보기 추가. **접두사를 임의로 결정하지 않고**, 응답에 `scope: selected-mod-id-membership-only`/`readyForCopy:false`를 포함해 실제 확인 근거와 최종 복사 가능 여부를 혼동하지 않음.
+- `tests/saved-profile-output.test.ts`와 `docs/SAVED_PROFILE_OUTPUT_VALIDATION.md` 작성. 이 작업은 **DB/RLS/권한/운영/main/기존 화면**을 변경하지 않음. Preview 테스트 및 빌드 결과는 확인 후 기록.
+
 ## 2026-11-21 승인된 시험 DB 원자적 프로필 저장 RPC·API
 
 - **사용자 별도 승인**: 격리 시험 Supabase(`smofdbjgcgdmscamknpw`)에 `SECURITY INVOKER` 원자 저장 함수 추가, 이를 호출하는 서버 API 개발 및 검증. 운영 배포/main 병합/기존 데이터 삭제/홈·모드·서버 UI 변경 제외.

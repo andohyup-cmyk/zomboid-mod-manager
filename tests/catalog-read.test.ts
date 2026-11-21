@@ -70,7 +70,7 @@ test("name search escapes literal percent, underscore and backslash", () => {
   const calls = inspectQuery({ q: String.raw`Mod%_\\test`, archive: "archived", sort: "name" });
   assert.deepEqual(calls, [
     { method: "eq", column: "is_archived", value: true },
-    { method: "ilike", column: "title", value: String.raw`%Mod\\%\\_\\\\test%` },
+    { method: "ilike", column: "title", value: String.raw`%Mod\%\_\\\\test%` },
     { method: "order", column: "title", value: true }
   ]);
 });

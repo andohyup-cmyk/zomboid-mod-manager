@@ -16,13 +16,14 @@ export async function GET() {
 
   const supabase = access.supabase;
 
-  async function readRows(table: string, by: string, ids: string[], orderBy: string, secondOrder?: string) {
+  async function readRows(table: string, by: string, ids: string[], orderBy: string, secondOrder?: string, thirdOrder?: string) {
     const rows: Record<string, unknown>[] = [];
     if (!ids.length) return rows;
     for (let offset = 0; offset <= MAX_ROWS_PER_TABLE; offset += PAGE_SIZE) {
       let query = supabase.from(table).select("*")
         .in(by, ids).order(orderBy, { ascending: true });
       if (secondOrder) query = query.order(secondOrder, { ascending: true });
+      if (thirdOrder) query = query.order(thirdOrder, { ascending: true });
       const { data, error } = await query.range(offset, offset + PAGE_SIZE - 1);
       if (error) throw new Error(`${table}: query failed`);
       const page = (data ?? []) as Record<string, unknown>[];
@@ -42,10 +43,13 @@ export async function GET() {
     const profiles = await readRows("profiles", "owner_id", [uid], "id");
     const profileIds = profiles.map(profile => profile.id).filter((id): id is string => typeof id === "string");
 
-    const [gameModIds, researchRecords, profileMods] = await Promise.all([
+    const [gameModIds, researchRecords, profileMods, profileRevisions, profileModChoices, profileDownloads] = await Promise.all([
       readRows("mod_ids", "mod_id", modIds, "id"),
       readRows("research_records", "mod_id", modIds, "id"),
-      readRows("profile_mods", "profile_id", profileIds, "profile_id", "mod_id")
+      readRows("profile_mods", "profile_id", profileIds, "profile_id", "mod_id"),
+      readRows("profile_revision", "owner_id", [uid], "profile_id", "revision"),
+      readRows("profile_mod_choices", "owner_id", [uid], "profile_id", "revision", "load_order"),
+      readRows("profile_downloads", "owner_id", [uid], "profile_id", "revision", "load_order")
     ]);
 
     const warnings: string[] = [];
@@ -59,12 +63,15 @@ export async function GET() {
     }
 
     const snapshot = {
-      schemaVersion: 1,
+      schemaVersion: 2,
       exportedAt: new Date().toISOString(),
       scope: "authorized-user-catalog-and-profiles",
       complete: warnings.length === 0,
       warnings,
-      data: { mods, modIds: gameModIds, researchRecords, profiles, profileMods, researchQueue: queue }
+      data: {
+        mods, modIds: gameModIds, researchRecords, profiles, profileMods,
+        researchQueue: queue, profileRevisions, profileModChoices, profileDownloads
+      }
     };
     const json = JSON.stringify(snapshot, null, 2);
     if (Buffer.byteLength(json, "utf8") > 8_000_000) {

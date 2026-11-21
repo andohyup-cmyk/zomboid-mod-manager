@@ -1,5 +1,13 @@
 # 작업 현황
 
+## 2026-11-21 4단계 일괄 등록 선택·중복 검증 강화
+
+- 별도 브랜치 `feature/batch-approval-logic-tests-20261121`, 이전 3단계 브랜치에서 분기.
+- 기존 `ImportWorkbench`의 일괄 선택/전체 선택 필터만 `lib/batch-approval-selection.ts`로 추출. 화면 JSX, 입력 창, 확인창, 저장 API의 동작 및 Preview 차단 설정은 유지.
+- `tests/batch-approval-selection.test.ts` 12건 추가: 오래된 후보 제외, 같은 Workshop 다른 출처의 자동 선택 금지, 저장 상태·중복 제외, 실패 후 재시도, 최대 20개 제한, 사용자 명시 선택·원본 불변 검사.
+- `docs/BATCH_APPROVAL_VALIDATION.md`에 구조/남은 실검증 기록.
+- 데이터 등록·삭제, DB 권한 변경, 운영 배포, main 병합 없음. 실행 결과는 CI/Vercel 확인 후 추가 기록.
+
 ## 2026-11-21 3단계 모드 수정·보관·복원 안전 로직 준비
 
 - 사용자 요청: 다음 수동 작업/별도 승인이 필요하기 전까지 단계별로 개발·검증을 계속한다. 홈·모드·서버 UI는 추후 사용자가 조건을 정할 때 변경한다.

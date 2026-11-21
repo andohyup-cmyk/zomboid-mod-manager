@@ -100,3 +100,37 @@ test("read-only Preview shows researched data but no batch approval or queue wri
   });
   expect(response.status()).toBe(403);
 });
+
+
+test("mobile local mod.info scan warns on a missing requirement without modifying profile output", async ({ page }) => {
+  test.skip(approved, "Use the fixture read-only editor for local inventory upload validation.");
+  await page.goto("/profiles/editor");
+  await page.getByRole("checkbox", { name: "Mod ID Core · Workshop ID 12345", exact: true }).check();
+  await page.getByRole("checkbox", { name: "Mod ID Patch · Workshop ID 67890", exact: true }).check();
+  await page.getByRole("button", { name: "선택한 Mod ID 추가" }).click();
+  await page.getByRole("tab", { name: "선택한 모드" }).click();
+
+  const output = page.getByLabel("설정 문자열 미리보기");
+  await expect(output).toContainText(/Mods=\\Core;\\Patch/);
+  const before = await output.textContent();
+  const inventorySection = page.getByRole("region", { name: "로컬 mod.info 참고 검사" });
+  const audit = {
+    targetBuild: "42.22",
+    scannedAtUtc: "2026-11-20T16:36:57Z",
+    mods: [
+      { workshopId: "12345", modId: "Core", relativePath: "12345\\mods\\Core\\42\\mod.info", requires: [] },
+      { workshopId: "67890", modId: "Patch", relativePath: "67890\\mods\\Patch\\42\\mod.info", requires: ["\\Core", "\\Missing"] }
+    ]
+  };
+  await inventorySection.locator('input[type="file"]').setInputFiles({
+    name: "zomboid-workshop-audit.json",
+    mimeType: "application/json",
+    buffer: Buffer.from("\uFEFF" + JSON.stringify(audit))
+  });
+  await expect(inventorySection.getByRole("status")).toContainText("활성 Mod ID 2개 중 일치 2개");
+  await expect(inventorySection).toContainText("require=Missing");
+  await expect(page.getByRole("button", { name: "설정 복사" })).toBeEnabled();
+  await expect(output).toHaveText(before ?? "");
+  await inventorySection.getByRole("button", { name: "검사 자료 해제" }).click();
+  await expect(inventorySection.getByText("require=Missing", { exact: false })).toHaveCount(0);
+});

@@ -4,6 +4,12 @@ on:
   push:
     branches:
       - feature/local-modinfo-audit-20261121
+    paths:
+      - 'lib/local-workshop-inventory.ts'
+      - 'components/ProfileServerOutput.tsx'
+      - 'tests/local-workshop-inventory.test.ts'
+      - 'tests/browser/integration.spec.ts'
+      - '.github/workflows/local-browser-verification.yml'
   workflow_dispatch:
 
 permissions:

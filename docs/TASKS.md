@@ -1,5 +1,13 @@
 # 작업 현황
 
+## 2026-11-21 프로필 신규 스키마 반영 후 JSON 백업 v2 누락 방지
+
+- `feature/backup-v2-profile-snapshots-20261121` (이전 시험 DB 스키마 브랜치 기준): 기존 JSON 내보내기가 신규 프로필 회차·게임 Mod ID 개별 선택·다운로드 전용 테이블을 누락한 채 complete:true가 될 수 있는 문제 확인.
+- `app/api/data-export/route.ts`에 `profile_revision`, `profile_mod_choices`, `profile_downloads`의 사용자 소유 데이터 조회·내보내기 추가, `schemaVersion:2`로 구분. 신규 테이블 조회 실패 시 전체 내보내기 중단(503); 테이블별 10k건·8MB 제한 및 인증/RLS 유지.
+- `lib/backup-preview.ts`, `components/BackupInspector.tsx`, `tests/backup-preview.test.ts`, `app/(private)/backup/page.tsx`를 새 백업 형식에 맞게 수정. **v1은 검사 가능하지만 신규 데이터가 없어 부분 백업으로 표시**. 새 v2에서는 누락된 신규 테이블에 완전성 판정을 부여하지 않음.
+- `docs/BACKUP_V2_PROFILE_REVISIONS.md`에 내보내기 범위와 비트랜잭션 스냅샷/복원 미지원 제약 기록. 홈·모드·서버·등록 화면과 DB 권한·데이터는 변경하지 않음.
+- Preview 테스트 결과 및 PR 링크는 검증 후 기록.
+
 ## 2026-11-21 승인된 시험 Supabase 프로필 스키마 적용 완료
 
 - **사용자 승인**: 독립 시험 Supabase `smofdbjgcgdmscamknpw`의 관련 데이터 논리 백업·안전 검토 후 프로필 영구 저장용 신규 테이블 및 최소 쓰기/RLS 권한 적용. 운영 프로젝트와 main 병합 금지.

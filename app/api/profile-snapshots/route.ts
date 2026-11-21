@@ -294,7 +294,7 @@ export async function GET(request: NextRequest) {
     restored, sourceBindings,
     { catalog: projected.catalog, archivedWorkshopIds: projected.archivedWorkshopIds },
     { categoryPriority: [], rules: reviewed.rules },
-    { modIdPrefix: prefixChoice === "backslash" ? "\\\\" : "" }
+    { modIdPrefix: prefixChoice === "backslash" ? "\\" : "" }
   );
   if (!output.ok) return reply({ error: "출력용 Mod ID 출처 검증에 실패했습니다." }, 503);
   return reply({

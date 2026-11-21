@@ -2,11 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { groupResearchCandidates, matchResearchCandidatesToInput, type ResearchCandidate } from "@/lib/research-candidates";
-import {
-  parseResearchPayload,
-  parseWorkshopInput,
-  type ResearchRecord
-} from "@/lib/workshop";
+import { parseWorkshopInput, type ResearchRecord } from "@/lib/workshop";
 
 const sourceLabels = { inbox: "조사함", manual: "수동 JSON", steam: "Steam 공개 정보 · AI 미분석", queue: "영구 대기함" } as const;
 
@@ -120,7 +116,6 @@ function DismissDialog({ title, onCancel, onConfirm }: {
 
 export function ImportWorkbench({ readOnly, queueWritable = !readOnly }: { readOnly: boolean; queueWritable?: boolean }) {
   const [workshopInput, setWorkshopInput] = useState("");
-  const [rawJson, setRawJson] = useState("");
   const [inbox, setInbox] = useState<InboxResponse | null>(null);
   const [loadingInbox, setLoadingInbox] = useState(false);
   const [steamRecords, setSteamRecords] = useState<ResearchRecord[]>([]);
@@ -129,7 +124,6 @@ export function ImportWorkbench({ readOnly, queueWritable = !readOnly }: { readO
   const [queueRecords, setQueueRecords] = useState<QueueItem[]>([]);
   const [loadingQueue, setLoadingQueue] = useState(false);
   const [queueError, setQueueError] = useState("");
-  const [savingManual, setSavingManual] = useState(false);
   const [batchChoices, setBatchChoices] = useState<Record<string, ResearchCandidate>>({});
   const [batchOpen, setBatchOpen] = useState(false);
   const [approvingBatch, setApprovingBatch] = useState(false);
@@ -140,13 +134,9 @@ export function ImportWorkbench({ readOnly, queueWritable = !readOnly }: { readO
   const [selection, setSelection] = useState<{ id: string; candidate: ResearchCandidate } | null>(null);
   const lockedIds = useRef(new Set<string>());
   const { workshopIds, invalidPositions } = useMemo(() => parseWorkshopInput(workshopInput), [workshopInput]);
-  const parsed = useMemo(
-    () => rawJson.trim() ? parseResearchPayload(rawJson) : { records: [], errors: [] },
-    [rawJson]
-  );
-  const groups = useMemo(() => groupResearchCandidates(inbox?.records ?? [], parsed.records, steamRecords, queueRecords.map(item => item.record)), [inbox, parsed.records, steamRecords, queueRecords]);
+  const groups = useMemo(() => groupResearchCandidates(inbox?.records ?? [], [], steamRecords, queueRecords.map(item => item.record)), [inbox, steamRecords, queueRecords]);
   const matched = useMemo(() => matchResearchCandidatesToInput(groups, workshopIds), [groups, workshopIds]);
-  const hasResearchData = inbox !== null || parsed.records.length > 0 || steamRecords.length > 0 || steamErrors.length > 0 || queueRecords.length > 0;
+  const hasResearchData = inbox !== null || steamRecords.length > 0 || steamErrors.length > 0 || queueRecords.length > 0;
 
   const loadQueue = useCallback(async () => {
     setLoadingQueue(true);
@@ -198,19 +188,6 @@ export function ImportWorkbench({ readOnly, queueWritable = !readOnly }: { readO
       if (!response.ok) throw new Error(body.error || "대기함에 저장하지 못했습니다.");
     }
     await loadQueue();
-  }
-
-  async function saveManualToQueue() {
-    if (!queueWritable || savingManual || parsed.errors.length || !parsed.records.length) return;
-    setSavingManual(true);
-    setQueueError("");
-    try {
-      await saveQueue(parsed.records.map(record => ({ source: "manual", record })));
-    } catch (error) {
-      setQueueError(error instanceof Error ? error.message : "수동 조사 결과를 저장할 수 없습니다.");
-    } finally {
-      setSavingManual(false);
-    }
   }
 
   async function loadInbox() {
@@ -384,18 +361,6 @@ export function ImportWorkbench({ readOnly, queueWritable = !readOnly }: { readO
     }
   }
 
-  const sample = {
-    workshopId: "1234567890",
-    title: "예시용 제목 — 실제 조사 결과로 변경",
-    modIds: [],
-    description: "예시 데이터이며 실제 모드 정보가 아닙니다.",
-    checkedAt: null,
-    verificationStatus: "unverified",
-    buildCompatibility: "unverified",
-    multiplayerCompatibility: "unverified",
-    sources: []
-  };
-
   return (
     <div className="space-y-7">
       {readOnly && (
@@ -403,15 +368,18 @@ export function ImportWorkbench({ readOnly, queueWritable = !readOnly }: { readO
           {queueWritable ? "시험 환경: Steam 공개 정보는 영구 대기함에 자동 저장되지만, 정식 모드 카탈로그 등록은 차단됩니다." : "이 배포는 읽기 전용입니다. 입력과 미리보기를 이용할 수 있습니다."}
         </p>
       )}
-      <section className="panel p-5 sm:p-6">
-        <h2 className="text-lg font-bold">1. Workshop 항목 입력</h2>
-        <p id="workshop-input-help" className="muted mt-2 text-sm leading-6">
-          Steam Workshop URL과 숫자 Workshop ID를 공백, 줄바꿈 또는 쉼표로 구분해 입력하세요.
-        </p>
-        <label htmlFor="workshop-input" className="mt-5 mb-2 block text-sm font-semibold">Workshop URL 또는 ID</label>
+      <section className="panel p-4 sm:p-5">
+        <div className="mb-2 flex items-center justify-between gap-3">
+          <label htmlFor="workshop-input" className="text-sm font-semibold">Workshop URL 또는 ID</label>
+          <button type="button" className="min-h-10 shrink-0 rounded-lg px-3 text-sm font-semibold text-[#b9efb0] hover:bg-[#1b3027] disabled:opacity-40"
+            disabled={!workshopInput}
+            onClick={() => { setWorkshopInput(""); setSteamRecords([]); setSteamErrors([]); setSelection(null); }}>
+            지우기
+          </button>
+        </div>
         <textarea
           id="workshop-input"
-          rows={4}
+          rows={2}
           value={workshopInput}
           onChange={(event) => {
             setWorkshopInput(event.target.value);
@@ -419,12 +387,10 @@ export function ImportWorkbench({ readOnly, queueWritable = !readOnly }: { readO
             setSteamErrors([]);
             setSelection(null);
           }}
-          aria-describedby="workshop-input-help"
           aria-invalid={invalidPositions.length > 0}
           className="field resize-y"
           placeholder={"https://steamcommunity.com/sharedfiles/filedetails/?id=1234567890\n9876543210"}
         />
-        <button type="button" className="secondary-action mt-2" disabled={!workshopInput} onClick={() => { setWorkshopInput(""); setSteamRecords([]); setSteamErrors([]); }}>입력 비우기</button>
         <div role="status">
           {(workshopIds.length > 0 || invalidPositions.length > 0) && (
             <p className="mt-4 text-sm font-semibold">인식된 Workshop ID {workshopIds.length}개</p>
@@ -443,23 +409,27 @@ export function ImportWorkbench({ readOnly, queueWritable = !readOnly }: { readO
       </section>
 
       <section className="panel p-5 sm:p-6">
-        <h2 className="text-lg font-bold">2. Steam 조회 및 영구 대기함</h2>
-        <p className="muted mt-2 text-sm leading-6">조사함에는 GitHub에 미리 저장된 결과만 있습니다. Workshop URL을 입력하거나 새로고침해도 해당 모드의 AI 조사가 자동 실행되지는 않습니다.</p>
+        <h2 className="text-lg font-bold">2. 모드 정보 조회</h2>
+        <p className="muted mt-2 text-sm leading-6">GitHub에 저장되지 않은 Workshop 링크도 Steam에서 직접 조회할 수 있습니다. 새 AI 조사는 자동으로 실행되지 않습니다.</p>
         <div className="mt-3 space-y-2">
           <button type="button" className="action w-full" onClick={loadSteamMetadata}
             disabled={loadingSteam || !workshopIds.length || workshopIds.length > 20 || invalidPositions.length > 0}>
             {loadingSteam ? "Steam 정보 확인 중..." : "입력한 모드 확인 (Steam 공개 정보)"}
           </button>
           {workshopIds.length > 20 && <p role="alert" className="text-sm text-amber-200">한 번에 최대 20개까지 확인할 수 있습니다.</p>}
-          <p className="muted text-xs">Steam의 공개 제목·설명만 조회합니다. AI 분석, Mod ID 및 B42.22·멀티 호환성 검증은 포함되지 않습니다. 쓰기 허용 환경에서는 영구 대기함에만 보관하며 카탈로그에 자동 등록하지 않습니다.</p>
+          <p className="muted text-xs">Steam의 공개 제목·설명만 가져옵니다. Mod ID, B42.22·멀티 호환성은 별도 검증이 필요하며, 정식 카탈로그에는 자동 등록되지 않습니다.</p>
           {steamErrors.map((message, index) => <p key={index} role="alert" className="text-sm text-amber-200">{message}</p>)}
         </div>
-        <button type="button" className="secondary-action mt-3" onClick={loadInbox} disabled={loadingInbox}>
-          {loadingInbox ? "조회 중..." : "조사함 새로고침"}
-        </button>
-        {inbox && <p role="status" className="muted mt-2 text-sm">조사함 {inbox.records.length}건 · 기존 등록 {inbox.alreadyRegistered}건 제외</p>}
-        {inbox?.errors.map((message, index) => <p key={index} role="alert" className="text-sm text-amber-200">{message}</p>)}
-        {inboxError && <p role="alert" className="text-sm text-amber-200">{inboxError}</p>}
+        <details className="mt-4 rounded-xl border border-[#304353] p-3">
+          <summary className="cursor-pointer text-sm font-semibold text-[#b9efb0]">기존 AI 조사 결과 불러오기 (선택)</summary>
+          <p className="muted mt-3 text-xs">GitHub에 미리 저장한 조사 결과를 불러옵니다. 이 기능은 새 AI 조사를 실행하지 않습니다.</p>
+          <button type="button" className="secondary-action mt-3" onClick={loadInbox} disabled={loadingInbox}>
+            {loadingInbox ? "불러오는 중..." : "저장된 조사 결과 불러오기"}
+          </button>
+          {inbox && <p role="status" className="muted mt-2 text-sm">조사함 {inbox.records.length}건 · 기존 등록 {inbox.alreadyRegistered}건 제외</p>}
+          {inbox?.errors.map((message, index) => <p key={index} role="alert" className="text-sm text-amber-200">{message}</p>)}
+          {inboxError && <p role="alert" className="text-sm text-amber-200">{inboxError}</p>}
+        </details>
         {queueWritable && (
           <div className="mt-4 space-y-3 rounded-xl border border-[#36513b] bg-[#14231e] p-4">
             <h3 className="font-semibold">영구 대기함 · 정식 등록 전 보관</h3>
@@ -481,36 +451,6 @@ export function ImportWorkbench({ readOnly, queueWritable = !readOnly }: { readO
             ))}
             {queueError && <p role="alert" className="text-sm text-amber-200">{queueError}</p>}
           </div>
-        )}
-        <p className="muted mt-2 text-sm leading-6">
-          수동으로 등록할 조사 결과는 아래에 JSON으로 붙여넣으세요.
-        </p>
-        <details className="mt-4 text-sm">
-          <summary className="cursor-pointer font-semibold text-[#b9efb0]">입력 형식 예시 보기 (실제 모드 정보 아님)</summary>
-          <pre className="mt-3 overflow-x-auto rounded-xl bg-[#0b111a] p-3 text-xs leading-5">{JSON.stringify([sample], null, 2)}</pre>
-        </details>
-        <label htmlFor="research-json" className="mt-5 mb-2 block text-sm font-semibold">JSON 조사 결과</label>
-        <textarea
-          id="research-json"
-          rows={8}
-          value={rawJson}
-          onChange={event => {
-            setRawJson(event.target.value);
-            setSelection(current => current?.candidate.source === "manual" ? null : current);
-          }}
-          className="field resize-y font-mono text-xs leading-5"
-          placeholder='[{"workshopId":"...","title":"...","modIds":["..."]}]'
-        />
-        {queueWritable && (
-          <button type="button" className="secondary-action mt-3" onClick={() => void saveManualToQueue()}
-            disabled={savingManual || !parsed.records.length || parsed.errors.length > 0}>
-            {savingManual ? "대기함 저장 중..." : "수동 JSON을 영구 대기함에 저장"}
-          </button>
-        )}
-        {parsed.errors.length > 0 && (
-          <ul role="alert" className="mt-3 list-inside list-disc text-sm text-red-300">
-            {parsed.errors.map((error, index) => <li key={index}>{error}</li>)}
-          </ul>
         )}
       </section>
 
@@ -547,14 +487,14 @@ export function ImportWorkbench({ readOnly, queueWritable = !readOnly }: { readO
             <p role="status" className="mt-2 text-sm text-amber-200">입력하지 않은 Workshop ID {matched.excludedIds.join(", ")}의 조사 결과는 제외했습니다.</p>
           )}
           {workshopIds.length > 0 && hasResearchData && matched.missingIds.length > 0 && (
-            <p role="alert" className="mt-2 text-sm text-amber-200">입력한 Workshop ID {matched.missingIds.join(", ")}에 해당하는 조사 결과가 없습니다. 해당 ID의 조사 자료를 가져오거나 수동 JSON에 입력해 주세요.</p>
+            <p role="alert" className="mt-2 text-sm text-amber-200">입력한 Workshop ID {matched.missingIds.join(", ")}에 해당하는 조사 결과가 없습니다. Steam 공개 정보를 조회하거나 저장된 조사 결과를 불러와 주세요.</p>
           )}
         </div>
         {!matched.groups.size && (
           <div className="panel p-6 text-sm muted">
             {workshopIds.length > 0 && hasResearchData
               ? "입력한 Workshop ID와 일치하는 조사 결과가 없습니다. 조사함 조회는 새 AI 조사가 아니며, 입력한 ID와 맞는 조사 자료가 필요합니다."
-              : "조사함을 조회하거나 수동 JSON을 입력하면 항목별 미리보기가 표시됩니다."}
+              : "Workshop ID를 입력해 Steam 정보를 확인하거나 기존 조사 결과를 불러오면 미리보기가 표시됩니다."}
           </div>
         )}
         {Array.from(matched.groups, ([id, candidates]) => {

@@ -4,7 +4,9 @@ export const LEGACY_BACKUP_TABLES = [
 export const NEW_PROFILE_BACKUP_TABLES = [
   "profileRevisions", "profileModChoices", "profileDownloads"
 ] as const;
-export const BACKUP_TABLES = [...LEGACY_BACKUP_TABLES, ...NEW_PROFILE_BACKUP_TABLES] as const;
+export const NEW_RELATION_BACKUP_TABLES = ["modRelations"] as const;
+export const V2_BACKUP_TABLES = [...LEGACY_BACKUP_TABLES, ...NEW_PROFILE_BACKUP_TABLES] as const;
+export const BACKUP_TABLES = [...V2_BACKUP_TABLES, ...NEW_RELATION_BACKUP_TABLES] as const;
 
 export type BackupTable = typeof BACKUP_TABLES[number];
 export type BackupPreview = {
@@ -15,8 +17,9 @@ export type BackupPreview = {
 };
 
 /**
- * Verify structure only. Never describe legacy v1 exports as complete backups:
- * they cannot contain the newer revisioned profile tables.
+ * Only current v3 exports can be complete for the current test schema.
+ * Older v1/v2 files remain inspectable but lack newer entity types.
+ * This checks structure, not a transactionally consistent database backup.
  */
 export function inspectBackupSnapshot(input: unknown):
   { preview: BackupPreview; error?: never } | { preview?: never; error: string } {
@@ -24,8 +27,8 @@ export function inspectBackupSnapshot(input: unknown):
     return { error: "백업 JSON은 객체여야 합니다." };
   }
   const raw = input as Record<string, unknown>;
-  const legacy = raw.schemaVersion === 1;
-  if ((!legacy && raw.schemaVersion !== 2)
+  const version = raw.schemaVersion;
+  if (![1,2,3].includes(version as number)
     || raw.scope !== "authorized-user-catalog-and-profiles"
     || typeof raw.exportedAt !== "string"
     || !Number.isFinite(Date.parse(raw.exportedAt))) {
@@ -41,7 +44,11 @@ export function inspectBackupSnapshot(input: unknown):
   const data = raw.data as Record<string, unknown>;
   const counts = {} as Record<BackupTable, number | null>;
   for (const table of BACKUP_TABLES) {
-    if (legacy && NEW_PROFILE_BACKUP_TABLES.some(name => name === table)) {
+    const missingLegacy = (version === 1
+      && (NEW_PROFILE_BACKUP_TABLES as readonly string[]).includes(table))
+      || (version !== 3
+        && (NEW_RELATION_BACKUP_TABLES as readonly string[]).includes(table));
+    if (missingLegacy) {
       counts[table] = null;
       continue;
     }
@@ -61,11 +68,16 @@ export function inspectBackupSnapshot(input: unknown):
     return { error: "완전한 백업 표시와 실제 데이터·경고 상태가 일치하지 않습니다." };
   }
   const warnings = [...raw.warnings] as string[];
-  if (legacy) warnings.push("이전 버전(v1) 파일에는 프로필 수정 회차·개별 Mod ID 선택·다운로드 전용 데이터가 포함되지 않습니다.");
+  if (version === 1) {
+    warnings.push("이전 버전(v1) 파일에는 프로필 수정 회차·개별 Mod ID 선택·다운로드 전용 목록·모드 관계 승인 기록이 포함되지 않습니다.");
+  }
+  if (version === 2) {
+    warnings.push("이전 버전(v2) 파일에는 모드 관계 및 승인 상태(modRelations)가 포함되지 않습니다.");
+  }
   return {
     preview: {
       exportedAt: raw.exportedAt,
-      complete: raw.complete && !legacy,
+      complete: raw.complete && version === 3,
       warnings,
       counts
     }

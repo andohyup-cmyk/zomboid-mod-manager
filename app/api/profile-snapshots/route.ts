@@ -266,7 +266,8 @@ export async function GET(request: NextRequest) {
       prefix: prefixChoice,
       preview: output.report.preview,
       issues: output.report.issues,
-      copyStatus: output.report.copyStatus
+      // No copy authorization: trusted dependency/group evidence is not loaded.
+      readyForCopy: false
     }
   });
 }

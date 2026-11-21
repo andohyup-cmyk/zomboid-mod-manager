@@ -8,7 +8,7 @@
 - `lib/profile-snapshot-write.ts`, `app/api/profile-snapshots/route.ts`, `tests/profile-snapshot-write.test.ts` 구현. POST는 owner 인증·same-origin·카탈로그 실 Mod ID 검증 후 RPC만 호출. **시험 Vercel Preview 특정 브랜치/프로젝트/DB 주소 및 명시적 env 플래그**가 없으면 HTTP 쓰기는 차단. 사용자가 설계하기 전 UI 버튼 미연결.
 - SQL 원문 `supabase/migrations/20261121105254_test_profile_atomic_snapshot_invoker.sql`, 상세 검증 `docs/reviews/PROFILE_ATOMIC_SAVE_20261121.md`.
 - **남은 한계**: 실제 서로 다른 계정/동시 네트워크 세션 E2E 미실행. SECURITY INVOKER를 위해 기존 테이블의 열 단위 INSERT는 유지되어 직접 Data API INSERT로 비원자 기록할 수 있으므로 운영 전 데이터 접근 구조 재검토 필요. 기존 `rls_auto_enable()` Advisor 경고 변경하지 않음.
-- Vercel Preview의 **이 기능 브랜치에만** `PROFILE_SNAPSHOT_TEST_WRITE_ENABLED=true`를 설정했고, Preview Supabase URL이 승인된 시험 프로젝트와 정확히 일치하는 것을 확인. 운영/다른 Preview 브랜치 영향 없음. `GET /api/profile-snapshots` 읽기 전용 복원 API 및 단위 테스트 8개 추가. Vercel Preview 최신 빌드 결과는 빌드 확인 후 별도 기록.
+- Vercel Preview의 **이 기능 브랜치에만** `PROFILE_SNAPSHOT_TEST_WRITE_ENABLED=true`를 설정했고, Preview Supabase URL이 승인된 시험 프로젝트와 정확히 일치하는 것을 확인. 운영/다른 Preview 브랜치 영향 없음. `GET /api/profile-snapshots` 읽기 전용 복원 API 및 단위 테스트 8개 추가. **최신 Preview `dpl_Exn2imsYbE5DhHmmTsi8sccZBS5z` READY** (커밋 `20d864a5e8cf8e4f540d3d24e510a8bd60d255e4`, 이후 문서만 추가). 전체 **249/249 테스트 통과**, TypeScript, ESLint, Next.js 빌드 성공. 로그인 브라우저 POST→GET E2E는 미검증.
 
 ## 2026-11-21 프로필 신규 스키마 반영 후 JSON 백업 v2 누락 방지
 

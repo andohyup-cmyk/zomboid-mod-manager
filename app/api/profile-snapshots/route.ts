@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { getOwnerAccess } from "@/lib/auth";
 import { isCatalogModUuid } from "@/lib/catalog-read";
 import { planProfileSave } from "@/lib/profile-persistence-plan";
+import { reconstructProfileSnapshot } from "@/lib/profile-snapshot-read";
 import {
   isTestProfileSnapshotWriteAllowed,
   profileSnapshotErrorStatus,
@@ -139,4 +140,91 @@ export async function POST(request: NextRequest) {
     profileSnapshotErrorStatus(saveError.code));
 
   return reply({ profileId: profile.id, revision: savedRevision }, 201);
+}
+
+/**
+ * Read-only latest full revision. Rows are immutable and all reads are scoped
+ * to the SAME revision, even if another save starts during these queries.
+ */
+export async function GET(request: NextRequest) {
+  const access = await getOwnerAccess();
+  if (access.kind !== "authorized") return reply({ error: "조회 권한이 없습니다." }, 403);
+
+  const profileId = request.nextUrl.searchParams.get("profileId");
+  if (!profileId || !isCatalogModUuid(profileId)) {
+    return reply({ error: "프로필 식별자가 올바르지 않습니다." }, 400);
+  }
+  const { data: profile, error: profileError } = await access.supabase.from("profiles")
+    .select("id,owner_id")
+    .eq("id", profileId)
+    .eq("owner_id", access.user.id)
+    .maybeSingle();
+  if (profileError) return reply({ error: "프로필을 조회하지 못했습니다." }, 503);
+  if (!profile) return reply({ error: "프로필이 없습니다." }, 404);
+
+  const { data: latest, error: revisionError } = await access.supabase.from("profile_revision")
+    .select("revision")
+    .eq("profile_id", profile.id)
+    .eq("owner_id", access.user.id)
+    .order("revision", { ascending: false })
+    .limit(1);
+  if (revisionError) return reply({ error: "저장 회차를 조회하지 못했습니다." }, 503);
+  const revision = latest?.[0]?.revision ?? 0;
+  if (revision === 0) {
+    return reply({ profileId: profile.id, revision, selections: [],
+      downloadOnlyWorkshopIds: [] });
+  }
+
+  const [choiceResult, downloadResult] = await Promise.all([
+    access.supabase.from("profile_mod_choices")
+      .select("mod_id_entry_id,enabled,load_order")
+      .eq("owner_id", access.user.id)
+      .eq("profile_id", profile.id)
+      .eq("revision", revision)
+      .order("load_order")
+      .limit(501),
+    access.supabase.from("profile_downloads")
+      .select("workshop_id,load_order")
+      .eq("owner_id", access.user.id)
+      .eq("profile_id", profile.id)
+      .eq("revision", revision)
+      .order("load_order")
+      .limit(501)
+  ]);
+  if (choiceResult.error || downloadResult.error || !choiceResult.data
+    || !downloadResult.data || choiceResult.data.length > 500
+    || downloadResult.data.length > 500) {
+    return reply({ error: "저장된 선택 목록을 모두 확인할 수 없습니다." }, 503);
+  }
+
+  const ids = choiceResult.data.map(item => item.mod_id_entry_id);
+  let entries: Array<{ id: string; mod_id: string; value: string }> = [];
+  let parents: Array<{ id: string; owner_id: string; workshop_id: string }> = [];
+  if (ids.length) {
+    const { data, error } = await access.supabase.from("mod_ids")
+      .select("id,mod_id,value")
+      .in("id", ids)
+      .limit(501);
+    if (error || !data || data.length !== ids.length) {
+      return reply({ error: "게임 Mod ID를 모두 확인하지 못했습니다." }, 503);
+    }
+    entries = data;
+    const parentIds = [...new Set(entries.map(item => item.mod_id))];
+    const parentResult = await access.supabase.from("mods")
+      .select("id,owner_id,workshop_id")
+      .eq("owner_id", access.user.id)
+      .in("id", parentIds)
+      .limit(501);
+    if (parentResult.error || !parentResult.data
+      || parentResult.data.length !== parentIds.length) {
+      return reply({ error: "Workshop 소유권을 확인하지 못했습니다." }, 503);
+    }
+    parents = parentResult.data;
+  }
+
+  const restored = reconstructProfileSnapshot(
+    access.user.id, choiceResult.data, downloadResult.data, entries, parents
+  );
+  if (!restored) return reply({ error: "프로필 저장 내용 검증에 실패했습니다." }, 503);
+  return reply({ profileId: profile.id, revision, ...restored });
 }

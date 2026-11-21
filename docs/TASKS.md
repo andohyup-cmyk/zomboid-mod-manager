@@ -7,7 +7,7 @@
 - `lib/catalog-evidence-output.ts`에 본인 소유 Workshop, 승인된 조사 원문, URL/상태/확인 날짜, 선택한 실제 Mod ID 목록이 모두 일치하는지 확인하는 **순수 검증기** 추가. 누락·불일치·중복 조사 기록은 미확인 처리, 권한 외/알 수 없는 출처는 거부.
 - 조회 API `GET /api/profile-snapshots`에서 본인 소유 `mods`·`research_records` 근거를 읽고 기존 설정 출력기에 전달. 보관된 Workshop 경고 및 멀티플레이 기록 상태를 별도로 표기. **B42.22 호환은 기존 generic `confirmed`만으로 확정하지 않음**, 구조화된 의존성·그룹 관계는 추측·자동 삽입하지 않음. `catalogEvidence`에 출처/확인일/원래 기록 상태 포함, `readyForCopy:false` 유지.
 - 회귀 테스트 `tests/catalog-evidence-output.test.ts` 및 `docs/CATALOG_EVIDENCE_OUTPUT_VALIDATION.md` 작성. **DB/권한/RLS·운영 배포/main 병합·UI 디자인 변경 없음**.
-- Vercel Preview/자동 테스트 결과는 후속 기록.
+- Vercel Preview `dpl_BrfLTVuzfb7oEgdXyQVQCwwviKXk` **READY** (검증 커밋 `e782ed9b5985d08177b3142968ccef179de49e21`), **273/273 자동 테스트 통과**, TypeScript·ESLint·Next.js 빌드 성공. 새 브랜치에 시험 프로필 저장 쓰기 플래그 없음. 시험 DB 재조회 결과 `mods=0`, `mod_ids=0`, `research_records=0`, `profiles=0`, `profile_revision=0`, 기존 연구 대기함 pending **1건 그대로**. 로그인 브라우저와 실카탈로그 E2E는 미완료. Draft PR #23.
 
 ## 2026-11-21 7단계: 저장된 서버 프로필의 설정 출력 검증 연결
 

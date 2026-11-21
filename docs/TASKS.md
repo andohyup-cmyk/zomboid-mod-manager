@@ -5,7 +5,7 @@
 - `feature/saved-profile-output-20261121` (원자적 프로필 저장 브랜치 기반): `lib/saved-profile-output.ts`로 최신 저장 스냅샷의 Workshop/게임 Mod ID/UUID 대응 관계와 원래 순서를 확인한 뒤 기존 `buildProfileServerConfig` 출력 엔진을 재사용.
 - 검증 대상: 비활성 항목 원위치 보존 및 출력 제외, 활성 Mod ID만 선택 순서로 출력, 다운로드 전용 Workshop 명시 포함, 중복·출처 불일치·빈 초안 차단, 기존 확인된 관계·배타 그룹 규칙·경고 확인 유지.
 - `GET /api/profile-snapshots`에 선택형 `outputPrefix=none|backslash` 기초 미리보기 추가. **접두사를 임의로 결정하지 않고**, 응답에 `scope: selected-mod-id-membership-only`/`readyForCopy:false`를 포함해 실제 확인 근거와 최종 복사 가능 여부를 혼동하지 않음.
-- `tests/saved-profile-output.test.ts`와 `docs/SAVED_PROFILE_OUTPUT_VALIDATION.md` 작성. 이 작업은 **DB/RLS/권한/운영/main/기존 화면**을 변경하지 않음. Preview 테스트 및 빌드 결과는 확인 후 기록.
+- `tests/saved-profile-output.test.ts` 신규 회귀 테스트 **11개**와 `docs/SAVED_PROFILE_OUTPUT_VALIDATION.md` 작성. 이 작업은 **DB/RLS/권한/운영/main/기존 화면**을 변경하지 않음. **Vercel Preview** `dpl_7QAjcCJKFbkrAvDNBZFsYgatvi6x` **READY**, 기준 커밋 `7bf142521649aec312f2619476c98c4e5e906857`, **260/260 테스트 통과**, TypeScript·ESLint·Next.js 빌드 통과. 새 브랜치에는 시험 DB 쓰기 플래그가 없으며 고정 브랜치 검사에서도 차단됨. 로그인 브라우저 실데이터 E2E는 미완료.
 
 ## 2026-11-21 승인된 시험 DB 원자적 프로필 저장 RPC·API
 

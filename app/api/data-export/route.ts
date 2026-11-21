@@ -43,13 +43,14 @@ export async function GET() {
     const profiles = await readRows("profiles", "owner_id", [uid], "id");
     const profileIds = profiles.map(profile => profile.id).filter((id): id is string => typeof id === "string");
 
-    const [gameModIds, researchRecords, profileMods, profileRevisions, profileModChoices, profileDownloads] = await Promise.all([
+    const [gameModIds, researchRecords, profileMods, profileRevisions, profileModChoices, profileDownloads, modRelations] = await Promise.all([
       readRows("mod_ids", "mod_id", modIds, "id"),
       readRows("research_records", "mod_id", modIds, "id"),
       readRows("profile_mods", "profile_id", profileIds, "profile_id", "mod_id"),
       readRows("profile_revision", "owner_id", [uid], "profile_id", "revision"),
       readRows("profile_mod_choices", "owner_id", [uid], "profile_id", "revision", "load_order"),
-      readRows("profile_downloads", "owner_id", [uid], "profile_id", "revision", "load_order")
+      readRows("profile_downloads", "owner_id", [uid], "profile_id", "revision", "load_order"),
+      readRows("mod_relations", "owner_id", [uid], "created_at", "id")
     ]);
 
     const warnings: string[] = [];
@@ -63,14 +64,14 @@ export async function GET() {
     }
 
     const snapshot = {
-      schemaVersion: 2,
+      schemaVersion: 3,
       exportedAt: new Date().toISOString(),
       scope: "authorized-user-catalog-and-profiles",
       complete: warnings.length === 0,
       warnings,
       data: {
         mods, modIds: gameModIds, researchRecords, profiles, profileMods,
-        researchQueue: queue, profileRevisions, profileModChoices, profileDownloads
+        researchQueue: queue, profileRevisions, profileModChoices, profileDownloads, modRelations
       }
     };
     const json = JSON.stringify(snapshot, null, 2);

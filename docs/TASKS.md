@@ -1,5 +1,16 @@
 # 작업 현황
 
+## 2026-11-21 승인된 시험 Supabase 프로필 스키마 적용 완료
+
+- **사용자 승인**: 독립 시험 Supabase `smofdbjgcgdmscamknpw`의 관련 데이터 논리 백업·안전 검토 후 프로필 영구 저장용 신규 테이블 및 최소 쓰기/RLS 권한 적용. 운영 프로젝트와 main 병합 금지.
+- 관련 `profiles`, `profile_mods`, `mods`, `mod_ids` 데이터가 모두 0건임을 확인해 `backups/test-profile-pre-schema-20261121.json`에 스냅샷 보존. **전체 DB/PITR 백업은 아님**.
+- 테스트 DB 마이그레이션 세 개 적용·버전 이력 확인: `20261121103835_test_profile_revision_owner_snapshots`, `20261121103919_test_profile_owner_qualified_rls_fix`, `20261121104128_test_profile_snapshot_fk_indexes`. GitHub `supabase/migrations/`에 실제 적용 SQL을 보존.
+- `profile_revision`·`profile_mod_choices`·`profile_downloads` 신규 테이블, RLS 모두 활성화, anon 접근 차단, authenticated 소유자 SELECT와 필요한 열 단위 INSERT만 허용. 기존 `profiles`에는 **본인 소유 INSERT(owner_id,name)만** 추가, 기존 `profile_mods` 권한·데이터 변경 없음.
+- **사후 보안 점검에서 RLS 상관 서브쿼리 비한정 owner_id의 잘못된 해석 발견, 즉시 추가 마이그레이션으로 보정 후 실 정책 재확인**. 신규 FK 인덱스 누락 3건도 신규 테이블 내에서 해결.
+- 실제 인증 계정으로 프로필/복수 게임 Mod ID(활성·비활성)/다운로드 전용 저장, 중복 revision/Mod ID/순번 및 잘못된 소유자/UPDATE 차단 테스트 통과. 미허용 UUID·anon 접근 차단 테스트 통과. 모든 테스트를 `ROLLBACK`해 관련 7개 테이블이 0건임과 기존 대기함 pending 1건 보존 확인.
+- 남은 검증: **실제 타인 인증 계정 2인 교차**, 원자 CAS 저장 RPC, 전체 프로필 저장 API, 앱 브라우저 E2E. 기존 Supabase Advisor 보안 경고(`rls_auto_enable()`)는 범위 밖이라 변경하지 않음.
+- 보고서: `docs/reviews/TEST_PROFILE_SCHEMA_RESULTS_20261121.md`; Draft PR #19. **운영 DB/운영 배포/main 병합/홈·모드·서버 UI 변경 없음.**
+
 ## 2026-11-21 6단계 서버 프로필 영구화 전 안전 검증
 
 - **시험 DB 실제 확인**: `profiles`와 `profile_mods` 데이터 각 0건, `profiles` authenticated INSERT 불가 및 쓰기 RLS 없음. 기존 `profile_mods.mod_id`는 `mods.id` 참조. `profile_mod_choices`, `profile_downloads`, `profile_revision`은 미존재.

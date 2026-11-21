@@ -33,5 +33,8 @@ PC에서 추출한 `zomboid-workshop-audit-*.json`을 모바일/PC의 서버 프
 
 - 독립된 로컬 비교 함수 8개 단위 사례를 Node.js 22의 TypeScript strip 실행으로 모두 통과.
 - 실제 PC JSON과 `jjinmac-1` 보고서의 64개 활성 ID를 입력하여 64/64 매칭·5개 참고를 재현.
-- GitHub 전체 `npm run verify`, Next.js 빌드, 실기기 UI 조작은 별도 실행 확인이 필요하며 성공으로 표시하지 않는다.
+- Vercel 시험 Preview에서 `npm run build`가 내부적으로 `npm run verify`를 실행: **단위 테스트 163/163 통과, TypeScript·ESLint·Next.js 빌드 성공**. 검사한 앱 코드 커밋: `1857a29`. 시험 Preview URL: https://zomboid-mod-manager-paodzogqz-andohyup-cmyk.vercel.app
+- 모바일 화면 크기 390×844의 Chromium + 로컬 Supabase 모의 서버에서 신규 `mod.info` 업로드/경고/설정 문자열 보존 검증 **1건 통과**. 승인 모의 환경에서는 의도적으로 1건 skip. Actions 기록: https://github.com/andohyup-cmyk/zomboid-mod-manager/actions/runs/44866198126
+- 기존 전체 브라우저 테스트를 별도 실행했을 때 4개 중 2개 통과, 2개 실패. 실패 2개는 **조사함과 입력 필터의 예전 기대 조건**, **텍스트 입력란/제목 중복 선택자** 관련. 본 브랜치에서 수정 완료로 간주하지 않는다.
+- 신규 Preview의 실제 Google OAuth 인증 세션 및 갤럭시 실기기 조작은 **아직 확인되지 않음**. 해당 검증 전까지 구현 완료와 운영 사용 가능을 동일시하지 않는다.
 - 시험/운영 DB, Vercel Production, 실제 서버 원본 파일, 기존 모드 카탈로그는 변경하지 않았다.

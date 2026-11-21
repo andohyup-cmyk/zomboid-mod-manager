@@ -6,6 +6,7 @@ import { reconstructProfileSnapshot } from "@/lib/profile-snapshot-read";
 import { projectCatalogEvidence, type CatalogEvidenceParent } from "@/lib/catalog-evidence-output";
 import { buildSavedProfileOutput } from "@/lib/saved-profile-output";
 import { projectReviewedRelations, type ReviewedRelationRow } from "@/lib/reviewed-mod-relations";
+import { planSavedRelationTargetCoverage } from "@/lib/saved-relation-target-coverage";
 import {
   isTestProfileSnapshotWriteAllowed,
   profileSnapshotErrorStatus,
@@ -267,25 +268,68 @@ export async function GET(request: NextRequest) {
   if (!projected.ok) {
     return reply({ error: "카탈로그 조사 근거의 소유권·출처 검증에 실패했습니다." }, 503);
   }
-  // Read only: relations are never created or approved by this endpoint.
-  // RLS checks the owner and both catalog endpoints, including research origin.
-  const relationResult = await access.supabase.from("mod_relations")
-    .select("id,owner_id,kind,subject_mod_id_entry_id,target_mod_id_entry_id,research_record_id,evidence_url,checked_at,approved")
-    .eq("owner_id", access.user.id)
-    .limit(501);
-  if (relationResult.error || !relationResult.data || relationResult.data.length > 500) {
-    return reply({ error: "모드 관계 기록을 완전히 조회할 수 없습니다." }, 503);
+  // Evaluate only rules whose subjects belong to this saved profile.
+  // The owner/RLS filter is still mandatory even for read-only lookups.
+  let relationRows: ReviewedRelationRow[] = [];
+  if (ids.length) {
+    const { data, error } = await access.supabase.from("mod_relations")
+      .select("id,owner_id,kind,subject_mod_id_entry_id,target_mod_id_entry_id,research_record_id,evidence_url,checked_at,approved")
+      .eq("owner_id", access.user.id)
+      .in("subject_mod_id_entry_id", ids)
+      .limit(501);
+    if (error || !data || data.length > 500) {
+      return reply({ error: "프로필 관련 모드 관계를 전부 조회할 수 없습니다." }, 503);
+    }
+    relationRows = data.map(item => ({
+      id: item.id, ownerId: item.owner_id,
+      kind: item.kind as ReviewedRelationRow["kind"],
+      subjectModIdUuid: item.subject_mod_id_entry_id,
+      targetModIdUuid: item.target_mod_id_entry_id,
+      evidenceRecordId: item.research_record_id,
+      sourceUrl: item.evidence_url, checkedAt: item.checked_at,
+      approved: item.approved
+    }));
   }
-  const relationRows: ReviewedRelationRow[] = relationResult.data.map(item => ({
-    id: item.id, ownerId: item.owner_id, kind: item.kind as ReviewedRelationRow["kind"],
-    subjectModIdUuid: item.subject_mod_id_entry_id,
-    targetModIdUuid: item.target_mod_id_entry_id,
-    evidenceRecordId: item.research_record_id,
-    sourceUrl: item.evidence_url, checkedAt: item.checked_at,
-    approved: item.approved
-  }));
+  const coverage = planSavedRelationTargetCoverage(sourceBindings, relationRows);
+  if (!coverage.ok) {
+    return reply({ error: "프로필 관련 관계의 대상 목록을 검증할 수 없습니다." }, 503);
+  }
+
+  // A required target may exist in the owner's catalog but NOT be selected.
+  // Resolve its provider-qualified identity only for rule validation.
+  // Do not add it to the saved selections or generated settings.
+  const ruleIdentities = [...sourceBindings];
+  if (coverage.missingTargetUuids.length) {
+    const { data: targetEntries, error: targetError } = await access.supabase
+      .from("mod_ids").select("id,mod_id,value")
+      .in("id", coverage.missingTargetUuids)
+      .limit(501);
+    if (targetError || !targetEntries
+      || targetEntries.length !== coverage.missingTargetUuids.length) {
+      return reply({ error: "필수 관계 대상의 게임 Mod ID를 검증할 수 없습니다." }, 503);
+    }
+    const targetParentIds = [...new Set(targetEntries.map(item => item.mod_id))];
+    const { data: targetParents, error: targetParentError } = await access.supabase
+      .from("mods").select("id,owner_id,workshop_id")
+      .eq("owner_id", access.user.id)
+      .in("id", targetParentIds)
+      .limit(501);
+    if (targetParentError || !targetParents
+      || targetParents.length !== targetParentIds.length) {
+      return reply({ error: "관계 대상 Workshop 소유권을 검증할 수 없습니다." }, 503);
+    }
+    const parentWorkshop = new Map(targetParents.map(item => [item.id, item.workshop_id]));
+    for (const item of targetEntries) {
+      const workshopId = parentWorkshop.get(item.mod_id);
+      if (!workshopId) {
+        return reply({ error: "관계 대상의 Workshop 연결을 찾을 수 없습니다." }, 503);
+      }
+      ruleIdentities.push({ modIdUuid: item.id, workshopId, modId: item.value });
+    }
+  }
+
   const reviewed = projectReviewedRelations(
-    access.user.id, sourceBindings, projected.evidence, relationRows
+    access.user.id, ruleIdentities, projected.evidence, coverage.relevant
   );
   if (!reviewed.ok) {
     return reply({ error: "모드 관계의 소유권·출처 검증에 실패했습니다." }, 503);

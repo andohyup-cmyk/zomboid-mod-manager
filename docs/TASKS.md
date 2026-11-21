@@ -158,3 +158,15 @@
 - [ ] 최신 시험 Preview의 Google OAuth 실로그인과 실제 갤럭시 화면 및 파일 선택 UI 확인은 사용자 실기기 검증이 필요함.
 - [ ] 정식 카탈로그/서버 프로필 저장과 실제 파일 반영은 별도 작업이며 이번 검사에서 수행하지 않음.
 - 이 변경은 선택 규칙을 확정하거나 실제 B42.22/멀티 호환성을 인증하지 않음. 상세: [LOCAL_MODINFO_VALIDATION.md](LOCAL_MODINFO_VALIDATION.md).
+
+
+## 2026-11-21 시험 Preview Google OAuth 실패 조사 (읽기 전용)
+
+- [x] 실제 오류가 난 주소는 신규 로컬 검사 Preview가 아닌 구형 진단 Preview `zomboid-mod-manager-ov0v5h2e7-andohyup-cmyk.vercel.app`임을 Vercel 런타임 로그에서 확인.
+- [x] 구형 Preview `/auth/callback`에서 2026-11-21 05:29:32 UTC `exchange_code_for_session_failed`, HTTP 401, `api_key_or_jwt` 분류. PKCE verifier 쿠키는 존재. 코드·토큰·쿠키 값은 기록하지 않음.
+- [x] **현재 Vercel 전체 Preview 환경 변수**의 Supabase URL은 시험 프로젝트(`smofdbjgcgdmscamknpw`)를 가리키며, Preview의 `NEXT_PUBLIC_SUPABASE_ANON_KEY`는 해당 프로젝트의 현재 활성 legacy anon 키와 정확히 일치. 앞선 키 불일치 주장은 검증 결과 잘못된 것이므로 채택하지 않음.
+- [x] 구형 Preview 배포(2026-11-20 04:51 KST) **이후** Vercel Preview 키가 2026-11-20 05:37 KST 갱신됨. 오래된 배포가 예전 키 스냅샷을 사용할 가능성은 있으나, 실제 배포 당시 키 내용은 직접 확인하지 못함.
+- [x] Supabase Auth 로그에 새 배포 `zomboid-mod-manager-paodzogqz-andohyup-cmyk.vercel.app/auth/callback`을 요구한 `/authorize` 요청과, 구형 Preview 주소로 인증을 다시 시도한 요청이 구분되어 있음. **새 도메인의 Redirect URLs 허용 여부는 미확인**.
+- [ ] 시험 Supabase **Authentication → URL Configuration → Redirect URLs**에서 고정 시험 브랜치 alias의 정확한 콜백 주소 1개가 허용되었는지 확인. 없으면 별도 승인·최소 변경 후 저장: `https://zomboid-mod-manager-git-feature-local-modi-f060b2-andohyup-cmyk.vercel.app/auth/callback`. 와일드카드·운영 DB·Google Cloud 설정은 수정하지 않음.
+- [ ] 지정한 고정 시험 alias로 Google 로그인 실기기 검증 및 같은 시각 Auth/Vercel 로그 대조. 실제 성공 전 문제 해결 완료로 보고하지 않음.
+- 본 연결에서 Supabase Auth URL Configuration 읽기/수정 도구는 제공되지 않음. 사용자가 시험 프로젝트에서 필요한 최소 조치를 수행해야 함. 그 외 코드는 수정·재배포 불필요.

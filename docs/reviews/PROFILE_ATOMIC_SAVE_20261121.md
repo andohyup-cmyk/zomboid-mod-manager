@@ -14,6 +14,8 @@
 - `app/api/profile-snapshots/route.ts`에 테스트 전용 `POST` 구현. 사용자 세션 + 본인 계정 확인, same-origin, 180k 입력 크기, 편집 대상 프로필 소유자·마지막 회차 확인, Workshop/실제 Mod ID 쌍을 본인 카탈로그 UUID에 대응, `planProfileSave`로 전체 입력 검증. 그 후 정제된 RPC 데이터만 호출.
 - `lib/profile-snapshot-write.ts`: **Preview 전용·고정 프로젝트 ID·고정 브랜치·고정 시험 Supabase 주소·별도 환경변수 opt-in**이 모두 충족되어야 HTTP 쓰기를 허용. 기본은 **차단**. 다른 Preview, 개발 환경 및 Production에서는 403. 별도의 유료 서비스 없음.
 - `tests/profile-snapshot-write.test.ts`: 쓰기 게이트, URL/브랜치/프로젝트 차단, RPC 전송 필드 제한, 오류 코드 검증.
+- `GET /api/profile-snapshots?profileId=UUID`: 본인 소유 프로필의 **마지막 수정 회차만** 조회. 회차 ID가 확정되면 해당 회차의 Mod ID 선택·비활성 상태·순서·다운로드 전용 Workshop을 RLS 아래 읽고, `mod_ids`→`mods`를 통해 원래 Workshop ID와 실제 게임 Mod ID를 검증한 뒤 반환. 저장 중 새로운 회차가 생겨도 서로 다른 회차의 데이터를 섞지 않음.
+- `lib/profile-snapshot-read.ts` / `tests/profile-snapshot-read.test.ts`: 선택·다운로드 순번 누락, 중복 ID, 다른 소유자 또는 누락된 Mod ID는 복원 결과를 만들지 않고 오류 처리. 데이터·UI 쓰기 없음.
 
 ## 실제 DB 검증 완료
 
@@ -35,5 +37,5 @@
 1. 별도 실제 사용자 2명 또는 **서로 다른 DB 세션에서 완전히 같은 시점에 경쟁 저장하는 E2E**는 미실행. 순차 CAS 충돌·DB PK·트랜잭션 잠금은 검증했지만 실제 네트워크 동시성을 검증했다고 주장하지 않음.
 2. 기존 새 테이블의 authenticated에 이미 부여된 **열 단위 직접 INSERT 권한은 SECURITY INVOKER 함수의 동작에 필요하여 그대로 유지**. API/RPC는 원자적이지만, 허용된 사용자가 **DB Data API에서 테이블을 직접 INSERT하는 경로 자체를 막은 것은 아니다**. 직접 요청으로 비정상 회차/부분 행을 만드는 가능성이 존재하므로, 최종 운영 전 저장 정책을 별도 검토해야 한다. 다른 사람의 데이터는 RLS로 보호됨.
 3. 현재 앱 화면에는 프로필 생성·영구 저장 버튼을 연결하지 않았다. `PROFILE_SNAPSHOT_TEST_WRITE_ENABLED` 환경변수는 별도로 켜지 않으면 HTTP POST가 403이다. API 구현/빌드 테스트와 실제 앱 사용 가능 여부는 구분한다.
-4. HTTP Preview에서 **로그인 사용자로 실제 POST와 다시 조회하는 E2E**는 테스트 계정 세션과 opt-in 게이트가 설정되기 전까지 미검증이다.
+4. HTTP Preview에서 **로그인 사용자로 실제 POST와 GET을 연속 호출하는 E2E**는 테스트 계정 세션과 opt-in 게이트가 설정되기 전까지 미검증이다. GET 코드는 독립적으로 읽기 전용이지만, 실제 등록된 프로필 행이 없어 브라우저의 정상 스냅샷을 검증하지 못했다.
 5. 운영 DB, Vercel Production, `main` 브랜치, 기존 테이블 행/권한, Google OAuth, 서버의 실제 설정 파일에는 변경 없음.

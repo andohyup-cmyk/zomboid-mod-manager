@@ -1,5 +1,16 @@
 # 작업 현황
 
+## 2026-11-21 시험 DB 관계 테이블 및 읽기 경로 (승인 범위)
+
+- 사용자 `진행해` 승인에 따라 **시험 Supabase `smofdbjgcgdmscamknpw`만** `test_mod_relations_readonly_owner_rls` 마이그레이션 적용 성공.
+- 신규 `public.mod_relations` 생성: `owner_id`, 관계 종류, 두 개별 `mod_ids.id` UUID, 승인 조사 레코드, 출처 URL, 확인 날짜, 승인 상태/시각. 기존 `mods`, `mod_ids`, `research_records` 테이블은 변경하지 않음.
+- 새 테이블 RLS 활성. `anon` SELECT 없음, `authenticated` **SELECT만** (INSERT/UPDATE/DELETE 없음). 사용자 허용 목록, 양쪽 모드 소유자, 연구 기록과 주체 Workshop의 일치 조건 검사. 실제 조회 결과: **RLS=true, 0행, SELECT 정책 1개, 익명 읽기=false, 로그인 읽기=true, 로그인 쓰기 모두=false**.
+- 인증된 `GET /api/profile-snapshots?profileId=...&outputPrefix=...`에서 소유자 한정 관계를 읽어 앞 단계 `projectReviewedRelations`로 근거 검증 후 출력 미리보기에 반영. 관계 저장/승인 API는 없음. **`readyForCopy=false` 유지**.
+- GitHub `docs/migrations/test_mod_relations_readonly.sql`, `docs/TEST_MOD_RELATIONS_SCHEMA.md`에 SQL/사전 데이터 0건·복구 한계 기록. 연결된 Supabase에 전체 DB 백업 생성 도구는 없으므로 **전체 백업 완료로 주장하지 않음**.
+- Security Advisor에서 새 관계 테이블 자체에 대한 경고는 없었으나 기존 `authorized_users` 정책 없음(INFO), `rls_auto_enable()`·`is_authorized_user()` 함수의 노출 경고 및 유출 비밀번호 보호 비활성 경고 확인. 기존 설정을 무단 수정하지 않음.
+- **남음**: 시험 OAuth 실로그인/실카탈로그 관계 E2E, 안전한 승인 쓰기 RPC와 관계 입력 UX는 별도 개발·승인 검토. 운영 배포·main 병합·실데이터 삭제 없음.
+- Preview `dpl_GEXB6EgadK3Q5vAuj9iXyvNuDazG` 빌드 결과는 후속 기록.
+
 ## 2026-11-21 구조화된 모드 관계 검증기 준비 (DB 미적용)
 
 - `feature/verified-relations-plan-20261121`: 의존성·충돌·로드 순서를 현재 출력 엔진에 안전하게 연결하기 위한 **사용자 승인 출처 기반 검증기**를 순수 함수로 준비. 이전 B42.22 호환성·멀티 주장과 별도 다룬다.

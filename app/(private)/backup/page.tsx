@@ -23,8 +23,9 @@ export default async function BackupPage() {
           JSON 데이터 내보내기
         </a>
         <p className="muted text-xs leading-5">
-          대기함 DB가 아직 준비되지 않은 경우 내려받는 JSON에 complete: false와
-          누락 사유가 표시됩니다. 이런 파일을 전체 백업으로 취급하지 마세요.
+          현재 내보내기는 기존 프로필 연결과 새로운 저장 회차·개별 Mod ID·다운로드 목록을
+          각각 포함합니다. 이전 v1 파일은 새 데이터를 포함하지 않아 부분 백업으로 표시됩니다.
+          누락이나 조회 오류가 있는 파일을 완전한 백업으로 취급하지 마세요.
           복구·가져오기는 안전성 검증 전까지 제공하지 않습니다.
         </p>
       </div>

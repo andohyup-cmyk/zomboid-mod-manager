@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { eligibleBatchApprovals, MAX_APPROVAL_BATCH_SIZE, unambiguousBatchCandidates } from "../lib/batch-approval-selection";
-import { groupResearchCandidates, type ResearchCandidate } from "../lib/research-candidates";
+import type { ResearchCandidate } from "../lib/research-candidates";
 import { normalizeResearchRecord } from "../lib/workshop";
 
 function candidate(id: string, source: ResearchCandidate["source"] = "steam", name?: string): ResearchCandidate {

@@ -3,6 +3,7 @@ import { getOwnerAccess } from "@/lib/auth";
 import { isCatalogModUuid } from "@/lib/catalog-read";
 import { planProfileSave } from "@/lib/profile-persistence-plan";
 import { reconstructProfileSnapshot } from "@/lib/profile-snapshot-read";
+import { buildSavedProfileOutput } from "@/lib/saved-profile-output";
 import {
   isTestProfileSnapshotWriteAllowed,
   profileSnapshotErrorStatus,
@@ -151,6 +152,11 @@ export async function GET(request: NextRequest) {
   if (access.kind !== "authorized") return reply({ error: "조회 권한이 없습니다." }, 403);
 
   const profileId = request.nextUrl.searchParams.get("profileId");
+  // Prefix is a caller decision. Do not assume the B42.22 Mod ID prefix.
+  const prefixChoice = request.nextUrl.searchParams.get("outputPrefix");
+  if (prefixChoice !== null && prefixChoice !== "none" && prefixChoice !== "backslash") {
+    return reply({ error: "출력 접두사 선택이 올바르지 않습니다." }, 400);
+  }
   if (!profileId || !isCatalogModUuid(profileId)) {
     return reply({ error: "프로필 식별자가 올바르지 않습니다." }, 400);
   }
@@ -226,5 +232,41 @@ export async function GET(request: NextRequest) {
     access.user.id, choiceResult.data, downloadResult.data, entries, parents
   );
   if (!restored) return reply({ error: "프로필 저장 내용 검증에 실패했습니다." }, 503);
-  return reply({ profileId: profile.id, revision, ...restored });
+  const payload = { profileId: profile.id, revision, ...restored };
+  if (prefixChoice === null) return reply(payload);
+
+  // Basic output only: the selected, owner-verified Mod ID membership is
+  // known here, but category rules/relationships/compatibility evidence are
+  // NOT loaded. Do not represent this as a full B42.22 compatibility audit.
+  const ownerParents = new Map(parents.map(item => [item.id, item]));
+  const sourceBindings = entries.flatMap(entry => {
+    const parent = ownerParents.get(entry.mod_id);
+    return parent ? [{
+      modIdUuid: entry.id, workshopId: parent.workshop_id, modId: entry.value
+    }] : [];
+  });
+  const workshopCatalog = new Map<string, string[]>();
+  for (const source of sourceBindings) {
+    const mods = workshopCatalog.get(source.workshopId) ?? [];
+    if (!mods.includes(source.modId)) mods.push(source.modId);
+    workshopCatalog.set(source.workshopId, mods);
+  }
+  const output = buildSavedProfileOutput(
+    restored,
+    sourceBindings,
+    { catalog: [...workshopCatalog].map(([workshopId, modIds]) => ({ workshopId, modIds })) },
+    { categoryPriority: [] },
+    { modIdPrefix: prefixChoice === "backslash" ? "\\" : "" }
+  );
+  if (!output.ok) return reply({ error: "출력용 Mod ID 출처 검증에 실패했습니다." }, 503);
+  return reply({
+    ...payload,
+    outputPreview: {
+      scope: "selected-mod-id-membership-only",
+      prefix: prefixChoice,
+      preview: output.report.preview,
+      issues: output.report.issues,
+      copyStatus: output.report.copyStatus
+    }
+  });
 }

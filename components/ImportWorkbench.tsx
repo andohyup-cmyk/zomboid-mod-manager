@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { groupResearchCandidates, matchResearchCandidatesToInput, type ResearchCandidate } from "@/lib/research-candidates";
+import { eligibleBatchApprovals, unambiguousBatchCandidates } from "@/lib/batch-approval-selection";
 import { parseWorkshopInput, type ResearchRecord } from "@/lib/workshop";
 
 const sourceLabels = { inbox: "조사함", manual: "수동 JSON", steam: "Steam 공개 정보 · AI 미분석", queue: "영구 대기함" } as const;
@@ -321,15 +322,10 @@ export function ImportWorkbench({ readOnly, queueWritable = !readOnly }: { readO
     await registerCandidate(id, candidate);
   }
 
-  const activeBatch = Object.entries(batchChoices).filter(([id, candidate]) =>
-    matched.groups.get(id)?.some(item => item === candidate)
-    && !["saving", "saved", "registered"].includes(results[id]?.state ?? "")
-  ).slice(0, 20);
+  const activeBatch = eligibleBatchApprovals(matched.groups, batchChoices, results);
 
   // Never implicitly choose between competing reports for the same Workshop ID.
-  const unambiguous = [...matched.groups].filter(([id, candidates]) =>
-    candidates.length === 1 && !["saving", "saved", "registered"].includes(results[id]?.state ?? "")
-  ).slice(0, 20);
+  const unambiguous = unambiguousBatchCandidates(matched.groups, results);
 
   function selectAllUnambiguous() {
     setBatchSummary(null);

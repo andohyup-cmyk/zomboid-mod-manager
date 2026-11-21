@@ -1,5 +1,13 @@
 # 작업 현황
 
+## 2026-11-21 등록 화면 UI 간소화 (사용자 확정 요청)
+
+- 사용자 제공 모바일 화면을 기준으로 Workshop 입력 카드의 `1. Workshop 항목 입력` 제목·설명 문구를 제거하고 `Workshop URL 또는 ID` 레이블만 유지한다.
+- 입력칸 높이를 4행 → 2행으로 줄이고, `입력 비우기`를 `지우기`로 바꾸어 레이블 줄 **오른쪽 끝**에 배치한다.
+- **GitHub에 저장되지 않은 Workshop 링크도 Steam 공개 정보 API로 조회 가능**함을 명확히 안내한다. GitHub에 미리 저장된 조사 결과 조회는 선택형 접이식 영역으로 분리하며, 조회 버튼이 새 AI 분석을 시작한다고 설명하지 않는다.
+- 사용자가 원치 않는 **수동 JSON 직접 입력·저장 UI는 기본 등록 화면에서 제거**한다. 다만 기존 `parseResearchPayload` 및 API 검증 코드는 후속 연동/복구용으로 유지하며 삭제·스키마 변경은 하지 않는다. Steam 조회 → 사용자별 영구 대기함 → 최종 등록 승인 경로는 변경하지 않는다.
+- 변경 브랜치: `feature/register-ui-compact-20261121` (기준: `feature/local-modinfo-audit-20261121`). 수정: `components/ImportWorkbench.tsx`, `app/(private)/register/page.tsx`, `tests/preview-queue-ui.test.ts`. 테스트 소스를 추가했으며 **실행/실기기 검증 전**이다. 운영 배포, `main` 병합, DB·RLS 변경 없음.
+
 ## 2026-11-20 시험 Preview 로그인·대기함 실제 검증 및 UI 개선
 
 - 시험 Supabase `smofdbjgcgdmscamknpw`의 Redirect URLs에 Preview OAuth 콜백 주소를 사용자가 추가한 뒤 Google 로그인이 성공했다. 운영 Supabase 및 운영 배포는 변경하지 않았다.

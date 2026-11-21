@@ -52,3 +52,10 @@
 `tests/reviewed-mod-relations.test.ts`에서는 승인된 관계/승인 없는 관계, 근거 레코드·일자·URL 불일치, 두 Workshop의 같은 게임 ID, 외부 소유자/중복/모호성, 실제 설정 엔진의 필수 의존 누락 차단·충돌 확인·로드 순서 경고를 테스트한다.
 
 모든 테스트는 **가상 소유자·가상 Workshop/Mod ID·가상 출처**를 사용한다. 실제 Steam Workshop이나 멀티플레이 서버에서 검증했다고 주장하지 않는다.
+
+
+## [후속 구현 상태 갱신: 2026-11-21]
+
+이 문서가 처음 작성될 당시에는 관계 DB 테이블이 미적용이었습니다. 그 뒤 **시험 Supabase에만** `mod_relations` 테이블/RLS SELECT를 `20261121133840_test_mod_relations_readonly_owner_rls`로 적용했으며, 사용자 후속 지시로 **미승인 초안 INSERT + 별도 승인 UPDATE 최소 권한**을 `20261121143453_test_mod_relation_draft_approval_rls`에서 추가했습니다.
+
+현재 시험 API에는 `/api/mod-relations`(목록·초안), `/api/mod-relations/approve`(명시적 승인 요청) 경로가 있지만, 승인 버튼 UI·브라우저 OAuth E2E·운영 DB는 아직 적용/검증되지 않았습니다. 출처 검증과 관계 평가의 `readyForCopy=false` 잠금은 유지합니다. 전체 검증은 `docs/reviews/MOD_RELATION_REVIEW_FLOW_20261121.md`를 참고하세요.

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getOwnerAccess } from "@/lib/auth";
-import { normalizeResearchRecord } from "@/lib/workshop";
+import { extractCatalogResearchSources, isCatalogModUuid } from "@/lib/catalog-read";
 
 type CatalogDetail = {
   id: string; title: string; description: string; workshop_id: string; source_url: string;
@@ -13,7 +13,7 @@ export default async function ModDetailPage({ params }: { params: Promise<{ id: 
   const access = await getOwnerAccess();
   if (access.kind !== "authorized") return null;
   const { id } = await params;
-  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) notFound();
+  if (!isCatalogModUuid(id)) notFound();
   const { data, error } = await access.supabase.from("mods")
     .select("id,title,description,workshop_id,source_url,verification_status,build_compatibility,multiplayer_compatibility,researched_at,is_archived,created_at,updated_at")
     .eq("owner_id", access.user.id).eq("id", id).maybeSingle();
@@ -24,10 +24,7 @@ export default async function ModDetailPage({ params }: { params: Promise<{ id: 
     access.supabase.from("research_records").select("raw_payload,created_at").eq("mod_id", id)
       .order("created_at", { ascending: false }).limit(20)
   ]);
-  const sources = (records ?? []).flatMap(row => {
-    const parsed = normalizeResearchRecord(row.raw_payload);
-    return parsed.record ? [{ record: parsed.record, createdAt: row.created_at as string }] : [];
-  });
+  const sources = extractCatalogResearchSources(records ?? []);
   const steamLink = `https://steamcommunity.com/sharedfiles/filedetails/?id=${mod.workshop_id}`;
 
   return (

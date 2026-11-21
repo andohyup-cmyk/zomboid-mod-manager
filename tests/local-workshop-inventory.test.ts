@@ -10,7 +10,6 @@ const source = (mods: ReturnType<typeof row>[]) => ({ targetBuild: "42.22", scan
 const selected = (workshopId: string, modId: string, enabled = true) => ({ workshopId, modId, enabled });
 function parse(mods: ReturnType<typeof row>[]) {
   const result = parseLocalWorkshopInventory(source(mods));
-  assert.equal(result.ok, true);
   if (!result.ok) throw new Error(result.error);
   return result.inventory;
 }

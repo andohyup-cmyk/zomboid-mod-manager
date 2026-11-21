@@ -90,8 +90,8 @@ with check (
 create unique index mod_relations_conflict_unordered_unique
 on public.mod_relations (
  owner_id,
- pg_catalog.least(subject_mod_id_entry_id, target_mod_id_entry_id),
- pg_catalog.greatest(subject_mod_id_entry_id, target_mod_id_entry_id)
+ least(subject_mod_id_entry_id, target_mod_id_entry_id),
+ greatest(subject_mod_id_entry_id, target_mod_id_entry_id)
 )
 where kind = 'incompatibleMods';
 

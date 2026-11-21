@@ -3,6 +3,7 @@ import { getOwnerAccess } from "@/lib/auth";
 import { isCatalogModUuid } from "@/lib/catalog-read";
 import { planProfileSave } from "@/lib/profile-persistence-plan";
 import { reconstructProfileSnapshot } from "@/lib/profile-snapshot-read";
+import { projectCatalogEvidence, type CatalogEvidenceParent } from "@/lib/catalog-evidence-output";
 import { buildSavedProfileOutput } from "@/lib/saved-profile-output";
 import {
   isTestProfileSnapshotWriteAllowed,
@@ -205,7 +206,7 @@ export async function GET(request: NextRequest) {
 
   const ids = choiceResult.data.map(item => item.mod_id_entry_id);
   let entries: Array<{ id: string; mod_id: string; value: string }> = [];
-  let parents: Array<{ id: string; owner_id: string; workshop_id: string }> = [];
+  let parents: CatalogEvidenceParent[] = [];
   if (ids.length) {
     const { data, error } = await access.supabase.from("mod_ids")
       .select("id,mod_id,value")
@@ -217,7 +218,7 @@ export async function GET(request: NextRequest) {
     entries = data;
     const parentIds = [...new Set(entries.map(item => item.mod_id))];
     const parentResult = await access.supabase.from("mods")
-      .select("id,owner_id,workshop_id")
+      .select("id,owner_id,workshop_id,source_url,verification_status,build_compatibility,multiplayer_compatibility,researched_at,is_archived")
       .eq("owner_id", access.user.id)
       .in("id", parentIds)
       .limit(501);
@@ -245,16 +246,29 @@ export async function GET(request: NextRequest) {
       modIdUuid: entry.id, workshopId: parent.workshop_id, modId: entry.value
     }] : [];
   });
-  const workshopCatalog = new Map<string, string[]>();
-  for (const source of sourceBindings) {
-    const mods = workshopCatalog.get(source.workshopId) ?? [];
-    if (!mods.includes(source.modId)) mods.push(source.modId);
-    workshopCatalog.set(source.workshopId, mods);
+  // Only approved owner-scoped catalog records are eligible as claim evidence.
+  // Do not read/persist arbitrary free-text claims as verified dependencies.
+  let researchRows: Array<{ id: string; mod_id: string; raw_payload: unknown; created_at: string }> = [];
+  if (parents.length) {
+    const { data, error } = await access.supabase.from("research_records")
+      .select("id,mod_id,raw_payload,created_at")
+      .in("mod_id", parents.map(parent => parent.id))
+      .order("created_at", { ascending: false })
+      .limit(1001);
+    if (error || !data || data.length > 1000) {
+      return reply({ error: "카탈로그 조사 근거를 완전히 조회하지 못했습니다." }, 503);
+    }
+    researchRows = data;
+  }
+  const projected = projectCatalogEvidence(
+    access.user.id, sourceBindings, parents, researchRows
+  );
+  if (!projected.ok) {
+    return reply({ error: "카탈로그 조사 근거의 소유권·출처 검증에 실패했습니다." }, 503);
   }
   const output = buildSavedProfileOutput(
-    restored,
-    sourceBindings,
-    { catalog: [...workshopCatalog].map(([workshopId, modIds]) => ({ workshopId, modIds })) },
+    restored, sourceBindings,
+    { catalog: projected.catalog, archivedWorkshopIds: projected.archivedWorkshopIds },
     { categoryPriority: [] },
     { modIdPrefix: prefixChoice === "backslash" ? "\\" : "" }
   );
@@ -262,11 +276,13 @@ export async function GET(request: NextRequest) {
   return reply({
     ...payload,
     outputPreview: {
-      scope: "selected-mod-id-membership-only",
+      scope: "owner-catalog-recorded-compatibility-claims",
       prefix: prefixChoice,
       preview: output.report.preview,
       issues: output.report.issues,
-      // No copy authorization: trusted dependency/group evidence is not loaded.
+      catalogEvidence: projected.evidence,
+      // No copy authorization: verified dependencies, group rules and B42.22
+      // build-specific sources are not yet persisted/loaded.
       readyForCopy: false
     }
   });

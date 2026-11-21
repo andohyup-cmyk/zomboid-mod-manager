@@ -1,5 +1,14 @@
 # 작업 현황
 
+## 2026-11-21 승인된 카탈로그 조사 근거를 서버 설정 출력 검사에 연결
+
+- 사용자 후속 요청: **카탈로그 실제 검증 자료의 출력 반영** 및 **현재 PC 사용 가능** 환경 갱신. 프로젝트 지침 `좀보이드_모드관리앱_프로젝트_지침.md`에 PC 가능 상태 반영(모바일 우선 및 직접 연동 작업 원칙 유지).
+- 시험 DB 스키마를 읽기 전용 확인: `mods`에는 Build/멀티 상태, 보관·확인일이 별도 저장되고 `research_records.raw_payload`에 출처·확인일·승인된 모드 후보가 저장됨. `mod_relations`/선택 그룹 저장 구조와 B42.22 **특정 빌드 범위의 검증 필드**는 아직 없음. 실제 시험 카탈로그와 프로필은 모두 0건.
+- `lib/catalog-evidence-output.ts`에 본인 소유 Workshop, 승인된 조사 원문, URL/상태/확인 날짜, 선택한 실제 Mod ID 목록이 모두 일치하는지 확인하는 **순수 검증기** 추가. 누락·불일치·중복 조사 기록은 미확인 처리, 권한 외/알 수 없는 출처는 거부.
+- 조회 API `GET /api/profile-snapshots`에서 본인 소유 `mods`·`research_records` 근거를 읽고 기존 설정 출력기에 전달. 보관된 Workshop 경고 및 멀티플레이 기록 상태를 별도로 표기. **B42.22 호환은 기존 generic `confirmed`만으로 확정하지 않음**, 구조화된 의존성·그룹 관계는 추측·자동 삽입하지 않음. `catalogEvidence`에 출처/확인일/원래 기록 상태 포함, `readyForCopy:false` 유지.
+- 회귀 테스트 `tests/catalog-evidence-output.test.ts` 및 `docs/CATALOG_EVIDENCE_OUTPUT_VALIDATION.md` 작성. **DB/권한/RLS·운영 배포/main 병합·UI 디자인 변경 없음**.
+- Vercel Preview/자동 테스트 결과는 후속 기록.
+
 ## 2026-11-21 7단계: 저장된 서버 프로필의 설정 출력 검증 연결
 
 - `feature/saved-profile-output-20261121` (원자적 프로필 저장 브랜치 기반): `lib/saved-profile-output.ts`로 최신 저장 스냅샷의 Workshop/게임 Mod ID/UUID 대응 관계와 원래 순서를 확인한 뒤 기존 `buildProfileServerConfig` 출력 엔진을 재사용.

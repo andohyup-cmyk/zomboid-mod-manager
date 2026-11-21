@@ -1,0 +1,28 @@
+{
+  "type": "affected-tables-logical-snapshot-not-full-database-backup",
+  "project_ref": "smofdbjgcgdmscamknpw",
+  "project_name": "Zomboid Mod Manager Test",
+  "captured_at_utc": "2026-11-21T10:36:42.684663Z",
+  "source": "read-only SQL: jsonb_agg(to_jsonb(row)) for affected tables",
+  "rows": {
+    "profiles": [],
+    "profile_mods": [],
+    "mods": [],
+    "mod_ids": []
+  },
+  "before_policy": {
+    "profiles_auth_select": true,
+    "profiles_auth_insert": false,
+    "profiles_auth_update": false,
+    "profiles_write_rls_count": 0,
+    "legacy_profile_mods_auth_insert": false
+  },
+  "new_tables_present": 0,
+  "existing_schema_source": "supabase/migrations/202611180002_resume_initial_setup.sql",
+  "notes": [
+    "This is an exact logical data snapshot for the 4 existing affected tables, all verified empty at capture time.",
+    "Other tables, auth schema, OAuth settings, and complete database schema are NOT included. This is not a point-in-time/full DB backup.",
+    "Do not restore by deleting existing tables; legacy profiles/profile_mods data must remain intact.",
+    "Original source schema can be reconstructed using existing repo migration and current DB metadata."
+  ]
+}

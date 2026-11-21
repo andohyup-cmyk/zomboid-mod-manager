@@ -48,6 +48,9 @@ export async function POST(request: NextRequest) {
   }
   const body = raw as Record<string, unknown>;
   if (typeof body.profileId !== "string" || !isCatalogModUuid(body.profileId)
+    || typeof body.expectedRevision !== "number"
+    || !Number.isSafeInteger(body.expectedRevision) || body.expectedRevision < 0
+    || body.expectedRevision > 2147483647
     || !Array.isArray(body.selections) || body.selections.length > 500
     || !Array.isArray(body.downloadOnlyWorkshopIds) || body.downloadOnlyWorkshopIds.length > 500) {
     return reply({ error: "프로필 선택 또는 식별자가 올바르지 않습니다." }, 400);

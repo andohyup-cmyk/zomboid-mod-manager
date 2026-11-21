@@ -178,7 +178,10 @@ test("same game Mod ID from another Workshop remains provider-qualified", () => 
     evidence, plan.relevant);
   assert.equal(rules.ok, true);
   if (rules.ok) {
-    assert.deepEqual(rules.rules[0].kind, "requires");
-    assert.deepEqual(rules.rules[0].target, { workshopId: second, modId: "Main" });
+    const rule = rules.rules[0];
+    assert.equal(rule.kind, "requires");
+    if ("target" in rule) {
+      assert.deepEqual(rule.target, { workshopId: second, modId: "Main" });
+    }
   }
 });

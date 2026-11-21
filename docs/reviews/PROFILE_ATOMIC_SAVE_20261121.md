@@ -36,6 +36,6 @@
 
 1. 별도 실제 사용자 2명 또는 **서로 다른 DB 세션에서 완전히 같은 시점에 경쟁 저장하는 E2E**는 미실행. 순차 CAS 충돌·DB PK·트랜잭션 잠금은 검증했지만 실제 네트워크 동시성을 검증했다고 주장하지 않음.
 2. 기존 새 테이블의 authenticated에 이미 부여된 **열 단위 직접 INSERT 권한은 SECURITY INVOKER 함수의 동작에 필요하여 그대로 유지**. API/RPC는 원자적이지만, 허용된 사용자가 **DB Data API에서 테이블을 직접 INSERT하는 경로 자체를 막은 것은 아니다**. 직접 요청으로 비정상 회차/부분 행을 만드는 가능성이 존재하므로, 최종 운영 전 저장 정책을 별도 검토해야 한다. 다른 사람의 데이터는 RLS로 보호됨.
-3. 현재 앱 화면에는 프로필 생성·영구 저장 버튼을 연결하지 않았다. `PROFILE_SNAPSHOT_TEST_WRITE_ENABLED` 환경변수는 별도로 켜지 않으면 HTTP POST가 403이다. API 구현/빌드 테스트와 실제 앱 사용 가능 여부는 구분한다.
+3. 현재 앱 화면에는 프로필 생성·영구 저장 버튼을 연결하지 않았다. Vercel Preview의 **이번 기능 브랜치 `feature/profile-atomic-save-20261121`에만** `PROFILE_SNAPSHOT_TEST_WRITE_ENABLED=true`를 설정했다. 실제 Preview의 `NEXT_PUBLIC_SUPABASE_URL`이 승인된 시험 프로젝트와 일치함도 확인했다. 다른 브랜치·운영 환경은 이 플래그와 API의 다중 조건을 충족하지 못하므로 HTTP 저장 차단. API 구현/빌드 테스트와 로그인 브라우저 E2E 사용 가능 여부는 구분한다.
 4. HTTP Preview에서 **로그인 사용자로 실제 POST와 GET을 연속 호출하는 E2E**는 테스트 계정 세션과 opt-in 게이트가 설정되기 전까지 미검증이다. GET 코드는 독립적으로 읽기 전용이지만, 실제 등록된 프로필 행이 없어 브라우저의 정상 스냅샷을 검증하지 못했다.
 5. 운영 DB, Vercel Production, `main` 브랜치, 기존 테이블 행/권한, Google OAuth, 서버의 실제 설정 파일에는 변경 없음.

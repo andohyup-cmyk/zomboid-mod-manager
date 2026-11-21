@@ -1,0 +1,105 @@
+-- Approved continuation, isolated TEST Supabase smofdbjgcgdmscamknpw.
+-- Existing mod_relations table has 0 rows. No data/legacy schema changes.
+-- SECURITY INVOKER through PostgREST with strict RLS/column grants, no
+-- SECURITY DEFINER or service role. Anonymous stays denied.
+-- Draft INSERT cannot set approved/approved_at. Approval is owner-only,
+-- one-way and only those two columns are mutable. Direct authenticated
+-- Data API access remains possible within these same RLS constraints.
+
+create policy "authorized owner can create unapproved relation draft"
+on public.mod_relations for insert to authenticated
+with check (
+  approved = false
+  and approved_at is null
+  and owner_id = (select auth.uid())
+  and (select public.is_authorized_user())
+  and exists (
+    select 1
+    from public.mod_ids s
+    join public.mods sm on sm.id = s.mod_id
+    join public.mod_ids t on t.id = public.mod_relations.target_mod_id_entry_id
+    join public.mods tm on tm.id = t.mod_id
+    join public.research_records rr on rr.id = public.mod_relations.research_record_id and rr.mod_id = sm.id
+    where s.id = public.mod_relations.subject_mod_id_entry_id
+      and sm.owner_id = public.mod_relations.owner_id
+      and tm.owner_id = public.mod_relations.owner_id
+      and rr.raw_payload ->> 'workshopId' = sm.workshop_id
+      and rr.raw_payload ->> 'sourceUrl' = sm.source_url
+      and rr.raw_payload ->> 'checkedAt' = public.mod_relations.checked_at::text
+      and rr.raw_payload ->> 'verificationStatus' = sm.verification_status
+      and rr.raw_payload ->> 'buildCompatibility' = sm.build_compatibility
+      and rr.raw_payload ->> 'multiplayerCompatibility' = sm.multiplayer_compatibility
+      and rr.raw_payload -> 'sources' @> pg_catalog.jsonb_build_array(public.mod_relations.evidence_url)
+      and rr.raw_payload -> 'modIds' @> pg_catalog.jsonb_build_array(s.value)
+  )
+);
+
+create policy "authorized owner can approve own unapproved relation"
+on public.mod_relations for update to authenticated
+using (
+  approved = false
+  and owner_id = (select auth.uid())
+  and (select public.is_authorized_user())
+  and exists (
+    select 1
+    from public.mod_ids s
+    join public.mods sm on sm.id = s.mod_id
+    join public.mod_ids t on t.id = public.mod_relations.target_mod_id_entry_id
+    join public.mods tm on tm.id = t.mod_id
+    join public.research_records rr on rr.id = public.mod_relations.research_record_id and rr.mod_id = sm.id
+    where s.id = public.mod_relations.subject_mod_id_entry_id
+      and sm.owner_id = public.mod_relations.owner_id
+      and tm.owner_id = public.mod_relations.owner_id
+      and rr.raw_payload ->> 'workshopId' = sm.workshop_id
+      and rr.raw_payload ->> 'sourceUrl' = sm.source_url
+      and rr.raw_payload ->> 'checkedAt' = public.mod_relations.checked_at::text
+      and rr.raw_payload ->> 'verificationStatus' = sm.verification_status
+      and rr.raw_payload ->> 'buildCompatibility' = sm.build_compatibility
+      and rr.raw_payload ->> 'multiplayerCompatibility' = sm.multiplayer_compatibility
+      and rr.raw_payload -> 'sources' @> pg_catalog.jsonb_build_array(public.mod_relations.evidence_url)
+      and rr.raw_payload -> 'modIds' @> pg_catalog.jsonb_build_array(s.value)
+  )
+)
+with check (
+  approved = true
+  and approved_at is not null
+  and owner_id = (select auth.uid())
+  and (select public.is_authorized_user())
+  and exists (
+    select 1
+    from public.mod_ids s
+    join public.mods sm on sm.id = s.mod_id
+    join public.mod_ids t on t.id = public.mod_relations.target_mod_id_entry_id
+    join public.mods tm on tm.id = t.mod_id
+    join public.research_records rr on rr.id = public.mod_relations.research_record_id and rr.mod_id = sm.id
+    where s.id = public.mod_relations.subject_mod_id_entry_id
+      and sm.owner_id = public.mod_relations.owner_id
+      and tm.owner_id = public.mod_relations.owner_id
+      and rr.raw_payload ->> 'workshopId' = sm.workshop_id
+      and rr.raw_payload ->> 'sourceUrl' = sm.source_url
+      and rr.raw_payload ->> 'checkedAt' = public.mod_relations.checked_at::text
+      and rr.raw_payload ->> 'verificationStatus' = sm.verification_status
+      and rr.raw_payload ->> 'buildCompatibility' = sm.build_compatibility
+      and rr.raw_payload ->> 'multiplayerCompatibility' = sm.multiplayer_compatibility
+      and rr.raw_payload -> 'sources' @> pg_catalog.jsonb_build_array(public.mod_relations.evidence_url)
+      and rr.raw_payload -> 'modIds' @> pg_catalog.jsonb_build_array(s.value)
+  )
+);
+
+-- Index must treat a conflict as an unordered pair, even if client swaps ends.
+create unique index mod_relations_conflict_unordered_unique
+on public.mod_relations (
+ owner_id,
+ least(subject_mod_id_entry_id, target_mod_id_entry_id),
+ greatest(subject_mod_id_entry_id, target_mod_id_entry_id)
+)
+where kind = 'incompatibleMods';
+
+-- Grant only draft fields and the two one-way approval fields.
+-- id/created_at generated by DB. No DELETE, no broad INSERT/UPDATE.
+revoke insert, update, delete on public.mod_relations from public, anon, authenticated;
+grant insert (
+ owner_id,kind,subject_mod_id_entry_id,target_mod_id_entry_id,
+ research_record_id,evidence_url,checked_at
+) on public.mod_relations to authenticated;
+grant update (approved,approved_at) on public.mod_relations to authenticated;

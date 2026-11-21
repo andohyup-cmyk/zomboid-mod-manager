@@ -1,5 +1,14 @@
 # 작업 현황
 
+## 2026-11-21 저장된 프로필의 미선택 필수 의존성 누락 방지
+
+- 이전 `GET /api/profile-snapshots`는 프로필에 **선택된 게임 Mod ID의 출처만** 근거 검증기에 전달하므로, 승인된 `requires`의 대상 모드가 **미선택**인 경우 `missing-catalog-identity`로 보류되어 필수 모드 누락 차단 검사를 우회할 수 있는 경로를 발견.
+- `feature/profile-relation-target-coverage-20261121`, Draft PR **#27**: `lib/saved-relation-target-coverage.ts`로 **선택된 관계 주체만** 검사하고, 미선택 관계 대상 Mod ID를 인증/RLS 카탈로그에서 조회하여 **규칙 검증에만** 사용. 원래 저장한 활성/비활성 선택, 출력 `Mods=`, `WorkshopItems=`, Workshop 다운로드 항목은 그대로 보존. 모드를 자동 추가/활성화/정렬하지 않음.
+- `tests/saved-relation-target-coverage.test.ts` 10개 추가. 미선택/비활성 필수 의존성 차단, 미승인 규칙 보류, 다른 Workshop의 동일 게임 Mod ID, 무관한 관계 제외 및 중복 ID 방지 회귀 검사.
+- 시험 Supabase에서 임시 모드·조사 원문·프로필 및 승인 관계를 **실제 authenticated/RLS 역할**로 한 트랜잭션 안에 생성해, 선택된 주체의 관계와 **프로필에 미선택인 관계 대상**을 읽을 수 있고 해당 대상이 프로필 선택에 자동 추가되지 않음을 확인한 뒤 `ROLLBACK`. 수정 재실행 결과 성공, 기존 시험 DB 카탈로그·프로필·관계 0건 유지, 연구 대기함 pending 1건 유지.
+- Preview `dpl_9DiXnAm3WcruqZLEENzDai4RSL6F` **READY**, 코드 검증 커밋 `b813214252c3348ed1bb32989fcd0fc9cd85453b`, 전체 **307/307 테스트 통과**, TypeScript·ESLint·Next.js 빌드 성공. 새 브랜치에 시험 관계 쓰기 플래그 없음.
+- 상세 `docs/reviews/SAVED_PROFILE_RELATION_TARGET_COVERAGE_20261121.md`. 아직 **실사용 Google OAuth 브라우저 로그인→등록·승인→조회·출력·v3 백업 E2E는 미완료**. 원격 도구에서 사용자의 인증 브라우저 세션을 사용할 수 없으며, 직접 Preview URL로 접속하는 컨테이너 네트워크 DNS도 실패. DB/RLS·운영·`main`·기존 UI 수정 없음.
+
 ## 2026-11-21 관계 초안·명시적 승인 API 및 관계 포함 백업 v3
 
 - 사용자 후속 `진행해` 지시에 따라 **시험 Supabase** `smofdbjgcgdmscamknpw`에서만 관계 등록·승인 정책 추가. 마이그레이션 `20261121143453_test_mod_relation_draft_approval_rls` 적용, SQL은 `supabase/migrations/20261121143453_test_mod_relation_draft_approval_rls.sql`에 그대로 보존.

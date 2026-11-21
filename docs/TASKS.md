@@ -1,5 +1,12 @@
 # 작업 현황
 
+## 2026-11-21 6단계 서버 프로필 영구화 전 안전 검증
+
+- **시험 DB 실제 확인**: `profiles`와 `profile_mods` 데이터 각 0건, `profiles` authenticated INSERT 불가 및 쓰기 RLS 없음. 기존 `profile_mods.mod_id`는 `mods.id` 참조. `profile_mod_choices`, `profile_downloads`, `profile_revision`은 미존재.
+- 독립 브랜치 `feature/profile-persistence-plan-20261121`에서 `lib/profile-persistence-plan.ts` 구현(실제 DB에 쓰지 않음): 소유자·프로필 UUID·현재 revision 대조, 선택 Workshop/실제 게임 Mod ID 쌍을 서버 검증 후보 UUID로 확인, 비활성 행/원래 순서/다운로드 전용 Workshop 유지, 중복·모호함·오래된 버전·소유자 변경 차단.
+- `tests/profile-persistence-plan.test.ts`에 회귀 테스트 추가. `docs/proposals/PROFILE_PERSISTENCE_PLAN.md`에 기존 자료 보존, 신규 테이블/권한/RLS/원자 저장과 테스트를 위한 승인 체크리스트 작성.
+- **의도적으로 미구현**: 실제 프로필 DB 저장 API, DB 마이그레이션/GRANT/RLS, 기존 프로필 자동 이행, 홈·모드·서버 UI 수정, 운영 배포·main 병합. 새 Preview 검증 결과 확인 후 별도 기록.
+
 ## 2026-11-21 5단계 선택 그룹 A안 확정
 
 - 사용자 확정: 선택 그룹의 기본 규칙은 **자유 선택**. 그룹별 필수·배타 제약은 사용자가 해당 그룹에 명시적으로 설정한 경우에만 적용.

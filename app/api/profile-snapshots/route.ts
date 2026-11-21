@@ -277,7 +277,7 @@ export async function GET(request: NextRequest) {
     return reply({ error: "모드 관계 기록을 완전히 조회할 수 없습니다." }, 503);
   }
   const relationRows: ReviewedRelationRow[] = relationResult.data.map(item => ({
-    id: item.id, ownerId: item.owner_id, kind: item.kind,
+    id: item.id, ownerId: item.owner_id, kind: item.kind as ReviewedRelationRow["kind"],
     subjectModIdUuid: item.subject_mod_id_entry_id,
     targetModIdUuid: item.target_mod_id_entry_id,
     evidenceRecordId: item.research_record_id,

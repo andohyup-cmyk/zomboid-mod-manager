@@ -9,7 +9,7 @@
 - GitHub `docs/migrations/test_mod_relations_readonly.sql`, `docs/TEST_MOD_RELATIONS_SCHEMA.md`에 SQL/사전 데이터 0건·복구 한계 기록. 연결된 Supabase에 전체 DB 백업 생성 도구는 없으므로 **전체 백업 완료로 주장하지 않음**.
 - Security Advisor에서 새 관계 테이블 자체에 대한 경고는 없었으나 기존 `authorized_users` 정책 없음(INFO), `rls_auto_enable()`·`is_authorized_user()` 함수의 노출 경고 및 유출 비밀번호 보호 비활성 경고 확인. 기존 설정을 무단 수정하지 않음.
 - **남음**: 시험 OAuth 실로그인/실카탈로그 관계 E2E, 안전한 승인 쓰기 RPC와 관계 입력 UX는 별도 개발·승인 검토. 운영 배포·main 병합·실데이터 삭제 없음.
-- Preview `dpl_GEXB6EgadK3Q5vAuj9iXyvNuDazG` 빌드 결과는 후속 기록.
+- 첫 Preview `dpl_GEXB6EgadK3Q5vAuj9iXyvNuDazG`은 백슬래시 출력 접두사 리터럴을 2개로 잘못 입력해 TypeScript 오류로 실패. 즉시 수정한 검증 커밋 `7d69e5baf1a294fdbd8619b45b56654624392640`의 Preview `dpl_Fg1ZSZfKfb4hdu4GDH5wmpEKxMpv`는 **READY**, **286/286 테스트 통과**, typecheck·lint·Next.js 빌드 성공.
 
 ## 2026-11-21 구조화된 모드 관계 검증기 준비 (DB 미적용)
 

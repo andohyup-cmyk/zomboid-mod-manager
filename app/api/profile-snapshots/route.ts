@@ -268,14 +268,19 @@ export async function GET(request: NextRequest) {
   if (!projected.ok) {
     return reply({ error: "카탈로그 조사 근거의 소유권·출처 검증에 실패했습니다." }, 503);
   }
-  // Evaluate only rules whose subjects belong to this saved profile.
+  // Rules matter only when their subject is enabled in this revision.
+  // Keep disabled choices in sourceBindings so an enabled dependency pointing
+  // at one is still detected as missing rather than being auto-activated.
+  const activeIds = restored.selections
+    .filter(item => item.enabled)
+    .map(item => item.modIdUuid);
   // The owner/RLS filter is still mandatory even for read-only lookups.
   let relationRows: ReviewedRelationRow[] = [];
-  if (ids.length) {
+  if (activeIds.length) {
     const { data, error } = await access.supabase.from("mod_relations")
       .select("id,owner_id,kind,subject_mod_id_entry_id,target_mod_id_entry_id,research_record_id,evidence_url,checked_at,approved")
       .eq("owner_id", access.user.id)
-      .in("subject_mod_id_entry_id", ids)
+      .in("subject_mod_id_entry_id", activeIds)
       .limit(501);
     if (error || !data || data.length > 500) {
       return reply({ error: "프로필 관련 모드 관계를 전부 조회할 수 없습니다." }, 503);
@@ -290,7 +295,7 @@ export async function GET(request: NextRequest) {
       approved: item.approved
     }));
   }
-  const coverage = planSavedRelationTargetCoverage(sourceBindings, relationRows);
+  const coverage = planSavedRelationTargetCoverage(sourceBindings, relationRows, activeIds);
   if (!coverage.ok) {
     return reply({ error: "프로필 관련 관계의 대상 목록을 검증할 수 없습니다." }, 503);
   }

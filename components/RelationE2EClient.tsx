@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { DraftRelationInput } from "@/lib/mod-relation-review-input";
 
 type Fixture = DraftRelationInput & { profileId: string };
@@ -25,7 +25,42 @@ export function RelationE2EClient({
 }: { fixture: Fixture | null; writeEnabled: boolean }) {
   const [relationId, setRelationId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [loadingExisting, setLoadingExisting] = useState(true);
+  const [approvedExisting, setApprovedExisting] = useState(false);
   const [history, setHistory] = useState<TestResult[]>([]);
+
+  // A browser refresh must not strand an already-created draft in the DB.
+  // Only restore the exact owner-visible fictional fixture, never an unrelated relation.
+  useEffect(() => {
+    let live = true;
+    async function restoreExisting() {
+      try {
+        const response = await jsonRequest("/api/mod-relations");
+        if (!response.ok || !fixture || !Array.isArray(response.data.relations)) return;
+        const matches = response.data.relations.filter((raw): raw is Record<string, unknown> => {
+          if (!raw || typeof raw !== "object" || Array.isArray(raw)) return false;
+          const row = raw as Record<string, unknown>;
+          return row.kind === fixture.kind
+            && row.subject_mod_id_entry_id === fixture.subjectModIdUuid
+            && row.target_mod_id_entry_id === fixture.targetModIdUuid
+            && row.research_record_id === fixture.evidenceRecordId
+            && row.evidence_url === fixture.sourceUrl
+            && row.checked_at === fixture.checkedAt;
+        });
+        if (!live || matches.length !== 1) return;
+        const row = matches[0];
+        if (typeof row.id !== "string") return;
+        setRelationId(row.id);
+        setApprovedExisting(row.approved === true);
+      } catch {
+        // A manual GET still reports HTTP errors; do not enable writes on failure.
+      } finally {
+        if (live) setLoadingExisting(false);
+      }
+    }
+    void restoreExisting();
+    return () => { live = false; };
+  }, [fixture]);
 
   async function run(label: string, action: () => Promise<string>) {
     if (busy) return;
@@ -65,6 +100,13 @@ export function RelationE2EClient({
         <p className="text-sm">{writeEnabled
           ? "이 시험 Preview의 관계 초안/승인 쓰기가 명시적으로 허용되었습니다."
           : "이 Preview의 관계 초안/승인 쓰기는 차단되어 있습니다."}</p>
+        <p className="text-sm" aria-live="polite">{loadingExisting
+          ? "기존 시험 관계를 조회하고 있습니다."
+          : relationId
+            ? approvedExisting
+              ? "기존 시험 관계는 이미 승인되었습니다."
+              : "기존 미승인 초안을 찾았습니다. 2번을 다시 누르지 말고 3번 승인 버튼을 누르세요."
+            : "기존 시험 관계가 없으면 2번에서 초안을 만들 수 있습니다."}</p>
         <p className="muted text-xs leading-5">
           관계 등록과 승인은 서로 다른 버튼으로 진행하며, 승인은 확인창이 표시됩니다.
           버튼을 누르기 전에는 쓰기 요청을 하지 않습니다.
@@ -78,7 +120,7 @@ export function RelationE2EClient({
           if (!Array.isArray(rows)) throw new Error("관계 목록이 배열이 아닙니다.");
           return `HTTP ${result.status}, 관계 ${rows.length}건`;
         })}>1. 관계 조회 (읽기 전용)</button>
-        <button className={action} disabled={busy || !fixture || !writeEnabled} onClick={() => void run("초안 생성", async () => {
+        <button className={action} disabled={busy || loadingExisting || !!relationId || !fixture || !writeEnabled} onClick={() => void run("초안 생성", async () => {
           if (!fixture) throw new Error("시험 자료 없음");
           const draft = {
             kind: fixture.kind, subjectModIdUuid: fixture.subjectModIdUuid,
@@ -92,15 +134,17 @@ export function RelationE2EClient({
             throw new Error("초안 미승인 상태를 검증하지 못했습니다.");
           }
           setRelationId(result.data.relationId);
+          setApprovedExisting(false);
           return "미승인 초안 생성 (201)";
         })}>2. 미승인 관계 초안 생성 (시험 DB 쓰기)</button>
-        <button className={action} disabled={busy || !relationId || !writeEnabled} onClick={() => {
+        <button className={action} disabled={busy || loadingExisting || !relationId || approvedExisting || !writeEnabled} onClick={() => {
           if (!relationId || !window.confirm("시험 DB의 관계 초안을 명시적으로 승인할까요?")) return;
           void run("관계 승인", async () => {
             const result = await jsonRequest("/api/mod-relations/approve",
               "POST", { relationId, confirm: true });
             if (!result.ok) fail(result.status, result.data);
             if (result.data.approved !== true) throw new Error("승인 결과를 확인하지 못했습니다.");
+            setApprovedExisting(true);
             return "명시적 승인 완료 (200)";
           });
         }}>3. 관계 명시적 승인 (별도 확인)</button>

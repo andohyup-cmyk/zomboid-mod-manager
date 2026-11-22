@@ -1,5 +1,13 @@
 # 작업 현황
 
+## 2026-11-22 모바일 관계 E2E 통과 및 승인 범위 내 정리
+
+- 실제 모바일 브라우저 캡처에서 **관계 승인 HTTP 200**, **JSON v3 관계 1건 HTTP 200**, 승인 후 **저장 프로필 필수 모드 누락 감지 HTTP 200**, **복사 잠금 유지** 확인. 이전 본인 관계 GET HTTP 200, 초안 생성 성공도 확인. 새로고침 후 기존 초안 복원 버그 수정 후 승인 성공.
+- 시험 Supabase의 관계 `kind=requires, approved=true, approved_at IS NOT NULL`을 SQL로 직접 확인. 화면의 승인·출력·백업 결과와 일치.
+- 기존 사용자 승인 범위에 따라 기능 브랜치 한정 `MOD_RELATION_TEST_WRITE_ENABLED`을 **true → false**로 수정. 반영 새 Preview 배포 `dpl_CrFE2w2SgHsmw6QgLKkecHQeo8D5` 요청(READY 확인 별도 필요). 운영/타 브랜치 설정 불변.
+- `docs/proposals/MOBILE_E2E_FIXTURE_CLEANUP_AFTER_TEST.sql`의 정확한 대상·소유자·연관 관계 검사 후 **시험 DB에서 COMMIT 정리 성공**. 후속 검증: `mods,mod_ids,research_records,profiles,profile_revision,profile_mod_choices,mod_relations` **모두 0건**, 기존 `research_queue` pending **1건 유지**.
+- 운영 배포, main 병합, RLS/GRANT 변경, 기존 사용자 데이터 변경 없음. Draft PR #30 보존.
+
 ## 2026-11-22 사용자 승인 후 모바일 관계 E2E 시험 준비 완료
 
 - 사용자가 시험 DB 가상 fixture 영구 생성, 이 **브랜치 Preview에 한정된** 관계 API 쓰기 허용, 시험 후 **새 fixture 및 해당 관계만** 정리할 범위를 명시적으로 승인.

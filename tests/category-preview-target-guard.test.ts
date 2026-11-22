@@ -13,7 +13,7 @@ const expected = {
   NEXT_PUBLIC_SUPABASE_ANON_KEY: "test-key-present-not-a-secret"
 };
 function check(overrides: Record<string,string|undefined> = {}) {
-  const env: NodeJS.ProcessEnv = { ...expected, ...overrides };
+  const env: NodeJS.ProcessEnv = { ...process.env, NODE_ENV: "test", ...expected, ...overrides };
   const result = spawnSync(process.execPath, [script], { cwd: process.cwd(), env, encoding: "utf8" });
   return { status: result.status, stdout: result.stdout, stderr: result.stderr };
 }

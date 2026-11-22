@@ -1,4 +1,5 @@
 import { getOwnerAccess } from "@/lib/auth";
+import { inspectBackupSnapshot } from "@/lib/backup-preview";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -74,6 +75,14 @@ export async function GET() {
         researchQueue: queue, profileRevisions, profileModChoices, profileDownloads, modRelations
       }
     };
+    // A readable JSON structure is not enough: never label inconsistent
+    // profile/mod/relation links as a complete export, even under owner RLS.
+    const inspected = inspectBackupSnapshot(snapshot);
+    if (!inspected.preview) {
+      return Response.json({ error: "데이터 연결이 일치하지 않아 내보내기를 중단했습니다." }, {
+        status: 503, headers: { "Cache-Control": "private, no-store" }
+      });
+    }
     const json = JSON.stringify(snapshot, null, 2);
     if (Buffer.byteLength(json, "utf8") > 8_000_000) {
       return Response.json({ error: "내보내기 크기가 제한을 초과했습니다." }, {

@@ -1,7 +1,9 @@
--- NOT APPLIED. REQUIRES NEW EXPLICIT USER APPROVAL.
+-- APPLIED TO TEST DB ONLY on 2026-11-22 with explicit user approval.
+-- Historical filename retains the pre-approval name; do not rerun.
+-- SQL body is retained as the approved fixture insertion record.
 -- Project: smofdbjgcgdmscamknpw (isolated test database ONLY)
 -- This file creates PERSISTENT fictional fixture records. Do not run until
--- owner authorizes the exact test dataset and cleanup scope.
+-- owner has explicitly authorized this test dataset and cleanup scope.
 -- No operation on production DB, existing user rows, or server files.
 BEGIN;
 SELECT set_config('request.jwt.claim.sub',

@@ -33,7 +33,7 @@ export function inspectBackupSnapshot(input: unknown):
   }
   const raw = input as Record<string, unknown>;
   const version = raw.schemaVersion;
-  if (![1,2,3,4].includes(version as number)
+  if (typeof version !== "number" || ![1,2,3,4].includes(version)
     || raw.scope !== "authorized-user-catalog-and-profiles"
     || typeof raw.exportedAt !== "string"
     || !Number.isFinite(Date.parse(raw.exportedAt))) {

@@ -37,14 +37,14 @@ export function checkBackupV3References(
   const fail = (message: string) => ({ ok: false as const, reason: message });
   const ownerIds = new Set<string>();
 
-  const owner = (row: Row, table: BackupReferenceArea): string | null => {
+  const owner = (row: Row): string | null => {
     const uid = str(row.owner_id);
     if (!uid) return null;
     ownerIds.add(uid);
     return uid;
   };
   const index = (
-    table: BackupReferenceArea, rows: readonly Row[] | null,
+    rows: readonly Row[] | null,
     key: (row: Row) => string | null,
     getOwner: (row: Row) => string | null
   ): Map<string, Indexed> | null => {
@@ -58,11 +58,11 @@ export function checkBackupV3References(
     }
     return indexed;
   };
-  const mods = index("mods", data.mods, row => str(row.id), row => owner(row, "mods"));
+  const mods = index(data.mods, row => str(row.id), row => owner(row));
   if (!mods) return fail("모드 ID/소유자/고유성이 올바르지 않습니다.");
 
-  const profiles = index("profiles", data.profiles, row => str(row.id),
-    row => owner(row, "profiles"));
+  const profiles = index(data.profiles, row => str(row.id),
+    row => owner(row));
   if (!profiles) return fail("프로필 ID/소유자/고유성이 올바르지 않습니다.");
 
   const modWorkshop = new Set<string>();
@@ -75,7 +75,7 @@ export function checkBackupV3References(
     modWorkshop.add(JSON.stringify([uid, workshopId]));
   }
 
-  const modIds = index("modIds", data.modIds, row => str(row.id), row => {
+  const modIds = index(data.modIds, row => str(row.id), row => {
     const parent = mods.get(str(row.mod_id) ?? "");
     return parent && str(row.value) ? parent.owner : null;
   });
@@ -87,20 +87,20 @@ export function checkBackupV3References(
     modIdPairs.add(pair);
   }
 
-  const research = index("researchRecords", data.researchRecords,
+  const research = index(data.researchRecords,
     row => str(row.id), row => mods.get(str(row.mod_id) ?? "")?.owner ?? null);
   if (!research) return fail("조사 기록의 참조 모드가 누락·중복됐습니다.");
 
-  const revisions = index("profileRevisions", data.profileRevisions,
+  const revisions = index(data.profileRevisions,
     row => integer(row.revision) && row.revision > 0 && str(row.profile_id)
       ? JSON.stringify([row.profile_id, row.revision]) : null,
     row => {
-      const uid = owner(row, "profileRevisions");
+      const uid = owner(row);
       return uid && profiles.get(str(row.profile_id) ?? "")?.owner === uid ? uid : null;
     });
   if (!revisions) return fail("프로필 저장 회차의 소유자·참조·고유성이 일치하지 않습니다.");
 
-  const legacy = index("profileMods", data.profileMods,
+  const legacy = index(data.profileMods,
     row => str(row.profile_id) && str(row.mod_id)
       ? JSON.stringify([row.profile_id, row.mod_id]) : null,
     row => {
@@ -124,11 +124,11 @@ export function checkBackupV3References(
     return true;
   };
 
-  const choices = index("profileModChoices", data.profileModChoices,
+  const choices = index(data.profileModChoices,
     row => str(row.profile_id) && integer(row.revision) && str(row.mod_id_entry_id)
       ? JSON.stringify([row.profile_id, row.revision, row.mod_id_entry_id]) : null,
     row => {
-      const uid = owner(row, "profileModChoices");
+      const uid = owner(row);
       const r = revisions.get(JSON.stringify([row.profile_id, row.revision]));
       const m = modIds.get(str(row.mod_id_entry_id) ?? "");
       return uid && r?.owner === uid && m?.owner === uid &&
@@ -138,11 +138,11 @@ export function checkBackupV3References(
     });
   if (!choices) return fail("프로필 Mod ID 선택의 소유자·순번·연결이 일치하지 않습니다.");
 
-  const downloads = index("profileDownloads", data.profileDownloads,
+  const downloads = index(data.profileDownloads,
     row => str(row.profile_id) && integer(row.revision) && str(row.workshop_id)
       ? JSON.stringify([row.profile_id, row.revision, row.workshop_id]) : null,
     row => {
-      const uid = owner(row, "profileDownloads");
+      const uid = owner(row);
       const r = revisions.get(JSON.stringify([row.profile_id, row.revision]));
       const workshop = str(row.workshop_id);
       return uid && r?.owner === uid && workshop && /^[1-9][0-9]{4,19}$/.test(workshop)
@@ -161,7 +161,7 @@ export function checkBackupV3References(
   if (queue !== null) {
     const seen = new Set<string>();
     for (const row of queue) {
-      const uid = owner(row, "researchQueue");
+      const uid = owner(row);
       const id = str(row.id);
       if (!uid || !id || seen.has(id)) {
         return fail("조사 대기함 ID/소유자/고유성이 올바르지 않습니다.");
@@ -170,8 +170,8 @@ export function checkBackupV3References(
     }
   }
 
-  const relations = index("modRelations", data.modRelations, row => str(row.id), row => {
-    const uid = owner(row, "modRelations");
+  const relations = index(data.modRelations, row => str(row.id), row => {
+    const uid = owner(row);
     const subject = modIds.get(str(row.subject_mod_id_entry_id) ?? "");
     const target = modIds.get(str(row.target_mod_id_entry_id) ?? "");
     const record = research.get(str(row.research_record_id) ?? "");

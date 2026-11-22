@@ -150,8 +150,11 @@ test("research evidence change cannot silently keep an old approval", () => {
 test("JSON v3 includes both draft and approved relation records without claiming restore safety", () => {
   const before = examine(false).row;
   const after = examine(true).row;
-  const data = Object.fromEntries(BACKUP_TABLES.map(name => [name, []]));
-  data.modRelations = [before, { ...after, id: "66666666-6666-4666-8666-666666666666" }];
+  const data: Record<string, unknown[]> = Object.fromEntries(
+    BACKUP_TABLES.map(name => [name, []])
+  );
+  const relationRecords = [before, { ...after, id: "66666666-6666-4666-8666-666666666666" }];
+  data.modRelations = relationRecords;
   const inspected = inspectBackupSnapshot({
     schemaVersion: 3, exportedAt: "2026-11-20T00:00:00.000Z",
     scope: "authorized-user-catalog-and-profiles", complete: true, warnings: [],
@@ -159,8 +162,8 @@ test("JSON v3 includes both draft and approved relation records without claiming
   });
   assert.equal(inspected.error, undefined);
   assert.equal(inspected.preview?.counts.modRelations, 2);
-  assert.equal(data.modRelations[0].approved, false);
-  assert.equal(data.modRelations[1].approved, true);
+  assert.equal(relationRecords[0].approved, false);
+  assert.equal(relationRecords[1].approved, true);
   // Structure inspection is not a database restore or a transactional snapshot.
 });
 

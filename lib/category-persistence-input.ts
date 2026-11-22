@@ -2,13 +2,17 @@ import { validateModCategories } from "./mod-category-assignment";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const TEST_DB = "https://smofdbjgcgdmscamknpw.supabase.co";
-const TEST_BRANCH = "feature/test-mod-category-persistence-20261122";
+const TEST_BRANCH = "test/category-preview-origin-guard-20261122";
+// The isolated test-write pathway expires even if a Preview env flag is left on.
+const TEST_WRITE_CUTOFF_MS = Date.parse("2026-11-24T00:00:00+09:00");
 const TEST_PROJECT = "prj_XYLhTcgMEscWoUCB5UHZoDebfwPQ";
 
 export function isTestCategoryWriteAllowed(
-  env: Readonly<Record<string, string | undefined>>
+  env: Readonly<Record<string, string | undefined>>,
+  nowMs = Date.now()
 ): boolean {
-  return env.VERCEL_ENV === "preview" && env.VERCEL_TARGET_ENV !== "production"
+  return Number.isFinite(nowMs) && nowMs < TEST_WRITE_CUTOFF_MS
+    && env.VERCEL_ENV === "preview" && env.VERCEL_TARGET_ENV !== "production"
     && env.VERCEL_PROJECT_ID === TEST_PROJECT
     && env.VERCEL_GIT_COMMIT_REF === TEST_BRANCH
     && env.NEXT_PUBLIC_SUPABASE_URL === TEST_DB

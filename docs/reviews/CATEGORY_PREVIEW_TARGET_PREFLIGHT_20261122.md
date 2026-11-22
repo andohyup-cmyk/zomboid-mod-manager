@@ -9,3 +9,11 @@
 - 사전 RLS/RPC 시험은 실 DB에서 `BEGIN; SET LOCAL ROLE authenticated; ... ROLLBACK`으로 실시; 카테고리/모드 등 0건 유지. 기존 research_queue 자료 삭제/변경 금지.
 - **후속 별도 확인:** 실제 인증 브라우저에서만 GET/POST E2E, 임시 쓰기 플래그 생성 전 OAuth·RLS/RPC·시험 DB 격리 확인, 기능 완료 후 플래그 즉시 비활성 및 새 fixture만 엄격하게 정리.
 - 운영 DB·OAuth 설정·RLS/GRANT·기존 데이터·기존 기능 PR·main 수정 없음.
+
+## 시험 쓰기 활성화 준비 (추가 커밋)
+
+- 시험 전용 브랜치에서만 `isTestCategoryWriteAllowed`가 true 가능. **현재 Vercel 플래그는 미설정이므로 계속 false**.
+- 추후 허용 시에도 Preview, 프로젝트 ID, 시험 DB URL, 정확한 브랜치, 별도 `MOD_CATEGORY_TEST_WRITE_ENABLED=true`를 모두 요구.
+- 자동 만료: **2026-11-24 00:00(KST)** 이후 함수가 항상 false(추가 배포나 설정을 하지 않아도 POST 차단).
+- 만료 후에도 환경 플래그는 별도 false로 되돌려야 하며, 영구 생성한 시험 자료의 삭제는 정확한 식별자 확인 뒤 별도로 처리.
+- 이 작업은 **시험 브랜치 코드만** 변경; 실제 DB·OAuth·운영 권한·RLS·UI 디자인 등은 변경하지 않음.

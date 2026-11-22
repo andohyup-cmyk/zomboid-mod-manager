@@ -10,18 +10,21 @@ const c="33333333-3333-4333-8333-333333333333";
 const env={
  VERCEL_ENV:"preview",VERCEL_TARGET_ENV:"preview",
  VERCEL_PROJECT_ID:"prj_XYLhTcgMEscWoUCB5UHZoDebfwPQ",
- VERCEL_GIT_COMMIT_REF:"feature/test-mod-category-persistence-20261122",
+ VERCEL_GIT_COMMIT_REF:"test/category-preview-origin-guard-20261122",
  NEXT_PUBLIC_SUPABASE_URL:"https://smofdbjgcgdmscamknpw.supabase.co",
  MOD_CATEGORY_TEST_WRITE_ENABLED:"true"
 };
-test("only exact test Preview opt-in can write",()=>{
- assert.equal(isTestCategoryWriteAllowed(env),true);
+test("only exact test Preview opt-in within expiry can write",()=>{
+ const now = Date.parse("2026-11-23T00:00:00+09:00");
+ assert.equal(isTestCategoryWriteAllowed(env,now),true);
  for(const [key,value] of [
   ["VERCEL_ENV","production"],["VERCEL_TARGET_ENV","production"],
   ["VERCEL_PROJECT_ID","other"],["VERCEL_GIT_COMMIT_REF","main"],
   ["NEXT_PUBLIC_SUPABASE_URL","https://example.test"],["MOD_CATEGORY_TEST_WRITE_ENABLED","false"]
- ])assert.equal(isTestCategoryWriteAllowed({...env,[key]:value}),false,key);
- assert.equal(isTestCategoryWriteAllowed({...env,MOD_CATEGORY_TEST_WRITE_ENABLED:undefined}),false);
+ ])assert.equal(isTestCategoryWriteAllowed({...env,[key]:value},now),false,key);
+ assert.equal(isTestCategoryWriteAllowed({...env,MOD_CATEGORY_TEST_WRITE_ENABLED:undefined},now),false);
+ assert.equal(isTestCategoryWriteAllowed(env,Date.parse("2026-11-24T00:00:00+09:00")),false);
+ assert.equal(isTestCategoryWriteAllowed(env,Number.NaN),false);
 });
 test("category creation rejects extra fields and untrimmed names",()=>{
  assert.deepEqual(parseCategoryCreate({name:"의상"}),{name:"의상"});

@@ -185,3 +185,48 @@ test("same game Mod ID from another Workshop remains provider-qualified", () => 
     }
   }
 });
+
+test("unapproved relation is reported but does not cause an unselected target lookup", () => {
+  const draft = { ...row, approved: false, targetModIdUuid: "unselected-id" };
+  const plan = planSavedRelationTargetCoverage(selected, [draft], [selected[0].modIdUuid]);
+  assert.equal(plan.ok, true);
+  if (!plan.ok) return;
+  assert.deepEqual(plan.missingTargetUuids, []);
+  assert.deepEqual(plan.relevant, [draft]);
+  const projected = projectReviewedRelations(owner, selected, evidence, plan.relevant);
+  assert.deepEqual(projected, { ok: true, rules: [],
+    withheld: [{ id: "relation-a", reason: "not-approved" }] });
+});
+
+test("relations of disabled subjects do not trigger target lookups or change output", () => {
+  const disabledSubject: SavedModIdentity = { ...unselected };
+  const savedAll = [selected[0], disabledSubject];
+  const disabledRule: ReviewedRelationRow = {
+    ...row, id: "disabled-rule", subjectModIdUuid: disabledSubject.modIdUuid,
+    targetModIdUuid: "missing-disabled-dependency"
+  };
+  const plan = planSavedRelationTargetCoverage(savedAll, [disabledRule], [selected[0].modIdUuid]);
+  assert.deepEqual(plan, { ok: true, relevant: [], missingTargetUuids: [] });
+});
+
+test("enabled subjects still resolve approved missing targets even if other saved choices are disabled", () => {
+  const plan = planSavedRelationTargetCoverage([...selected, unselected],
+    [row], [selected[0].modIdUuid]);
+  assert.deepEqual(plan, { ok: true, relevant: [row], missingTargetUuids: [] });
+});
+
+test("active IDs must be a unique subset of trusted saved choices", () => {
+  assert.deepEqual(planSavedRelationTargetCoverage(selected, [row], ["foreign"]), {
+    ok: false, reason: "invalid-selection"
+  });
+  assert.deepEqual(planSavedRelationTargetCoverage(selected, [row], [
+    selected[0].modIdUuid, selected[0].modIdUuid
+  ]), { ok: false, reason: "invalid-selection" });
+});
+
+test("malformed relation approval types cannot trigger catalog trust lookups", () => {
+  const invalid = { ...row, approved: "true" as unknown as boolean };
+  assert.deepEqual(planSavedRelationTargetCoverage(selected, [invalid]), {
+    ok: false, reason: "invalid-relation"
+  });
+});

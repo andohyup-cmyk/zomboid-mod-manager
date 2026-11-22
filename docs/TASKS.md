@@ -1,5 +1,16 @@
 # 작업 현황
 
+## 2026-11-22 사용자 승인 후 모바일 관계 E2E 시험 준비 완료
+
+- 사용자가 시험 DB 가상 fixture 영구 생성, 이 **브랜치 Preview에 한정된** 관계 API 쓰기 허용, 시험 후 **새 fixture 및 해당 관계만** 정리할 범위를 명시적으로 승인.
+- 시험 Supabase `smofdbjgcgdmscamknpw`: 인증·허용 사용자 각 1개, 기존 데이터 0건·모드/프로필 ID 충돌 없음 확인 후 승인된 `MOBILE_E2E_FICTIONAL_FIXTURE_NOT_APPLIED.sql`을 실행. 처음에는 `authenticated`가 `authorized_users` 직접 SELECT 권한이 없어 롤백, **권한 변경 없이** 스크립트 보완 후 ROLLBACK 성공 → COMMIT 성공.
+- 생성된 가상 시험 자료 **`mods=2`, `mod_ids=2`, `research_records=1`, `profiles=1`, `profile_revision=1`, `profile_mod_choices=1`**. 호환성 상태 전부 `unverified`, 데이터 이름 `FICTIONAL` 명시. 관계는 **0건**(모바일 버튼에서 직접 초안 등록·승인). 기존 `research_queue` pending 1건 유지.
+- 실제 로그인 사용자 `authenticated` / RLS로 동일 자료 조회 검증. 가상 fixture의 관계 INSERT(미승인)→UPDATE(명시 승인)→조회도 트랜잭션 내 `ROLLBACK` 검증 `EXISTING_FIXTURE_RLS_DRAFT_APPROVE_ROLLBACK_PASS`; 관계 영구 저장 없음.
+- Vercel `MOD_RELATION_TEST_WRITE_ENABLED=true`를 오직 `feature/mobile-relation-e2e-harness-20261122` 대상 Preview 브랜치로 설정·확인. Production/다른 Preview/DB RLS·GRANT 불변. 새 Preview `dpl_9VxmsXy393MSV3MK1ArmAAuj7Jyh` **READY** (코드 검증 `9ff7f68026a785085ec563f67028d1fcb201868c`), 이전 **319/319 전체 테스트 통과**. 이번에 변경된 SQL은 문서·fixture만.
+- 모바일 전용 화면: `https://zomboid-mod-manager-d14qx2l2w-andohyup-cmyk.vercel.app/diagnostics/relations`. **사용자 브라우저가 직접** ① 목록 GET → ② 초안 POST → ③ 확인창 명시 승인 POST → ④ 저장 프로필 GET → ⑤ JSON v3 백업 GET을 실행해야 HTTP E2E 완료. **현재 실제 HTTP POST E2E는 미완료**.
+- 종료 시 특정 신규 자료에 한해서만 안전하게 정리하도록 `docs/proposals/MOBILE_E2E_FIXTURE_CLEANUP_AFTER_TEST.sql` 작성·**ROLLBACK 드라이런 성공**, 실제 DELETE 미실행. 후속 사용자 브라우저 검증 결과 확인 후 브랜치 쓰기 플래그와 fixture를 정리 예정. 기존 데이터, 운영 배포, main 병합, 홈·모드·서버 UI 변경 없음.
+- 자세한 기록 `docs/reviews/MOBILE_RELATION_E2E_HARNESS_READY_20261122.md`, Draft PR #30.
+
 ## 2026-11-22 활성·승인 관계 조회 경량화 + 모바일 E2E 준비
 
 - Draft PR **#29** `feature/active-approved-relation-scope-20261122`: 저장 프로필에서 **활성 주체**의 관계만 RLS 조회하고, **승인된 관계의 미선택 대상**만 추가 카탈로그 조회. 미승인 관계는 `not-approved`로 표시하지만 존재하지 않는 대상 조회로 503을 일으키지 않게 수정. 비활성 주체는 무관한 대상 조회를 생략, 비활성 대상은 원래 자리에 유지하며 승인된 필수 의존성 누락 차단 규칙 보존. 새 단위 테스트 **5개**, 총 **318/318 통과**, TypeScript/ESLint/Next Preview `dpl_5KnbXrnnUroZnj1da9q9P3C3Lhy8` READY. DB/운영/기존 UI 변경 없음.

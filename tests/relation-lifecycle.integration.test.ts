@@ -153,8 +153,27 @@ test("JSON v3 includes both draft and approved relation records without claiming
   const data: Record<string, unknown[]> = Object.fromEntries(
     BACKUP_TABLES.map(name => [name, []])
   );
+  // Exported relations use the actual DB column names and reference actual
+  // owner-owned mods/Mod ID rows and the recorded research parent.
+  data.mods = [
+    { id: "parent-a", owner_id: owner, workshop_id: main.workshopId },
+    { id: "parent-b", owner_id: owner, workshop_id: patch.workshopId }
+  ];
+  data.modIds = [
+    { id: sourceUuid, mod_id: "parent-a", value: main.modId },
+    { id: targetUuid, mod_id: "parent-b", value: patch.modId }
+  ];
+  data.researchRecords = [research];
   const relationRecords = [before, { ...after, id: "66666666-6666-4666-8666-666666666666" }];
-  data.modRelations = relationRecords;
+  data.modRelations = relationRecords.map(row => ({
+    id: row.id, owner_id: row.ownerId, kind: row.kind,
+    subject_mod_id_entry_id: row.subjectModIdUuid,
+    target_mod_id_entry_id: row.targetModIdUuid,
+    research_record_id: row.evidenceRecordId,
+    evidence_url: row.sourceUrl, checked_at: row.checkedAt,
+    approved: row.approved,
+    approved_at: row.approved ? "2026-11-20T13:00:00Z" : null
+  }));
   const inspected = inspectBackupSnapshot({
     schemaVersion: 3, exportedAt: "2026-11-20T00:00:00.000Z",
     scope: "authorized-user-catalog-and-profiles", complete: true, warnings: [],

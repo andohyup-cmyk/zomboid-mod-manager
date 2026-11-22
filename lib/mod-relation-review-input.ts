@@ -2,7 +2,7 @@ import type { ReviewedRelationKind } from "./reviewed-mod-relations";
 
 const TEST_DB = "https://smofdbjgcgdmscamknpw.supabase.co";
 const TEST_PROJECT = "prj_XYLhTcgMEscWoUCB5UHZoDebfwPQ";
-const TEST_BRANCH = "feature/test-mod-relation-review-flow-20261121";
+const TEST_BRANCH = "feature/mobile-relation-e2e-harness-20261122";
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const RELATION_KINDS: readonly string[] = ["requires", "incompatibleMods", "loadBefore", "loadAfter"];
 
@@ -15,17 +15,29 @@ function exactHttpsOrigin(input: string | undefined): string | null {
   } catch { return null; }
 }
 
-export function isTestRelationWriteAllowed(
+/**
+ * Read-only diagnostics: exact Preview branch, project and Supabase project.
+ * Does not grant write permissions or expose protected user data.
+ */
+export function isTestRelationPreview(
   env: Readonly<Record<string, string | undefined>>,
   supabaseUrl: string | undefined
 ): boolean {
   return env.VERCEL_ENV === "preview"
     && env.VERCEL_TARGET_ENV !== "production"
-    && env.MOD_RELATION_TEST_WRITE_ENABLED === "true"
     && env.VERCEL_PROJECT_ID === TEST_PROJECT
     && env.VERCEL_GIT_COMMIT_REF === TEST_BRANCH
     && exactHttpsOrigin(env.NEXT_PUBLIC_SUPABASE_URL) === TEST_DB
     && exactHttpsOrigin(supabaseUrl) === TEST_DB;
+}
+
+/** Requires a second, explicitly configured branch-only opt-in. */
+export function isTestRelationWriteAllowed(
+  env: Readonly<Record<string, string | undefined>>,
+  supabaseUrl: string | undefined
+): boolean {
+  return isTestRelationPreview(env, supabaseUrl)
+    && env.MOD_RELATION_TEST_WRITE_ENABLED === "true";
 }
 
 export type DraftRelationInput = Readonly<{

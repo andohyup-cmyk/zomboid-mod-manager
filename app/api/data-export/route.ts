@@ -44,14 +44,17 @@ export async function GET() {
     const profiles = await readRows("profiles", "owner_id", [uid], "id");
     const profileIds = profiles.map(profile => profile.id).filter((id): id is string => typeof id === "string");
 
-    const [gameModIds, researchRecords, profileMods, profileRevisions, profileModChoices, profileDownloads, modRelations] = await Promise.all([
+    const [gameModIds, researchRecords, profileMods, profileRevisions, profileModChoices, profileDownloads, modRelations, categories, modCategories, modCategoryPrimary] = await Promise.all([
       readRows("mod_ids", "mod_id", modIds, "id"),
       readRows("research_records", "mod_id", modIds, "id"),
       readRows("profile_mods", "profile_id", profileIds, "profile_id", "mod_id"),
       readRows("profile_revision", "owner_id", [uid], "profile_id", "revision"),
       readRows("profile_mod_choices", "owner_id", [uid], "profile_id", "revision", "load_order"),
       readRows("profile_downloads", "owner_id", [uid], "profile_id", "revision", "load_order"),
-      readRows("mod_relations", "owner_id", [uid], "created_at", "id")
+      readRows("mod_relations", "owner_id", [uid], "created_at", "id"),
+      readRows("categories", "owner_id", [uid], "sort_order", "id"),
+      readRows("mod_categories", "owner_id", [uid], "mod_id", "category_id"),
+      readRows("mod_category_primary", "owner_id", [uid], "mod_id")
     ]);
 
     const warnings: string[] = [];
@@ -65,14 +68,15 @@ export async function GET() {
     }
 
     const snapshot = {
-      schemaVersion: 3,
+      schemaVersion: 4,
       exportedAt: new Date().toISOString(),
       scope: "authorized-user-catalog-and-profiles",
       complete: warnings.length === 0,
       warnings,
       data: {
         mods, modIds: gameModIds, researchRecords, profiles, profileMods,
-        researchQueue: queue, profileRevisions, profileModChoices, profileDownloads, modRelations
+        researchQueue: queue, profileRevisions, profileModChoices, profileDownloads, modRelations,
+        categories, modCategories, modCategoryPrimary
       }
     };
     // A readable JSON structure is not enough: never label inconsistent

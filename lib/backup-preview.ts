@@ -1,4 +1,5 @@
 import { checkBackupV3References } from "./backup-reference-integrity";
+import { checkBackupV4Categories } from "./backup-category-integrity";
 
 export const LEGACY_BACKUP_TABLES = [
   "mods", "modIds", "researchRecords", "profiles", "profileMods", "researchQueue"
@@ -8,7 +9,9 @@ export const NEW_PROFILE_BACKUP_TABLES = [
 ] as const;
 export const NEW_RELATION_BACKUP_TABLES = ["modRelations"] as const;
 export const V2_BACKUP_TABLES = [...LEGACY_BACKUP_TABLES, ...NEW_PROFILE_BACKUP_TABLES] as const;
-export const BACKUP_TABLES = [...V2_BACKUP_TABLES, ...NEW_RELATION_BACKUP_TABLES] as const;
+export const V3_BACKUP_TABLES = [...V2_BACKUP_TABLES, ...NEW_RELATION_BACKUP_TABLES] as const;
+export const NEW_CATEGORY_BACKUP_TABLES = ["categories", "modCategories", "modCategoryPrimary"] as const;
+export const BACKUP_TABLES = [...V3_BACKUP_TABLES, ...NEW_CATEGORY_BACKUP_TABLES] as const;
 
 export type BackupTable = typeof BACKUP_TABLES[number];
 export type BackupPreview = {
@@ -19,8 +22,8 @@ export type BackupPreview = {
 };
 
 /**
- * Only current v3 exports can be complete for the current test schema.
- * Older v1/v2 files remain inspectable but lack newer entity types.
+ * Only v4 exports can be complete for the category-enabled test schema.
+ * Older v1/v2/v3 files remain inspectable but lack newer entity types.
  * This checks structure, not a transactionally consistent database backup.
  */
 export function inspectBackupSnapshot(input: unknown):
@@ -30,7 +33,7 @@ export function inspectBackupSnapshot(input: unknown):
   }
   const raw = input as Record<string, unknown>;
   const version = raw.schemaVersion;
-  if (![1,2,3].includes(version as number)
+  if (![1,2,3,4].includes(version as number)
     || raw.scope !== "authorized-user-catalog-and-profiles"
     || typeof raw.exportedAt !== "string"
     || !Number.isFinite(Date.parse(raw.exportedAt))) {
@@ -48,8 +51,10 @@ export function inspectBackupSnapshot(input: unknown):
   for (const table of BACKUP_TABLES) {
     const missingLegacy = (version === 1
       && (NEW_PROFILE_BACKUP_TABLES as readonly string[]).includes(table))
-      || (version !== 3
-        && (NEW_RELATION_BACKUP_TABLES as readonly string[]).includes(table));
+      || (version <= 2
+        && (NEW_RELATION_BACKUP_TABLES as readonly string[]).includes(table))
+      || (version <= 3
+        && (NEW_CATEGORY_BACKUP_TABLES as readonly string[]).includes(table));
     if (missingLegacy) {
       counts[table] = null;
       continue;
@@ -72,10 +77,16 @@ export function inspectBackupSnapshot(input: unknown):
 
   // Structural row counts alone cannot detect a profile or relation that
   // references a missing game Mod ID, an old revision, or a foreign owner.
-  if (version === 3) {
+  if (version === 3 || version === 4) {
     const checked = checkBackupV3References(data as Parameters<typeof checkBackupV3References>[0]);
     if (!checked.ok) {
       return { error: "백업 참조 무결성 검증 실패: " + checked.reason };
+    }
+  }
+  if (version === 4) {
+    const checked = checkBackupV4Categories(data as Parameters<typeof checkBackupV4Categories>[0]);
+    if (!checked.ok) {
+      return { error: "백업 카테고리 무결성 검증 실패: " + checked.reason };
     }
   }
   const warnings = [...raw.warnings] as string[];
@@ -85,10 +96,13 @@ export function inspectBackupSnapshot(input: unknown):
   if (version === 2) {
     warnings.push("이전 버전(v2) 파일에는 모드 관계 및 승인 상태(modRelations)가 포함되지 않습니다.");
   }
+  if (version === 3) {
+    warnings.push("이전 버전(v3) 파일에는 다중 카테고리 및 대표 카테고리 기록이 없어 부분 백업입니다.");
+  }
   return {
     preview: {
       exportedAt: raw.exportedAt,
-      complete: raw.complete && version === 3,
+      complete: raw.complete && version === 4,
       warnings,
       counts
     }

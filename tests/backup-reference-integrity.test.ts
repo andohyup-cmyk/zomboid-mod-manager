@@ -28,13 +28,16 @@ const core = {
     subject_mod_id_entry_id: "g1", target_mod_id_entry_id: "g2",
     research_record_id: "r1", evidence_url: "https://example.test/evidence",
     checked_at: "2026-11-21", approved: true, approved_at: "2026-11-21T11:00:00Z"
-  }]
+  }],
+  categories: [] as Record<string, unknown>[],
+  modCategories: [] as Record<string, unknown>[],
+  modCategoryPrimary: [] as Record<string, unknown>[]
 };
 
 type Data = typeof core;
 function snapshot(data: Record<string, unknown>) {
   return {
-    schemaVersion: 3, exportedAt: "2026-11-22T00:00:00Z",
+    schemaVersion: 4, exportedAt: "2026-11-22T00:00:00Z",
     scope: "authorized-user-catalog-and-profiles",
     complete: true, warnings: [], data
   };
@@ -45,7 +48,7 @@ function modified(change: (d: Data) => void): string | undefined {
   return inspectBackupSnapshot(snapshot(data)).error;
 }
 
-test("all ten v3 tables and their owner-scoped references produce a structurally complete preview", () => {
+test("all thirteen v4 tables and their owner-scoped references produce a structurally complete preview", () => {
   const result = inspectBackupSnapshot(snapshot(core));
   assert.equal(result.error, undefined);
   assert.equal(result.preview?.complete, true);
@@ -114,7 +117,7 @@ test("a queue outage remains a partial snapshot; legacy formats remain structura
   });
   assert.equal(partial.error, undefined);
   assert.equal(partial.preview?.complete, false);
-  const v2Data = Object.fromEntries(BACKUP_TABLES.filter(name => name !== "modRelations")
+  const v2Data = Object.fromEntries(BACKUP_TABLES.filter(name => !["modRelations", "categories", "modCategories", "modCategoryPrimary"].includes(name))
     .map(name => [name, core[name]]));
   const legacy = inspectBackupSnapshot({ ...snapshot(v2Data), schemaVersion: 2 });
   assert.equal(legacy.error, undefined);

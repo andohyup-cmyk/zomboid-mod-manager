@@ -6,7 +6,8 @@ import { inspectBackupSnapshot, BACKUP_TABLES, type BackupPreview } from "@/lib/
 const labels: Record<typeof BACKUP_TABLES[number], string> = {
   mods: "카탈로그 모드", modIds: "실제 Mod ID", researchRecords: "조사 기록",
   profiles: "서버 프로필", profileMods: "기존 프로필 연결", researchQueue: "영구 등록 대기함",
-  profileRevisions: "프로필 저장 회차", profileModChoices: "개별 Mod ID 선택", profileDownloads: "다운로드 전용 Workshop", modRelations: "모드 관계·승인 기록"
+  profileRevisions: "프로필 저장 회차", profileModChoices: "개별 Mod ID 선택", profileDownloads: "다운로드 전용 Workshop", modRelations: "모드 관계·승인 기록",
+  categories: "카테고리 정의", modCategories: "모드별 카테고리", modCategoryPrimary: "대표 카테고리"
 };
 
 export function BackupInspector() {

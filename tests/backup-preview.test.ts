@@ -2,19 +2,20 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   inspectBackupSnapshot, BACKUP_TABLES, LEGACY_BACKUP_TABLES,
-  NEW_PROFILE_BACKUP_TABLES, NEW_RELATION_BACKUP_TABLES, V2_BACKUP_TABLES
+  NEW_PROFILE_BACKUP_TABLES, NEW_RELATION_BACKUP_TABLES, NEW_CATEGORY_BACKUP_TABLES,
+  V2_BACKUP_TABLES, V3_BACKUP_TABLES
 } from "../lib/backup-preview";
 
-const emptyV3 = Object.fromEntries(BACKUP_TABLES.map(table => [table, []]));
+const emptyV4 = Object.fromEntries(BACKUP_TABLES.map(table => [table, []]));
 const emptyV2 = Object.fromEntries(V2_BACKUP_TABLES.map(table => [table, []]));
 const emptyV1 = Object.fromEntries(LEGACY_BACKUP_TABLES.map(table => [table, []]));
 const sample = {
-  schemaVersion: 3, exportedAt: "2026-11-21T00:00:00.000Z",
+  schemaVersion: 4, exportedAt: "2026-11-21T00:00:00.000Z",
   scope: "authorized-user-catalog-and-profiles", complete: true, warnings: [],
-  data: emptyV3
+  data: emptyV4
 };
 
-test("current v3 export must include all ten owner-scoped data areas", () => {
+test("current v4 export must include all thirteen owner-scoped data areas", () => {
   const result = inspectBackupSnapshot(sample);
   assert.equal(result.error, undefined);
   assert.equal(result.preview?.complete, true);
@@ -43,14 +44,32 @@ test("legacy v2 is inspectable but missing relation history makes it partial", (
   assert.match(result.preview?.warnings[0] ?? "", /이전 버전\(v2\)/);
 });
 
-test("v3 missing relationship or revisioned tables cannot claim a backup", () => {
+test("v4 missing relationship or revisioned tables cannot claim a backup", () => {
   for (const name of [...NEW_PROFILE_BACKUP_TABLES, ...NEW_RELATION_BACKUP_TABLES]) {
-    const data: Record<string, unknown> = { ...emptyV3 };
+    const data: Record<string, unknown> = { ...emptyV4 };
     delete data[name];
     assert.ok(inspectBackupSnapshot({ ...sample, data }).error, name);
     assert.ok(inspectBackupSnapshot({
-      ...sample, data: { ...emptyV3, [name]: null }
+      ...sample, data: { ...emptyV4, [name]: null }
     }).error, name);
+  }
+});
+
+test("v3 stays inspectable but is partial without category data", () => {
+  const data = Object.fromEntries(V3_BACKUP_TABLES.map(name => [name, []]));
+  const result = inspectBackupSnapshot({ ...sample, schemaVersion: 3, data });
+  assert.equal(result.error, undefined);
+  assert.equal(result.preview?.complete, false);
+  assert.deepEqual(NEW_CATEGORY_BACKUP_TABLES.map(name => result.preview?.counts[name]), [null, null, null]);
+  assert.match(result.preview?.warnings[0] ?? "", /v3/);
+});
+
+test("v4 requires each of the three category areas", () => {
+  for (const name of NEW_CATEGORY_BACKUP_TABLES) {
+    const data: Record<string, unknown> = { ...emptyV4 };
+    delete data[name];
+    assert.ok(inspectBackupSnapshot({ ...sample, data }).error, name);
+    assert.ok(inspectBackupSnapshot({ ...sample, data: { ...emptyV4, [name]: null } }).error, name);
   }
 });
 
@@ -68,7 +87,7 @@ test("a queue read failure is always incomplete even for v3", () => {
   const result = inspectBackupSnapshot({
     ...sample, complete: false,
     warnings: ["research_queue unavailable"],
-    data: { ...emptyV3, researchQueue: null }
+    data: { ...emptyV4, researchQueue: null }
   });
   assert.equal(result.preview?.complete, false);
   assert.equal(result.preview?.counts.researchQueue, null);
@@ -76,22 +95,22 @@ test("a queue read failure is always incomplete even for v3", () => {
 
 test("rejects falsely marked complete exports, unsupported versions and malformed rows", () => {
   assert.ok(inspectBackupSnapshot({
-    ...sample, data: { ...emptyV3, researchQueue: null }
+    ...sample, data: { ...emptyV4, researchQueue: null }
   }).error);
   assert.ok(inspectBackupSnapshot({ ...sample, warnings: ["missing"] }).error);
   assert.ok(inspectBackupSnapshot({
     ...sample, schemaVersion: 1, data: { ...emptyV1, researchQueue: null }
   }).error);
-  assert.ok(inspectBackupSnapshot({ ...sample, schemaVersion: 4 }).error);
+  assert.ok(inspectBackupSnapshot({ ...sample, schemaVersion: 5 }).error);
   assert.ok(inspectBackupSnapshot({ ...sample, schemaVersion: 0 }).error);
-  assert.ok(inspectBackupSnapshot({ ...sample, data: { ...emptyV3, mods: [null] } }).error);
+  assert.ok(inspectBackupSnapshot({ ...sample, data: { ...emptyV4, mods: [null] } }).error);
   assert.ok(inspectBackupSnapshot({ ...sample, data: { mods: [] } }).error);
 });
 
-test("counts a genuinely connected v3 profile and relationship export", () => {
+test("counts a genuinely connected v4 profile and relationship export", () => {
   const owner = "owner-fixture";
   const data = {
-    ...emptyV3,
+    ...emptyV4,
     mods: [
       { id: "mod-a", owner_id: owner, workshop_id: "3552615247" },
       { id: "mod-b", owner_id: owner, workshop_id: "3552615248" }

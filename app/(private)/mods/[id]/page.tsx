@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ModCategoryReadOnly } from "@/components/ModCategoryReadOnly";
 import { notFound } from "next/navigation";
 import { getOwnerAccess } from "@/lib/auth";
 import { extractCatalogResearchSources, isCatalogModUuid } from "@/lib/catalog-read";
@@ -51,6 +52,7 @@ export default async function ModDetailPage({ params }: { params: Promise<{ id: 
         </div>
         <p className="muted text-xs">싱글플레이 및 서버 중간 추가는 별도 상태로 보관되며, 아래 조사 기록의 근거를 확인해야 합니다.</p>
       </div>
+      <ModCategoryReadOnly modId={mod.id} />
       <div className="panel space-y-3 p-5">
         <h2 className="text-lg font-bold">조사 기록과 출처</h2>
         {recordsError && <p role="alert" className="text-sm text-red-300">조사 기록 조회에 실패했습니다.</p>}

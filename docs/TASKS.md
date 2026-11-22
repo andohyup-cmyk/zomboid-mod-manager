@@ -1,5 +1,15 @@
 # 작업 현황
 
+## 2026-11-22 JSON v3 백업 참조 무결성 강화 (Draft PR #31)
+
+- 이전 실기기 모바일 관계 초안→승인→프로필 필수 의존성 차단→백업 v3 1건 내보내기 성공 및 사용자 승인 fixture 정리 완료를 바탕으로, 구조/건수만 확인하던 v3 JSON 내보내기·파일 검사에서 **모드, 게임 Mod ID, 프로필, 조사 기록, 관계·승인 상태의 내부 참조 무결성**을 검증하도록 개선.
+- `lib/backup-reference-integrity.ts` 신규: 단일 owner, 중복 Workshop/게임 Mod ID, 고아 조사 기록·기존 프로필 모드 연결, `profile_revision` 복합 소유자/회차, `profile_mod_choices` 활성·비활성·연속 순번, `profile_downloads` 연결/순번, `mod_relations` 주체/대상/근거 출처/승인 시각 검증. 원본 JSON 불변, **DB 쓰기 없음**.
+- `lib/backup-preview.ts`는 v3에서만 엄격한 참조 검사 후 완전 상태 표시. v1/v2는 이전과 같이 열람 가능하지만 부분 백업으로 표시, 대기함 조회 불가(null)는 기존 부분 백업으로 처리.
+- `app/api/data-export/route.ts`는 응답 전 동일한 검증 수행, 내부 참조 오류 시 **HTTP 503**, 불완전한 자료를 완전 백업으로 내려주지 않도록 수정. `components/BackupInspector.tsx` 문구만 보완, 기존 UI 디자인 유지.
+- **새 회귀 테스트 13개**, 전체 **332/332 통과**. TypeScript·ESLint·Next 빌드 성공. 기능 코드 커밋 `587803164b267fb5d9ecb287a9275c390b10ab7b` Preview `dpl_AEAYCCsmFSQqaEgW6XYEWjY8Ax8w` **READY**. 문구/문서 포함 최종 커밋 `f5714e13172be1a4c70e3919efecf2d2de053b5e` Preview `dpl_EzADTJVxq8WusxKobcaTGnCWjfJB` **READY**, 다시 전체 자동 테스트·타입·ESLint·Next 빌드 통과.
+- **한계**: JSON 내부 참조 검증은 분할 조회를 하나의 시점으로 고정하지 않으므로 PostgreSQL 트랜잭션 일관성이나 실제 복구 가능 여부를 보장하지 않는다. 이미 종료된 fixture를 다시 만들거나 실데이터를 수정하지 않음. 운영 배포/main 병합/DB 스키마·RLS·권한 변경 없음.
+- 자세한 문서: `docs/reviews/BACKUP_V3_REFERENCE_INTEGRITY_20261122.md`, Draft PR **#31**.
+
 ## 2026-11-22 모바일 관계 E2E 통과 및 승인 범위 내 정리
 
 - 실제 모바일 브라우저 캡처에서 **관계 승인 HTTP 200**, **JSON v3 관계 1건 HTTP 200**, 승인 후 **저장 프로필 필수 모드 누락 감지 HTTP 200**, **복사 잠금 유지** 확인. 이전 본인 관계 GET HTTP 200, 초안 생성 성공도 확인. 새로고침 후 기존 초안 복원 버그 수정 후 승인 성공.

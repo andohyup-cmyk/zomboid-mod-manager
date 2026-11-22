@@ -1,5 +1,13 @@
 # 작업 현황
 
+## 2026-11-22 활성·승인 관계 조회 경량화 + 모바일 E2E 준비
+
+- Draft PR **#29** `feature/active-approved-relation-scope-20261122`: 저장 프로필에서 **활성 주체**의 관계만 RLS 조회하고, **승인된 관계의 미선택 대상**만 추가 카탈로그 조회. 미승인 관계는 `not-approved`로 표시하지만 존재하지 않는 대상 조회로 503을 일으키지 않게 수정. 비활성 주체는 무관한 대상 조회를 생략, 비활성 대상은 원래 자리에 유지하며 승인된 필수 의존성 누락 차단 규칙 보존. 새 단위 테스트 **5개**, 총 **318/318 통과**, TypeScript/ESLint/Next Preview `dpl_5KnbXrnnUroZnj1da9q9P3C3Lhy8` READY. DB/운영/기존 UI 변경 없음.
+- Draft PR **#30** `feature/mobile-relation-e2e-harness-20261122`: 모바일에서 인증된 소유자가 직접 관계 GET→**별도 클릭**으로 초안 POST→**확인창을 거친 승인 POST**→프로필 출력 GET→백업 v3 GET을 검증할 전용 경로 `/diagnostics/relations` 신설. **기존 홈/모드/서버 화면 및 내비게이션 변경 없음**, 오직 시험 Preview 브랜치·프로젝트·시험 Supabase 일치+허용된 OAuth 계정에서만 표시, 운영 404.
+- 초기 **쓰기 차단 유지**: `MOD_RELATION_TEST_WRITE_ENABLED`은 이번 기능 브랜치에 **설정하지 않았음**. 가상 Workshop 2개 + 조사 기록 1개 + 프로필 1개를 생성하는 SQL을 `docs/proposals/MOBILE_E2E_FICTIONAL_FIXTURE_NOT_APPLIED.sql`에 **미적용 상태로만** 저장. 가상 모드가 실제 Steam/B42.22 근거인 것처럼 표시되지 않도록 FICTIONAL/모든 호환성 unverified 지정. 사용자 승인 전 영구 fixture 추가·임의 데이터 삭제/정리·브랜치 전용 쓰기 허용 금지.
+- Preview `dpl_LgeK6im6H1aPUPL2UTFhwg1YyHCR` **READY**, 검증 커밋 `5325870c4c706dee031e7229069b498430913940`. **319/319 자동 테스트 통과**, TypeScript, ESLint, Next 빌드 성공. 이후 문서 커밋만 추가. 시험 DB `mods,mod_ids,research_records,mod_relations,profiles,profile_revision,profile_mod_choices` **모두 0건**, 기존 연구 대기함 pending 1건 유지.
+- 세부 검토 `docs/reviews/MOBILE_RELATION_E2E_HARNESS_READY_20261122.md`. **다음 필수 승인**: 시험 DB에 명시한 가상 fixture 자료를 **영구 추가**하고 해당 Preview 브랜치의 쓰기 플래그만 임시로 활성화, 시험 종료 후 **해당 신규 fixture에 한정된 정리/삭제 범위** 승인. 운영 배포, main 병합, 기존 데이터 수정·삭제, DB RLS/GRANT 변경은 여전히 범위 밖. 실제 사용자 브라우저의 POST 승인 E2E는 이 승인 전까지 미완료.
+
 ## 2026-11-22 모바일 로그인 검증 후 모드 관계 전체 흐름 재현 테스트
 
 - 실제 모바일 Preview에서 사용자가 `GET /api/mod-relations` 응답 `{"relations":[]}` 스크린샷을 제공: 사용자 브라우저의 로그인/허용 사용자 검사/관계 GET 성공. **관계 POST 전체 E2E가 성공했다는 뜻은 아님**.

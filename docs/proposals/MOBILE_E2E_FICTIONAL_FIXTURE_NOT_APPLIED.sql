@@ -20,9 +20,9 @@ BEGIN
   IF current_owner IS NULL OR NOT public.is_authorized_user() THEN
     RAISE EXCEPTION 'Expected one authorized test account';
   END IF;
-  IF (SELECT count(*) FROM public.authorized_users) <> 1 THEN
-    RAISE EXCEPTION 'Test account population changed; fixture aborted';
-  END IF;
+  -- The admin-only preflight checks the authorized user count BEFORE
+  -- SET LOCAL ROLE authenticated. The signed-in role cannot SELECT the
+  -- protected authorized_users table directly; do not loosen its grants.
 
   -- Deliberately reject collisions instead of editing, overwriting or
   -- deleting existing catalog/profile data.

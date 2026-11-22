@@ -88,24 +88,42 @@ test("rejects falsely marked complete exports, unsupported versions and malforme
   assert.ok(inspectBackupSnapshot({ ...sample, data: { mods: [] } }).error);
 });
 
-test("counts current revisioned profile, legacy links, and relation approvals independently", () => {
-  const result = inspectBackupSnapshot({
-    ...sample,
-    data: {
-      ...emptyV3,
-      profileMods: [{ profile_id: "legacy", mod_id: "workshop" }],
-      profileRevisions: [{ profile_id: "p", revision: 1 }],
-      profileModChoices: [
-        { mod_id_entry_id: "id1", enabled: true, load_order: 0 },
-        { mod_id_entry_id: "id2", enabled: false, load_order: 1 }
-      ],
-      profileDownloads: [{ workshop_id: "3552615247", load_order: 0 }],
-      modRelations: [
-        { id: "a", approved: false, kind: "requires" },
-        { id: "b", approved: true, kind: "loadBefore" }
-      ]
-    }
-  });
+test("counts a genuinely connected v3 profile and relationship export", () => {
+  const owner = "owner-fixture";
+  const data = {
+    ...emptyV3,
+    mods: [
+      { id: "mod-a", owner_id: owner, workshop_id: "3552615247" },
+      { id: "mod-b", owner_id: owner, workshop_id: "3552615248" }
+    ],
+    modIds: [
+      { id: "id1", mod_id: "mod-a", value: "DemoMain" },
+      { id: "id2", mod_id: "mod-b", value: "DemoPatch" }
+    ],
+    researchRecords: [{ id: "research-a", mod_id: "mod-a", raw_payload: {} }],
+    profiles: [{ id: "p", owner_id: owner, name: "Example" }],
+    profileMods: [{ profile_id: "p", mod_id: "mod-a", enabled: true, load_order: 0 }],
+    profileRevisions: [{ profile_id: "p", owner_id: owner, revision: 1 }],
+    profileModChoices: [
+      { profile_id: "p", owner_id: owner, revision: 1, mod_id_entry_id: "id1", enabled: true, load_order: 0 },
+      { profile_id: "p", owner_id: owner, revision: 1, mod_id_entry_id: "id2", enabled: false, load_order: 1 }
+    ],
+    profileDownloads: [
+      { profile_id: "p", owner_id: owner, revision: 1, workshop_id: "3552615247", load_order: 0 }
+    ],
+    modRelations: [
+      { id: "a", owner_id: owner, kind: "requires",
+        subject_mod_id_entry_id: "id1", target_mod_id_entry_id: "id2",
+        research_record_id: "research-a", evidence_url: "https://example.test/evidence",
+        checked_at: "2026-11-20", approved: false, approved_at: null },
+      { id: "b", owner_id: owner, kind: "loadBefore",
+        subject_mod_id_entry_id: "id1", target_mod_id_entry_id: "id2",
+        research_record_id: "research-a", evidence_url: "https://example.test/evidence",
+        checked_at: "2026-11-20", approved: true, approved_at: "2026-11-21T00:00:00Z" }
+    ]
+  };
+  const result = inspectBackupSnapshot({ ...sample, data });
+  assert.equal(result.error, undefined);
   assert.equal(result.preview?.complete, true);
   assert.equal(result.preview?.counts.profileMods, 1);
   assert.equal(result.preview?.counts.profileRevisions, 1);

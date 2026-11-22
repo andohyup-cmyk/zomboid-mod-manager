@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
-  isTestRelationWriteAllowed, parseRelationDraft, parseRelationApproval
+  isTestRelationPreview, isTestRelationWriteAllowed, parseRelationDraft, parseRelationApproval
 } from "../lib/mod-relation-review-input";
 
 const subject = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
@@ -17,7 +17,7 @@ const env = {
   VERCEL_ENV: "preview",
   VERCEL_TARGET_ENV: "preview",
   MOD_RELATION_TEST_WRITE_ENABLED: "true",
-  VERCEL_GIT_COMMIT_REF: "feature/test-mod-relation-review-flow-20261121",
+  VERCEL_GIT_COMMIT_REF: "feature/mobile-relation-e2e-harness-20261122",
   VERCEL_PROJECT_ID: "prj_XYLhTcgMEscWoUCB5UHZoDebfwPQ",
   NEXT_PUBLIC_SUPABASE_URL: "https://smofdbjgcgdmscamknpw.supabase.co"
 };
@@ -115,4 +115,22 @@ test("server Supabase address must also exactly match the approved test origin",
     "https://smofdbjgcgdmscamknpw.supabase.co.bad.tld",
     "http://smofdbjgcgdmscamknpw.supabase.co"
   ]) assert.equal(isTestRelationWriteAllowed(env, url), false);
+});
+
+test("read-only mobile diagnostic Preview remains available without an opt-in to writes", () => {
+  assert.equal(isTestRelationPreview({
+    ...env, MOD_RELATION_TEST_WRITE_ENABLED: undefined
+  }, env.NEXT_PUBLIC_SUPABASE_URL), true);
+  assert.equal(isTestRelationWriteAllowed({
+    ...env, MOD_RELATION_TEST_WRITE_ENABLED: undefined
+  }, env.NEXT_PUBLIC_SUPABASE_URL), false);
+  assert.equal(isTestRelationPreview({
+    ...env, VERCEL_GIT_COMMIT_REF: "main"
+  }, env.NEXT_PUBLIC_SUPABASE_URL), false);
+  assert.equal(isTestRelationPreview({
+    ...env, VERCEL_ENV: "production"
+  }, env.NEXT_PUBLIC_SUPABASE_URL), false);
+  assert.equal(isTestRelationPreview({
+    ...env, NEXT_PUBLIC_SUPABASE_URL: "https://production.supabase.co"
+  }, env.NEXT_PUBLIC_SUPABASE_URL), false);
 });

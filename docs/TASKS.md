@@ -1,5 +1,16 @@
 # 작업 현황
 
+## 2026-11-22 승인된 시험 DB 다중 카테고리 저장 (Draft PR 준비)
+
+- 사용자가 **격리된 시험 Supabase 한정** 카테고리·모드 연결 스키마, RLS/권한 추가 및 테스트를 승인. 운영 DB·기존 데이터·운영 배포·main 병합·UI 디자인 변경 제외.
+- 시험 DB `smofdbjgcgdmscamknpw`에 `test_mod_categories_owner_rls` 마이그레이션 **적용 성공**: `categories`, `mod_categories`, `mod_category_primary` 3개 테이블, 본인 전용 RLS·최소 권한, 지연 FK/무결성 검사, `SECURITY INVOKER` 원자적 저장 RPC `save_mod_categories`.
+- 기존 미분류 모드는 분류 0개 상태 허용. 분류된 모드는 **여러 소속 중 대표 정확히 하나**, 중복·다른 소유자 차단. 자동 활성화/서버 로드 순서 변경 없음.
+- API `/api/categories` 및 `/api/mod-categories` GET/POST 구현. POST는 시험 Preview 특정 브랜치와 `MOD_CATEGORY_TEST_WRITE_ENABLED=true` 별도 opt-in 조건으로 제한, **현재 쓰기 플래그 설정하지 않음**. 기존 UI 변경 없음.
+- 가상 시험 자료를 사용한 실제 DB 트랜잭션 검증에서 2개 카테고리 연결·대표 지정·중복/대표 미포함 거부·대표 변경을 확인하고 **ROLLBACK**. 확인 시 새 3개 테이블 및 `mods` 모두 0건.
+- 입력 검증 신규 테스트 4개, **336/336 통과**. Preview 빌드 결과는 PR 기록 참고.
+- **백업 유의:** JSON v3에는 신규 카테고리 3개 테이블이 아직 포함되지 않음. 실사용 전 백업 포맷 확장 및 검증 필요.
+- 상세: `docs/reviews/TEST_MOD_CATEGORY_PERSISTENCE_20261122.md`.
+
 ## 2026-11-22 JSON v3 백업 참조 무결성 강화 (Draft PR #31)
 
 - 이전 실기기 모바일 관계 초안→승인→프로필 필수 의존성 차단→백업 v3 1건 내보내기 성공 및 사용자 승인 fixture 정리 완료를 바탕으로, 구조/건수만 확인하던 v3 JSON 내보내기·파일 검사에서 **모드, 게임 Mod ID, 프로필, 조사 기록, 관계·승인 상태의 내부 참조 무결성**을 검증하도록 개선.

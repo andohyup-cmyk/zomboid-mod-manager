@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
- isTestCategoryWriteAllowed,parseCategoryCreate,parseCategoryAssignment
+ isTestCategoryWriteAllowed,parseCategoryCreate,parseCategoryAssignment,
+ isStoredCategoryPrimaryConsistent
 } from "../lib/category-persistence-input";
 const a="11111111-1111-4111-8111-111111111111";
 const b="22222222-2222-4222-8222-222222222222";
@@ -40,4 +41,19 @@ test("missing, duplicate and foreign primary category references are rejected",(
   {modId:"not-uuid",categoryIds:[b],primaryCategoryId:b},
   {modId:a,categoryIds:["not-uuid"],primaryCategoryId:"not-uuid"}
  ])assert.equal(parseCategoryAssignment(input),null);
+});
+
+test("read guard requires primary to match an actual membership",()=>{
+ assert.equal(isStoredCategoryPrimaryConsistent([{category_id:b},{category_id:c}],{category_id:c}),true);
+ assert.equal(isStoredCategoryPrimaryConsistent([{category_id:b}],{category_id:c}),false);
+ assert.equal(isStoredCategoryPrimaryConsistent([{category_id:b}],null),false);
+ assert.equal(isStoredCategoryPrimaryConsistent([],{category_id:b}),false);
+});
+test("read guard accepts an unclassified mod and rejects duplicated response members",()=>{
+ assert.equal(isStoredCategoryPrimaryConsistent([],null),true);
+ assert.equal(isStoredCategoryPrimaryConsistent([{category_id:b},{category_id:b}],{category_id:b}),false);
+ assert.equal(isStoredCategoryPrimaryConsistent([{category_id:""}],{category_id:""}),false);
+ assert.equal(isStoredCategoryPrimaryConsistent(
+  Array.from({length:65},(_,i)=>({category_id:String(i)})),{category_id:"0"}
+ ),false);
 });

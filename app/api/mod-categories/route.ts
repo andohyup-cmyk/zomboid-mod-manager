@@ -1,7 +1,9 @@
 import { NextRequest } from "next/server";
 import { getOwnerAccess } from "@/lib/auth";
 import { isSameOriginRequest } from "@/lib/write-origin";
-import { isTestCategoryWriteAllowed, parseCategoryAssignment } from "@/lib/category-persistence-input";
+import {
+ isStoredCategoryPrimaryConsistent, isTestCategoryWriteAllowed, parseCategoryAssignment
+} from "@/lib/category-persistence-input";
 export const runtime="nodejs";
 export const dynamic="force-dynamic";
 function reply(data:unknown,status=200){
@@ -23,7 +25,7 @@ export async function GET(request:NextRequest){
  ]);
  if(members.error||primary.error||!members.data||members.data.length>64)
    return reply({error:"카테고리 연결 조회 실패"},503);
- if((members.data.length===0)!==(primary.data===null))
+ if(!isStoredCategoryPrimaryConsistent(members.data,primary.data))
    return reply({error:"카테고리 대표 연결이 불일치합니다."},503);
  return reply({modId,categoryIds:members.data.map(row=>row.category_id),
   primaryCategoryId:primary.data?.category_id??null});

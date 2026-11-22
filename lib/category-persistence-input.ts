@@ -14,6 +14,22 @@ export function isTestCategoryWriteAllowed(
     && env.NEXT_PUBLIC_SUPABASE_URL === TEST_DB
     && env.MOD_CATEGORY_TEST_WRITE_ENABLED === "true";
 }
+/**
+ * Check the category membership/primary pair returned by the owner-scoped
+ * read API. This is a response guard, not a replacement for DB constraints.
+ */
+export function isStoredCategoryPrimaryConsistent(
+  members: readonly { category_id: string }[],
+  primary: { category_id: string } | null
+): boolean {
+  if (members.length > 64) return false;
+  const ids = members.map(row => row.category_id);
+  if (ids.some(id => typeof id !== "string" || id.length === 0)
+    || new Set(ids).size !== ids.length) return false;
+  return ids.length === 0 ? primary === null
+    : primary !== null && ids.includes(primary.category_id);
+}
+
 export function parseCategoryCreate(input: unknown) {
   if (!input || typeof input !== "object" || Array.isArray(input)) return null;
   const row = input as Record<string, unknown>;

@@ -1,5 +1,15 @@
 # 작업 현황
 
+## 2026-11-22 모바일 로그인 검증 후 모드 관계 전체 흐름 재현 테스트
+
+- 실제 모바일 Preview에서 사용자가 `GET /api/mod-relations` 응답 `{"relations":[]}` 스크린샷을 제공: 사용자 브라우저의 로그인/허용 사용자 검사/관계 GET 성공. **관계 POST 전체 E2E가 성공했다는 뜻은 아님**.
+- `feature/relation-lifecycle-rollback-test-20261122`, Draft PR **#28**: 테스트 전용 가상 Workshop/Mod ID/조사 근거로 `tests/relation-lifecycle.integration.test.ts` 신규 **6개** 자동 테스트 추가. 미승인 관계→명시적 승인→미선택 필수 의존성 차단→명시적 대상 선택 후 차단 해제→오래된 근거 보류→v3 백업 승인 상태/원본 보존까지 하나의 논리 흐름으로 검증.
+- `tests/sql/mod_relation_lifecycle_rollback.sql`에 실제 `authenticated` RLS와 가상 프로필/모드/연구 기록/관계 초안→승인→조회→미선택 대상 신원→백업 조회→타인 접근 차단을 점검하는 **단일 트랜잭션 테스트** 저장. 시험 Supabase `smofdbjgcgdmscamknpw`에 GitHub 소스 그대로 실행해서 `RLS_DRAFT_APPROVAL_PROFILE_EXPORT_ROLLBACK_OK` 응답 확인. **`ROLLBACK`**, 영구 테스트 데이터/실데이터 변경 없음.
+- 실행 전/후 `mods`, `mod_ids`, `research_records`, `mod_relations`, `profiles`, `profile_revision`, `profile_mod_choices` 각 **0건**, 기존 `research_queue` pending **1건** 유지. 신규 기능 브랜치에 쓰기 플래그 없음, DB 테이블/RLS/GRANT·기존 UI·운영 배포·main 변경 없음.
+- 최초 Vercel Preview `dpl_GqCheHDTVgktGbDhvgBM3VZUBCtu`: **313/313 테스트는 통과했으나 테스트 파일의 `never[]` 타입 오류로 typecheck 실패**, 코드를 수정함.
+- 최종 검증 커밋 `58021f2898f5fd9c561a51302350cf7e286ddc95`의 Preview **`dpl_7ETXFT54NX6zrWVMA3rFTQ1FMsZE` READY**. **313/313 자동 테스트 통과**, TypeScript·ESLint·Next.js 빌드 성공. 이후 문서 커밋만 추가.
+- 보고 `docs/reviews/RELATION_LIFECYCLE_ROLLBACK_20261122.md`. **미완료**: 실사용 모바일 로그인 상태에서 관계 POST 등록→승인 POST→프로필 출력 GET→백업 GET까지 실제 HTTP E2E; 실사용 카탈로그 0건이고 테스트 데이터는 항상 롤백되므로 해당 동작을 검증했다고 주장하지 않는다.
+
 ## 2026-11-21 저장된 프로필의 미선택 필수 의존성 누락 방지
 
 - 이전 `GET /api/profile-snapshots`는 프로필에 **선택된 게임 Mod ID의 출처만** 근거 검증기에 전달하므로, 승인된 `requires`의 대상 모드가 **미선택**인 경우 `missing-catalog-identity`로 보류되어 필수 모드 누락 차단 검사를 우회할 수 있는 경로를 발견.

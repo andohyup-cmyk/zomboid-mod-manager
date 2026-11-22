@@ -20,7 +20,6 @@ export function ModCategoryReadOnly({ modId }: { modId: string }) {
 
   useEffect(() => {
     const controller = new AbortController();
-    setState({ status: "loading" });
 
     async function load() {
       try {

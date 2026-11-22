@@ -44,7 +44,7 @@ export function BackupInspector() {
       {error && <p role="alert" className="text-sm text-red-300">{error}</p>}
       {preview && (
         <div className="space-y-3 text-sm">
-          <p role="status">{preview.complete ? "파일 구조가 완전한 형식입니다." :
+          <p role="status">{preview.complete ? "파일 구조와 내부 참조 검사를 통과했습니다. DB 복구 가능성은 별도입니다." :
             "경고: 누락된 항목이 있는 부분 내보내기입니다."}</p>
           <p className="muted text-xs">생성: {preview.exportedAt}</p>
           <dl className="grid grid-cols-1 gap-2 sm:grid-cols-2">

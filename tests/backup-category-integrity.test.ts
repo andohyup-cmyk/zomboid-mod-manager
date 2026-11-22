@@ -44,7 +44,7 @@ test("unclassified mods and unused categories require no primary", () => {
   assert.equal(inspect(d).error, undefined);
 });
 test("orphan and duplicate category IDs or names are rejected", () => {
-  assert.match(error(d => { d.categories.pop(); }), /카테고리/);
+  assert.match(error(d => { d.categories.splice(1, 1); }), /카테고리/);
   assert.match(error(d => { d.categories[1].id = "a"; }), /카테고리/);
   assert.match(error(d => { d.categories[1].name = "UI"; }), /카테고리/);
   assert.match(error(d => { d.categories[1].sort_order = -1; }), /카테고리/);

@@ -1,3 +1,5 @@
+import { checkBackupV3References } from "./backup-reference-integrity";
+
 export const LEGACY_BACKUP_TABLES = [
   "mods", "modIds", "researchRecords", "profiles", "profileMods", "researchQueue"
 ] as const;
@@ -66,6 +68,15 @@ export function inspectBackupSnapshot(input: unknown):
 
   if (raw.complete && (counts.researchQueue === null || raw.warnings.length !== 0)) {
     return { error: "완전한 백업 표시와 실제 데이터·경고 상태가 일치하지 않습니다." };
+  }
+
+  // Structural row counts alone cannot detect a profile or relation that
+  // references a missing game Mod ID, an old revision, or a foreign owner.
+  if (version === 3) {
+    const checked = checkBackupV3References(data as Parameters<typeof checkBackupV3References>[0]);
+    if (!checked.ok) {
+      return { error: "백업 참조 무결성 검증 실패: " + checked.reason };
+    }
   }
   const warnings = [...raw.warnings] as string[];
   if (version === 1) {

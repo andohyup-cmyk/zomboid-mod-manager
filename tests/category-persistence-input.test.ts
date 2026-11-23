@@ -35,9 +35,14 @@ test("multiple categories with exactly one member primary are accepted",()=>{
  assert.deepEqual(parseCategoryAssignment({modId:a,categoryIds:[b,c],primaryCategoryId:c}),
  {modId:a,categoryIds:[b,c],primaryCategoryId:c});
 });
+test("unclassified assignment (0 categories and null primary) is accepted",()=>{
+ assert.deepEqual(parseCategoryAssignment({modId:a,categoryIds:[],primaryCategoryId:null}),
+ {modId:a,categoryIds:[],primaryCategoryId:null});
+});
 test("missing, duplicate and foreign primary category references are rejected",()=>{
  for(const input of [
   {modId:a,categoryIds:[],primaryCategoryId:b},
+  {modId:a,categoryIds:[b],primaryCategoryId:null},
   {modId:a,categoryIds:[b,b],primaryCategoryId:b},
   {modId:a,categoryIds:[b],primaryCategoryId:c},
   {modId:a,categoryIds:[b],primaryCategoryId:b,owner_id:a},

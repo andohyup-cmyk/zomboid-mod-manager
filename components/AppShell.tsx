@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link, { useLinkStatus } from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 
@@ -11,19 +11,43 @@ const navigation = [
   { href: "/profiles", label: "서버 프로필", short: "서버" }
 ];
 
+function PendingDot() {
+  const { pending } = useLinkStatus();
+  if (!pending) return null;
+  return (
+    <span
+      aria-hidden="true"
+      className="ml-1.5 inline-block h-1.5 w-1.5 animate-ping rounded-full bg-[#8fcb85]"
+    />
+  );
+}
+
 function NavLink({ href, label, compact }: { href: string; label: string; compact?: boolean }) {
   const pathname = usePathname();
   const active = pathname === href || (href !== "/dashboard" && pathname.startsWith(href + "/"));
   return (
     <Link
       href={href}
+      prefetch
       aria-current={active ? "page" : undefined}
       className={
-        "rounded-xl px-3 py-3 text-center text-sm font-semibold transition-colors md:text-left " +
-        (active ? "bg-[#294535] text-[#b9efb0]" : "text-[#9baebe] hover:bg-[#1b2a39] hover:text-white")
+        "flex items-center justify-center rounded-xl text-sm font-semibold transition-colors md:justify-start " +
+        (compact ? "min-h-12 flex-col gap-1 px-2 py-1.5 text-xs " : "px-3 py-3 text-left ") +
+        (active
+          ? "bg-[#294535] text-[#b9efb0]"
+          : "text-[#9baebe] active:bg-[#1b2a39] hover:bg-[#1b2a39] hover:text-white")
       }
     >
-      {compact ? navigation.find((item) => item.href === href)?.short : label}
+      <span className="inline-flex items-center">
+        {compact ? navigation.find((item) => item.href === href)?.short : label}
+        <PendingDot />
+      </span>
+      {compact && (
+        <span
+          aria-hidden="true"
+          className={`h-1 w-4 rounded-full ${active ? "bg-[#8fcb85]" : "bg-transparent"}`}
+        />
+      )}
     </Link>
   );
 }
@@ -58,7 +82,7 @@ export function AppShell({ children, email }: { children: ReactNode; email?: str
         </main>
       </div>
 
-      <nav aria-label="모바일 주 메뉴" className="fixed inset-x-0 bottom-0 z-20 grid grid-cols-4 gap-1 border-t border-[#304154] bg-[#101824] px-2 pb-[max(10px,env(safe-area-inset-bottom))] pt-2 md:hidden">
+      <nav aria-label="모바일 주 메뉴" className="fixed inset-x-0 bottom-0 z-20 grid grid-cols-4 gap-1 border-t border-[#304154] bg-[#101824]/95 px-2 pb-[max(10px,env(safe-area-inset-bottom))] pt-2 backdrop-blur md:hidden">
         {navigation.map((item) => <NavLink key={item.href} {...item} compact />)}
       </nav>
     </div>

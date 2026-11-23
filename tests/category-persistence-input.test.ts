@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
- isTestCategoryWriteAllowed,parseCategoryCreate,parseCategoryAssignment,
- isStoredCategoryPrimaryConsistent
+ isTestCategoryWriteAllowed,parseCategoryCreate,parseCategoryUpdate,parseCategoryDelete,
+ parseCategoryAssignment,isStoredCategoryPrimaryConsistent
 } from "../lib/category-persistence-input";
 const a="11111111-1111-4111-8111-111111111111";
 const b="22222222-2222-4222-8222-222222222222";
@@ -30,6 +30,14 @@ test("category creation rejects extra fields and untrimmed names",()=>{
  assert.deepEqual(parseCategoryCreate({name:"의상"}),{name:"의상"});
  for(const input of [{name:""},{name:" 의상"},{name:"의상 "},{name:"x",owner_id:a},null,[]])
   assert.equal(parseCategoryCreate(input),null);
+});
+test("category update and delete require exact UUID and valid trimmed name",()=>{
+ assert.deepEqual(parseCategoryUpdate({id:a.toUpperCase(),name:"무기"}),{id:a,name:"무기"});
+ for(const input of [{id:"bad",name:"무기"},{id:a,name:""},{id:a,name:" 무기"},{id:a,name:"무기",extra:1},null])
+  assert.equal(parseCategoryUpdate(input),null);
+ assert.deepEqual(parseCategoryDelete({id:a.toUpperCase()}),{id:a});
+ for(const input of [{id:"bad"},{id:a,extra:1},{},null])
+  assert.equal(parseCategoryDelete(input),null);
 });
 test("multiple categories with exactly one member primary are accepted",()=>{
  assert.deepEqual(parseCategoryAssignment({modId:a,categoryIds:[b,c],primaryCategoryId:c}),

@@ -8,6 +8,8 @@ import {
   parseCategoryFilter,
   type CatalogListInput
 } from "@/lib/catalog-read";
+import { isTestCategoryWriteAllowed } from "@/lib/category-persistence-input";
+import { CategoryManager } from "@/components/CategoryManager";
 
 type CatalogMod = {
   id: string;
@@ -124,6 +126,7 @@ export default async function ModsPage({ searchParams }: { searchParams: Promise
           </div>
         </details>
       </form>
+      <CategoryManager initialCategories={categories} writeEnabled={isTestCategoryWriteAllowed(process.env)} />
       {error && <p role="alert" className="text-sm text-red-300">모드 목록을 불러오지 못했습니다.</p>}
       {!error && items.length === 0 && (
         <div className="panel p-7 text-center">

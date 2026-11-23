@@ -10,28 +10,28 @@ export default async function ProfilesPage() {
     .order("created_at", { ascending: false });
 
   return (
-    <section className="space-y-5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-3xl font-bold">서버 프로필</h1>
-        <div className="flex flex-wrap gap-2">
-          <Link href="/backup" className="secondary-action text-sm">JSON 데이터 내보내기</Link>
-          <Link href="/profiles/editor" className="action text-sm">Mod ID 임시 편집</Link>
-        </div>
+    <section className="space-y-4">
+      <div className="flex items-center justify-between gap-3">
+        <h1 className="text-2xl font-bold">서버 프로필</h1>
+        <Link href="/profiles/editor" className="action shrink-0 text-sm">Mod ID 편집</Link>
       </div>
-      {error && <p className="text-sm text-red-300">프로필 목록을 불러오지 못했습니다.</p>}
+      {error && <p role="alert" className="text-sm text-red-300">프로필 목록을 불러오지 못했습니다.</p>}
       {!error && data?.length === 0 && (
-        <div className="panel p-7">
-          <p className="font-semibold">등록된 서버 프로필이 없습니다.</p>
+        <div className="panel space-y-3 p-6 text-center">
+          <p className="font-semibold">저장된 서버 프로필이 없습니다.</p>
+          <p className="muted text-sm">Mod ID 편집 화면에서 조합을 만들고 JSON 파일로 보관할 수 있습니다.</p>
+          <Link href="/profiles/editor" className="action inline-block text-sm">편집 시작</Link>
         </div>
       )}
-      <div className="grid gap-3">
+      <ul className="grid gap-2">
         {data?.map((profile) => (
-          <div key={profile.id} className="panel p-5">
-            <p className="font-bold">{profile.name}</p>
-            <p className="muted mt-2 text-xs">개별 Mod ID 선택과 출력은 임시 편집 화면에서 확인할 수 있습니다.</p>
-          </div>
+          <li key={profile.id} className="panel p-4">
+            <p className="break-words font-bold">{profile.name}</p>
+            <p className="muted mt-1 text-xs">개별 Mod ID 선택과 출력은 Mod ID 편집 화면에서 확인할 수 있습니다.</p>
+          </li>
         ))}
-      </div>
+      </ul>
+      <Link href="/backup" className="secondary-action block text-center text-sm">JSON 데이터 내보내기</Link>
     </section>
   );
 }

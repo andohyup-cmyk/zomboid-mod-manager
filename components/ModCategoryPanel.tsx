@@ -162,9 +162,9 @@ export function ModCategoryPanel({
               : "미분류"}</p>
             <p>대표 카테고리: {catalog.find(cat => cat.id === draft.primaryCategoryId)?.name ?? "없음"}</p>
           </div>
-          {draft.categoryIds.length === 0 && (
+          {saved && saved.categoryIds.length > 0 && draft.categoryIds.length === 0 && (
             <p className="text-xs text-amber-200">
-              현재 저장 API는 카테고리 0개로 변경하는 기능을 지원하지 않습니다.
+              저장하면 이 모드의 모든 카테고리가 해제되어 미분류 상태가 됩니다.
             </p>
           )}
           <div className="flex flex-wrap gap-2">
@@ -183,7 +183,11 @@ export function ModCategoryPanel({
           </div>
           {confirming && savingAllowed && (
             <div className="space-y-2 rounded-lg border border-[#5b704d] p-3" role="group" aria-label="카테고리 변경 저장 확인">
-              <p className="text-sm">선택한 분류와 대표 카테고리를 저장하시겠습니까?</p>
+              <p className="text-sm">
+                {draft.categoryIds.length === 0
+                  ? "이 모드의 카테고리를 모두 해제해 미분류로 저장하시겠습니까?"
+                  : "선택한 분류와 대표 카테고리를 저장하시겠습니까?"}
+              </p>
               <div className="flex gap-2">
                 <button type="button" className="action text-sm" onClick={() => void save()}>
                   확인 후 저장

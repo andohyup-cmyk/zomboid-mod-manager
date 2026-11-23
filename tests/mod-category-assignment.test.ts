@@ -28,9 +28,19 @@ test("primary must belong to selected categories", () => {
   }), { ok: false, reason: "primary-missing" });
 });
 
-test("empty category selection is rejected", () => {
+test("empty category selection with null primary is permitted (unclassified)", () => {
+  assert.deepEqual(validateModCategories({ categoryIds: [], primaryCategoryId: null }), {
+    ok: true,
+    assignment: { categoryIds: [], primaryCategoryId: null }
+  });
+});
+
+test("empty category selection with non-null primary is rejected", () => {
   assert.deepEqual(validateModCategories({ categoryIds: [], primaryCategoryId: "" }), {
-    ok: false, reason: "empty"
+    ok: false, reason: "invalid"
+  });
+  assert.deepEqual(validateModCategories({ categoryIds: [], primaryCategoryId: "vehicle" }), {
+    ok: false, reason: "invalid"
   });
 });
 

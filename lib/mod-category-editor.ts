@@ -92,7 +92,8 @@ export function modCategoryChanged(
 }
 
 export function canSaveModCategories(draft: ModCategoryDraft): boolean {
-  return draft.categoryIds.length > 0 && draft.categoryIds.length <= 64
+  if (draft.categoryIds.length === 0) return draft.primaryCategoryId === null;
+  return draft.categoryIds.length <= 64
     && new Set(draft.categoryIds).size === draft.categoryIds.length
     && draft.primaryCategoryId !== null
     && draft.categoryIds.includes(draft.primaryCategoryId);

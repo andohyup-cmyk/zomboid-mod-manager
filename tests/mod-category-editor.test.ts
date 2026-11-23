@@ -40,14 +40,20 @@ test("membership payload must belong to current mod and known category definitio
   ]) assert.equal(parseModCategoryDraft(invalid, modId, categories), null);
 });
 
-test("zero memberships is valid for reads, but not for new writes", () => {
+test("zero memberships with null primary is valid for both reads and clearing writes", () => {
   const empty = parseModCategoryDraft({ modId, categoryIds: [], primaryCategoryId: null }, modId, categories);
   assert.ok(empty);
-  assert.equal(canSaveModCategories(empty), false);
+  assert.equal(canSaveModCategories(empty), true);
+  assert.equal(canSaveModCategories({ modId, categoryIds: [], primaryCategoryId: a }), false);
   const chosen = toggleModCategory(empty, a);
   assert.deepEqual(chosen.categoryIds, [a]);
   assert.equal(chosen.primaryCategoryId, a);
   assert.equal(canSaveModCategories(chosen), true);
+  const cleared = toggleModCategory(chosen, a);
+  assert.deepEqual(cleared.categoryIds, []);
+  assert.equal(cleared.primaryCategoryId, null);
+  assert.equal(canSaveModCategories(cleared), true);
+  assert.equal(modCategoryChanged(chosen, cleared), true);
 });
 
 test("removing primary picks another selected member and never edits original", () => {

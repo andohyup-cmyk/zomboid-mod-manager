@@ -53,6 +53,6 @@ export function parseCategoryAssignment(input: unknown) {
   return {
     modId: row.modId.toLowerCase(),
     categoryIds: checked.assignment.categoryIds.map(id => id.toLowerCase()),
-    primaryCategoryId: checked.assignment.primaryCategoryId.toLowerCase()
+    primaryCategoryId: checked.assignment.primaryCategoryId?.toLowerCase() ?? null
   };
 }

@@ -1,16 +1,17 @@
 /**
- * Category assignment rules confirmed 2026-11-21:
- * one mod may have multiple categories, but exactly one primary category.
+ * Category assignment rules:
+ * one mod may have 0 categories (unclassified, primary = null) or
+ * 1..64 categories with exactly one primary category included in categoryIds.
  * This is a pure validator; it never writes to a database or changes profile order.
  */
 export type ModCategoryAssignment = Readonly<{
   categoryIds: readonly string[];
-  primaryCategoryId: string;
+  primaryCategoryId: string | null;
 }>;
 
 export type CategoryValidationResult =
   | Readonly<{ ok: true; assignment: ModCategoryAssignment }>
-  | Readonly<{ ok: false; reason: "invalid" | "empty" | "duplicate" | "primary-missing" }>;
+  | Readonly<{ ok: false; reason: "invalid" | "duplicate" | "primary-missing" }>;
 
 const MAX_CATEGORIES_PER_MOD = 64;
 const MAX_CATEGORY_ID_LENGTH = 128;
@@ -23,12 +24,17 @@ export function validateModCategories(input: unknown): CategoryValidationResult 
   if (
     Object.keys(value).some(key => key !== "categoryIds" && key !== "primaryCategoryId") ||
     !Array.isArray(value.categoryIds) ||
-    typeof value.primaryCategoryId !== "string" ||
+    (value.primaryCategoryId !== null && typeof value.primaryCategoryId !== "string") ||
     value.categoryIds.length > MAX_CATEGORIES_PER_MOD
   ) {
     return { ok: false, reason: "invalid" };
   }
-  if (value.categoryIds.length === 0) return { ok: false, reason: "empty" };
+  if (value.categoryIds.length === 0) {
+    if (value.primaryCategoryId !== null) {
+      return { ok: false, reason: "invalid" };
+    }
+    return { ok: true, assignment: { categoryIds: [], primaryCategoryId: null } };
+  }
   if (!value.categoryIds.every(id =>
     typeof id === "string" &&
     id.length > 0 &&
@@ -40,7 +46,7 @@ export function validateModCategories(input: unknown): CategoryValidationResult 
   }
   const ids: string[] = value.categoryIds;
   if (new Set(ids).size !== ids.length) return { ok: false, reason: "duplicate" };
-  if (!ids.includes(value.primaryCategoryId)) {
+  if (value.primaryCategoryId === null || !ids.includes(value.primaryCategoryId)) {
     return { ok: false, reason: "primary-missing" };
   }
   return {

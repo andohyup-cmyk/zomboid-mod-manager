@@ -50,13 +50,17 @@ function makeDb(rows: Rows, failTable?: string) {
       let filterKey = "";
       let filterValues: string[] = [];
       const query = {
-        select(_projection: string) { return query; },
+        select(projection: string) {
+          assert.equal(projection, "*");
+          return query;
+        },
         in(field: string, ids: string[]) {
           filterKey = field;
           filterValues = ids;
           return query;
         },
-        order(key: string, _options: { ascending: boolean }) {
+        order(key: string, options: { ascending: boolean }) {
+          assert.equal(options.ascending, true);
           order.push(key);
           return query;
         },

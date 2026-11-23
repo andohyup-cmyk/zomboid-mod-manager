@@ -125,7 +125,8 @@ test("v4 route exports real 13-area payload contract with two categories and UI 
   assert.equal(inspected.error, undefined);
   assert.equal(inspected.preview?.complete, true);
   assert.deepEqual(
-    ["categories", "modCategories", "modCategoryPrimary"].map(k => inspected.preview?.counts[k as keyof typeof inspected.preview.counts]),
+    [inspected.preview?.counts.categories, inspected.preview?.counts.modCategories,
+      inspected.preview?.counts.modCategoryPrimary],
     [2, 2, 1]
   );
   const ownerScoped = calls.filter(x => ["categories", "mod_categories", "mod_category_primary", "research_queue"].includes(x.table));

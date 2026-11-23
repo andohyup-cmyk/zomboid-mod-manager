@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { statusLabel, statusStyle } from "@/lib/status-display";
 import { getOwnerAccess } from "@/lib/auth";
 import {
   applyCatalogListFilters,
@@ -10,6 +9,7 @@ import {
 } from "@/lib/catalog-read";
 import { isTestCategoryWriteAllowed } from "@/lib/category-persistence-input";
 import { CategoryManager } from "@/components/CategoryManager";
+import { ModCatalogList } from "@/components/ModCatalogList";
 
 type CatalogMod = {
   id: string;
@@ -134,34 +134,22 @@ export default async function ModsPage({ searchParams }: { searchParams: Promise
           <p className="muted mt-2 text-sm">필터를 초기화하거나 등록 화면에서 추가해 주세요.</p>
         </div>
       )}
-      {!error && items.length > 0 && <p className="muted text-xs">{items.length}개 표시</p>}
-      <ul className="grid gap-2 sm:grid-cols-2">
-        {items.map(mod => (
-          <li key={mod.id}>
-            <Link href={`/mods/${mod.id}`}
-              className="panel block space-y-2 p-4 transition-colors active:border-[#6ca67b] hover:border-[#6ca67b]">
-              <div className="flex items-start justify-between gap-2">
-                <h2 className="min-w-0 break-words text-base font-bold">{mod.title}</h2>
-                {mod.is_archived && <span className="shrink-0 rounded-md bg-[#2a3441] px-2 py-0.5 text-[11px]">보관</span>}
-              </div>
-              <p className="muted truncate text-xs">
-                Workshop {mod.workshop_id} · Mod ID {mod.mod_ids?.length ? mod.mod_ids.map(x => x.value).join(", ") : "미확인"}
-              </p>
-              <div className="flex flex-wrap gap-1.5 text-[11px]">
-                <span className="rounded-md bg-[#1f3a4d] px-2 py-0.5 text-[#bfe3ff]">
-                  {primaryByMod.get(mod.id) ?? "미분류"}
-                </span>
-                <span className={"rounded-md px-2 py-0.5 " + statusStyle(mod.build_compatibility)}>
-                  B42.22 {statusLabel(mod.build_compatibility)}
-                </span>
-                <span className={"rounded-md px-2 py-0.5 " + statusStyle(mod.multiplayer_compatibility)}>
-                  멀티 {statusLabel(mod.multiplayer_compatibility)}
-                </span>
-              </div>
-            </Link>
-          </li>
-        ))}
-      </ul>
+      {!error && items.length > 0 && (
+        <ModCatalogList
+          items={items.map((mod) => ({
+            id: mod.id,
+            title: mod.title,
+            workshop_id: mod.workshop_id,
+            build_compatibility: mod.build_compatibility,
+            multiplayer_compatibility: mod.multiplayer_compatibility,
+            is_archived: mod.is_archived,
+            modIdsText: mod.mod_ids?.length ? mod.mod_ids.map((x) => x.value).join(", ") : "미확인",
+            primaryCategoryName: primaryByMod.get(mod.id) ?? null
+          }))}
+          categories={categories}
+          writeEnabled={isTestCategoryWriteAllowed(process.env)}
+        />
+      )}
       {items.length >= CATALOG_LIST_LIMIT && <p className="muted text-xs">최대 100건만 표시됩니다. 조건을 좁혀 검색해 주세요.</p>}
     </section>
   );

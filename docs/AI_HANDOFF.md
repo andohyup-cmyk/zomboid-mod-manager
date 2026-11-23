@@ -22,9 +22,15 @@
 - 승인 전 카탈로그 저장 금지, Workshop ID ≠ Mod ID, 호환성 미확인은 미확인 유지, 유료 AI API 도입 금지.
 - `main` 병합·운영 DB·운영 배포·실데이터 삭제·게임 서버 설정 변경은 매 건 사용자 별도 승인.
 
+## 진행 방침 (사용자 확정, 2026-11-23)
+1. 구형 누적 Draft PR 정리: `develop`에 통합된 `#4`~`#41`(`#37`은 `#38`로 대체)은 Close 완료(브랜치 삭제 안 함). `#2`·`#3`은 `main` 기반이며 `develop`에 미통합 → 별도 판단 전까지 유지.
+2. UI 자유 개편: 기존 화면 디자인에 얽매이지 않고 모바일 사용성 중심으로 화면 구조·UI를 적극 개편한다.
+3. `main`/운영 배포는 당분간 제외, `develop` 시험 환경 완성도에 집중한다.
+4. 코드·테스트·PR Preview는 자율 진행. Supabase SQL 실행, 모바일 실기기 확인이 필요할 때만 모아서 사용자에게 요청한다.
+
 ## 다음 우선 작업
-1. **Issue `#35` 카테고리 0개(미분류) 해제 구현 준비:** `develop`에서 독립 작업 브랜치 분기 → 입력 검증(`lib/category-persistence-input.ts`, `lib/mod-category-assignment.ts`), 모바일 패널(`lib/mod-category-editor.ts`, `components/ModCategoryPanel.tsx`), API, 단위 테스트, 시험 DB `save_mod_categories` 마이그레이션 SQL 초안 작성 후 시험 DB 적용 승인 요청.
-2. 필요 시 구형 누적 Draft PR(`#2`~`#41`) 정리 여부 사용자 확인.
+1. **Issue `#35` 카테고리 0개(미분류) 해제 구현:** `develop`에서 작업 브랜치 분기 → 입력 검증·모바일 패널·API·단위 테스트·`save_mod_categories` 마이그레이션 SQL 초안 → 시험 DB 적용 승인 요청.
+2. **모바일 우선 화면 구조 개편:** 목록/필터 UI 및 사용성 개선.
 
 ## 갱신 방법
 - 이 문서는 현재 기준 브랜치, 미검증 사항, 다음 작업만 짧게 유지한다. 완료 이력은 `docs/TASKS.md`와 PR에 기록한다.

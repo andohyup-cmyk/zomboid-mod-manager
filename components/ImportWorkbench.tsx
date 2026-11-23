@@ -459,7 +459,7 @@ export function ImportWorkbench({ readOnly, queueWritable = !readOnly }: { readO
               : "저장할 출처와 내용을 선택한 뒤 확인창에서 최종 승인하세요."}
           </p>
           {!readOnly && (
-            <div className="mt-3 flex flex-wrap gap-2">
+            <div className="sticky bottom-[84px] z-10 mt-3 flex flex-wrap gap-2 rounded-2xl border border-[#304154] bg-[#101824]/95 p-2 backdrop-blur md:static md:border-0 md:bg-transparent md:p-0">
               <button type="button" className="secondary-action" disabled={approvingBatch || !unambiguous.length}
                 onClick={selectAllUnambiguous}>중복 없는 항목 전체 선택 ({unambiguous.length}개)</button>
               <button type="button" className="secondary-action" disabled={approvingBatch || !activeBatch.length}

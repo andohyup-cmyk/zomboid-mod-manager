@@ -63,6 +63,11 @@ export function applyCatalogListFilters<Q extends FilterableCatalogQuery<Q>>(
   return result.order("created_at", { ascending: filters.sort === "oldest" });
 }
 
+/** Category filter is a separate, strictly validated UUID; anything else means "no filter". */
+export function parseCategoryFilter(value: unknown): string {
+  return typeof value === "string" && isCatalogModUuid(value) ? value.toLowerCase() : "";
+}
+
 export function isCatalogModUuid(id: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
 }

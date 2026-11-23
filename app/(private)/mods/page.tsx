@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { statusLabel, statusStyle } from "@/lib/status-display";
 import { getOwnerAccess } from "@/lib/auth";
 import {
   applyCatalogListFilters,
@@ -18,15 +19,6 @@ type CatalogMod = {
   is_archived: boolean;
   created_at: string;
   mod_ids: { value: string }[] | null;
-};
-
-const STATUS_LABEL: Record<string, string> = {
-  unverified: "미확인", confirmed: "확인", reported_issue: "문제 제보"
-};
-const STATUS_STYLE: Record<string, string> = {
-  unverified: "bg-[#2a3441] text-[#c3d0dc]",
-  confirmed: "bg-[#294535] text-[#b9efb0]",
-  reported_issue: "bg-[#4a2b2b] text-[#ffc9c9]"
 };
 
 export default async function ModsPage({ searchParams }: { searchParams: Promise<CatalogListInput & { category?: string }> }) {
@@ -156,11 +148,11 @@ export default async function ModsPage({ searchParams }: { searchParams: Promise
                 <span className="rounded-md bg-[#1f3a4d] px-2 py-0.5 text-[#bfe3ff]">
                   {primaryByMod.get(mod.id) ?? "미분류"}
                 </span>
-                <span className={"rounded-md px-2 py-0.5 " + STATUS_STYLE[mod.build_compatibility]}>
-                  B42.22 {STATUS_LABEL[mod.build_compatibility] ?? mod.build_compatibility}
+                <span className={"rounded-md px-2 py-0.5 " + statusStyle(mod.build_compatibility)}>
+                  B42.22 {statusLabel(mod.build_compatibility)}
                 </span>
-                <span className={"rounded-md px-2 py-0.5 " + STATUS_STYLE[mod.multiplayer_compatibility]}>
-                  멀티 {STATUS_LABEL[mod.multiplayer_compatibility] ?? mod.multiplayer_compatibility}
+                <span className={"rounded-md px-2 py-0.5 " + statusStyle(mod.multiplayer_compatibility)}>
+                  멀티 {statusLabel(mod.multiplayer_compatibility)}
                 </span>
               </div>
             </Link>

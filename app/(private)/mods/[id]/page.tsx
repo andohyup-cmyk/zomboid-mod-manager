@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { statusLabel, statusStyle } from "@/lib/status-display";
 import { notFound } from "next/navigation";
 import { getOwnerAccess } from "@/lib/auth";
 import { extractCatalogResearchSources, isCatalogModUuid } from "@/lib/catalog-read";
@@ -30,8 +31,8 @@ export default async function ModDetailPage({ params }: { params: Promise<{ id: 
   const steamLink = `https://steamcommunity.com/sharedfiles/filedetails/?id=${mod.workshop_id}`;
 
   return (
-    <section className="space-y-5">
-      <Link href="/mods" className="text-sm text-[#b9efb0] underline">모드 목록으로</Link>
+    <section className="space-y-4">
+      <Link href="/mods" className="inline-block py-2 text-sm text-[#b9efb0] underline">← 모드 목록</Link>
       <div className="panel space-y-3 p-5 sm:p-7">
         <p className="kicker">WORKSHOP {mod.workshop_id}</p>
         <h1 className="break-words text-2xl font-bold sm:text-3xl">{mod.title}</h1>
@@ -47,15 +48,17 @@ export default async function ModDetailPage({ params }: { params: Promise<{ id: 
           {(ids ?? []).map(item => <li key={item.value} className="rounded-lg bg-[#152333] p-2 font-mono break-all">{item.value}</li>)}
         </ul>
         {!idsError && !ids?.length && <p className="muted text-sm">실제 Mod ID 미확인. Workshop ID로 대체하지 않습니다.</p>}
-        <div className="grid grid-cols-2 gap-3 text-sm">
-          <p>조사 상태: {mod.verification_status}</p><p>B42.22: {mod.build_compatibility}</p>
-          <p>멀티: {mod.multiplayer_compatibility}</p><p>확인일: {mod.researched_at || "미확인"}</p>
+        <div className="flex flex-wrap gap-1.5 text-xs">
+          <span className={"rounded-md px-2 py-1 " + statusStyle(mod.verification_status)}>조사 {statusLabel(mod.verification_status)}</span>
+          <span className={"rounded-md px-2 py-1 " + statusStyle(mod.build_compatibility)}>B42.22 {statusLabel(mod.build_compatibility)}</span>
+          <span className={"rounded-md px-2 py-1 " + statusStyle(mod.multiplayer_compatibility)}>멀티 {statusLabel(mod.multiplayer_compatibility)}</span>
         </div>
+        <p className="muted text-xs">확인일: {mod.researched_at || "미확인"}</p>
         <p className="muted text-xs">싱글플레이 및 서버 중간 추가는 별도 상태로 보관되며, 아래 조사 기록의 근거를 확인해야 합니다.</p>
       </div>
       <ModCategoryPanel modId={id} writeEnabled={isTestCategoryWriteAllowed(process.env)} />
-      <div className="panel space-y-3 p-5">
-        <h2 className="text-lg font-bold">조사 기록과 출처</h2>
+      <details className="panel space-y-3 p-5" open={sources.length > 0 && sources.length <= 2}>
+        <summary className="cursor-pointer text-lg font-bold">조사 기록과 출처 ({sources.length})</summary>
         {recordsError && <p role="alert" className="text-sm text-red-300">조사 기록 조회에 실패했습니다.</p>}
         {!recordsError && sources.length === 0 && <p className="muted text-sm">확인 가능한 조사 기록이 없습니다.</p>}
         {sources.map(({ record, createdAt }, index) => (
@@ -72,7 +75,7 @@ export default async function ModDetailPage({ params }: { params: Promise<{ id: 
             ))}
           </article>
         ))}
-      </div>
+      </details>
     </section>
   );
 }

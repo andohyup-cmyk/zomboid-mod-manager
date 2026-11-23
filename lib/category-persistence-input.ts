@@ -41,6 +41,22 @@ export function parseCategoryCreate(input: unknown) {
     || row.name.trim() !== row.name || row.name.length < 1 || row.name.length > 120) return null;
   return { name: row.name };
 }
+export function parseCategoryUpdate(input: unknown) {
+  if (!input || typeof input !== "object" || Array.isArray(input)) return null;
+  const row = input as Record<string, unknown>;
+  if (Object.keys(row).length !== 2
+    || typeof row.id !== "string" || !UUID.test(row.id)
+    || typeof row.name !== "string"
+    || row.name.trim() !== row.name || row.name.length < 1 || row.name.length > 120) return null;
+  return { id: row.id.toLowerCase(), name: row.name };
+}
+export function parseCategoryDelete(input: unknown) {
+  if (!input || typeof input !== "object" || Array.isArray(input)) return null;
+  const row = input as Record<string, unknown>;
+  if (Object.keys(row).length !== 1
+    || typeof row.id !== "string" || !UUID.test(row.id)) return null;
+  return { id: row.id.toLowerCase() };
+}
 export function parseCategoryAssignment(input: unknown) {
   if (!input || typeof input !== "object" || Array.isArray(input)) return null;
   const row = input as Record<string, unknown>;

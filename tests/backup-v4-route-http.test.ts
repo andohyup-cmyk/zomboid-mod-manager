@@ -89,8 +89,11 @@ function getRoute(access: unknown): () => Promise<Response> {
   return factory({}, async () => access, inspectBackupSnapshot) as () => Promise<Response>;
 }
 
-function setup(overrides: Rows = {}, failTable?: string) {
-  const data = structuredClone({ ...example, ...overrides });
+function setup(overrides: Partial<Rows> = {}, failTable?: string) {
+  const data: Rows = structuredClone(example);
+  for (const [table, rows] of Object.entries(overrides)) {
+    if (rows !== undefined) data[table] = structuredClone(rows);
+  }
   const db = makeDb(data, failTable);
   return { ...db, GET: getRoute({
     kind: "authorized", user: { id: owner }, supabase: db.supabase

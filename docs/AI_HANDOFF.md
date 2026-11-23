@@ -5,37 +5,38 @@
 ## 저장소 및 기준
 - 저장소: `andohyup-cmyk/zomboid-mod-manager` (비공개).
 - 주 개발 담당: **Antigravity** 단독 주 개발.
-- 개발 통합 브랜치: **`develop`** — 기존 누적 체인(`#2`~`#33`) + `#34`(문서) + `#36`→`#38`→`#39`(카테고리 읽기 가드·모바일 상세 패널·origin 가드; `#37`은 `#38`에 포함) + `#40`→`#41`(백업 v4 DB 롤백·HTTP 응답 테스트) 통합본.
-  - `#39`의 브랜치 고정 `prebuild` 훅은 `develop` Preview 빌드 차단을 피하기 위해 `package.json`에서 `preflight:category-preview` 스크립트로 분리(`isTestCategoryWriteAllowed` 쓰기 잠금은 fail-closed 유지).
-- 운영 브랜치: **`main`** (`afb7973`, 코드 기준 `25568c28` 동일) — 사용자 별도 승인 없이 병합·배포 금지.
+- 개발 통합 브랜치: **`develop`** (`3475495` 이후 최신) — 구형 PR(`#2`~`#41`) 정리 완료, `#44`~`#53` 통합 완료:
+  - `#45`: 카테고리 0개(미분류) 해제 검증·모바일 패널·시험 DB 마이그레이션 SQL 초안(`20261123000100_test_mod_categories_allow_unclassified.sql`).
+  - `#46`·`#47`: 모바일 모드 목록(검색 상단·접이식 필터·카테고리 필터·대표 카테고리 배지) 및 상세(공용 상태 배지·접이식 조사 기록) 개편.
+  - `#48`: 모바일 등록 화면 하단 고정 일괄 등록 바.
+  - `#49`·`#50`: 모바일 서버 프로필 목록 개편 및 홈 대시보드(B42.22 미확인·미분류 추정 통계 카드 링크화) 개편.
+  - `#51`: 모바일 하단 내비게이션 터치 영역·활성 바·`useLinkStatus` 즉시 피드백 + `(private)/loading.tsx` 스켈레톤 + `getOwnerAccess` 인증 RPC 병렬화(`Promise.all`).
+  - `#52`·`#53`: 카테고리 추가·수정·삭제 API(`PATCH`/`DELETE`), 모바일 접이식 카테고리 관리 UI(`CategoryManager`), 목록 일괄 카테고리 지정·해제 UI(`ModCatalogList`), 시험 DB 삭제 RPC 초안(`20261123000200_test_categories_delete_rpc.sql`).
+- 운영 브랜치: **`main`** (`c39642c`) — 당분간 운영 배포 제외, `develop` 시험 환경 완성도에 집중.
 
-## 현재 검증 상태 및 미검증 항목
-| 영역 | 현재 상태 | 미검증 / 미완료 |
-| --- | --- | --- |
-| **백업 JSON v4** (`#33`/`#40`/`#41`) | 13영역 내보내기·무결성 검사·시험 DB `ROLLBACK` SQL·실제 GET 라우트 모의 응답 테스트 통합 완료 | 실제 Google OAuth 브라우저 HTTP 다운로드 E2E, DB 복원(Restore) 기능, 단일 트랜잭션 스냅샷 |
-| **다중 카테고리** (`#32`/`#36`/`#38`/`#39`) | 시험 DB 3테이블·RLS·RPC, 읽기 불일치 차단, 모바일 상세 패널, 모바일 저장 E2E 후 플래그 `false` 원복·fixture 정리 | **카테고리 0개(미분류) 해제 구현**(정책 확정 완료, RPC/API/UI 2단계 구현 대기), 목록/필터 UI 연결, 운영 DB 적용 |
-| **기존 이슈** | `#1`(모바일 탭 전환 지연), `#8`(Preview OAuth/RLS), `#9`(시험 DB RLS/`SECURITY DEFINER`), `#35`(카테고리 UI/0개 해제) | 별도 검증 및 승인 필요 |
+## 진행 방침 (사용자 확정, 2026-11-23)
+1. 구형 누적 Draft PR(`#2`~`#41`) 전부 Close 완료(브랜치 유지).
+2. 기존 화면 디자인에 얽매이지 않고 모바일 사용성 중심으로 화면 구조·UI를 적극 개편.
+3. 당분간 `main` 운영 배포는 제외하고 `develop` 시험 환경 완성도에 집중.
+4. 코드·테스트·PR은 승인 요청 없이 자율 진행하고 요약만 짧게 보고(작업 완료 시 텔레그램 알림 발송). 추천 모델이 같으면 재확인하지 않고 연속 진행. Supabase SQL 실행이나 모바일 실기기 확인이 필요할 때만 모아서 요청.
+
+## 사용자 일괄 확인 대기 항목 (5번·10번)
+1. **시험 Supabase(`smofdbjgcgdmscamknpw`) SQL 실행 (총 4건, 순서대로):**
+   - 마이그레이션 1: `supabase/migrations/20261123000100_test_mod_categories_allow_unclassified.sql` (카테고리 0개 미분류 해제 허용)
+   - 롤백 검증 1: `tests/sql/mod_category_unclassified_rollback.sql` (`ROLLBACK` 포함 단일 실행)
+   - 마이그레이션 2: `supabase/migrations/20261123000200_test_categories_delete_rpc.sql` (카테고리 삭제 RLS 및 `delete_category` RPC)
+   - 롤백 검증 2: `tests/sql/category_delete_rollback.sql` (`ROLLBACK` 포함 단일 실행)
+2. **시험 Preview 카테고리 쓰기 가드 승인 여부:**
+   - 현재 `lib/category-persistence-input.ts`의 `isTestCategoryWriteAllowed`는 `TEST_BRANCH = "test/category-preview-origin-guard-20261122"` 및 만료 시각(`2026-11-24T00:00:00+09:00`)으로 잠겨 있음(fail-closed).
+   - `develop` Preview에서 실제 카테고리 생성/수정/삭제/일괄분류 저장 E2E를 테스트하려면 `TEST_BRANCH`를 `"develop"`으로 전환하고 `MOD_CATEGORY_TEST_WRITE_ENABLED=true`를 임시 활성화하는 1회 승인이 필요함.
+3. **모바일 실기기 확인 체크리스트:**
+   - 하단 메뉴(홈·모드·등록·서버) 탭 전환 시 즉시 스켈레톤·점멸 피드백 동작 및 체감 속도(`#51`)
+   - 홈(`/dashboard`) 4개 통계 카드 링크 이동(`#50`)
+   - 모드 목록(`/mods`) 검색·접이식 필터·카테고리 관리 패널·일괄 분류 체크박스 UI(`#46`, `#52`, `#53`)
+   - 모드 상세(`/mods/[id]`) 상태 배지·접이식 조사 기록·카테고리 0개 해제 확인 문구(`#45`, `#47`)
+   - 모드 등록(`/register`) 모바일 하단 고정 일괄 등록 바(`#48`)
 
 ## 유지할 확정 원칙
 - Project Zomboid Build 42(현재 기준 B42.22), 모바일 우선 PWA, Next.js/TypeScript/Tailwind, Supabase Google OAuth + RLS, GitHub/Vercel.
 - 다중 카테고리 + 대표 1개 + **0개(미분류) 해제 허용**, 선택 그룹 기본값 = **자유 선택**.
 - 승인 전 카탈로그 저장 금지, Workshop ID ≠ Mod ID, 호환성 미확인은 미확인 유지, 유료 AI API 도입 금지.
-- `main` 병합·운영 DB·운영 배포·실데이터 삭제·게임 서버 설정 변경은 매 건 사용자 별도 승인.
-
-## 진행 방침 (사용자 확정, 2026-11-23)
-1. 구형 누적 Draft PR 정리: `develop`에 통합된 `#4`~`#41`(`#37`은 `#38`로 대체)은 Close 완료(브랜치 삭제 안 함). `#2`·`#3`은 `main` 기반이며 `develop`에 미통합 → 별도 판단 전까지 유지.
-2. UI 자유 개편: 기존 화면 디자인에 얽매이지 않고 모바일 사용성 중심으로 화면 구조·UI를 적극 개편한다.
-3. `main`/운영 배포는 당분간 제외, `develop` 시험 환경 완성도에 집중한다.
-4. 코드·테스트·PR Preview는 자율 진행. Supabase SQL 실행, 모바일 실기기 확인이 필요할 때만 모아서 사용자에게 요청한다.
-
-## 진행 현황 (2026-11-23)
-- 병합 완료: #44(방침), #45(카테고리 0개 해제 코드+시험 DB SQL 초안 — **DB 미적용**), #46(모드 목록 모바일 개편·카테고리 필터/배지).
-- 작업 방식: 승인 요청 없이 자율 진행, 요약만 보고, 추천 모델이 같으면 재확인하지 않음.
-- 사용자 확인 대기(모아서 요청): 시험 DB에 `20261123000100_test_mod_categories_allow_unclassified.sql` 적용 + `tests/sql/mod_category_unclassified_rollback.sql` 실행, 모바일 실기기 확인.
-
-## 다음 우선 작업
-1. **Issue `#35` 카테고리 0개(미분류) 해제 구현:** `develop`에서 작업 브랜치 분기 → 입력 검증·모바일 패널·API·단위 테스트·`save_mod_categories` 마이그레이션 SQL 초안 → 시험 DB 적용 승인 요청.
-2. **모바일 우선 화면 구조 개편:** 목록/필터 UI 및 사용성 개선.
-
-## 갱신 방법
-- 이 문서는 현재 기준 브랜치, 미검증 사항, 다음 작업만 짧게 유지한다. 완료 이력은 `docs/TASKS.md`와 PR에 기록한다.

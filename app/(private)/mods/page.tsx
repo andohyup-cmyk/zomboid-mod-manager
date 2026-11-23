@@ -4,6 +4,7 @@ import {
   applyCatalogListFilters,
   CATALOG_LIST_LIMIT,
   parseCatalogListFilters,
+  parseCategoryFilter,
   type CatalogListInput
 } from "@/lib/catalog-read";
 
@@ -28,24 +29,50 @@ const STATUS_STYLE: Record<string, string> = {
   reported_issue: "bg-[#4a2b2b] text-[#ffc9c9]"
 };
 
-export default async function ModsPage({ searchParams }: { searchParams: Promise<CatalogListInput> }) {
+export default async function ModsPage({ searchParams }: { searchParams: Promise<CatalogListInput & { category?: string }> }) {
   const access = await getOwnerAccess();
   if (access.kind !== "authorized") return null;
-  const { query, archive, sort, build, multiplayer } = parseCatalogListFilters(await searchParams);
+  const rawParams = await searchParams;
+  const { query, archive, sort, build, multiplayer } = parseCatalogListFilters(rawParams);
+  const category = parseCategoryFilter(rawParams.category);
+
+  // Owner-scoped category data. Failures degrade to "no category info", never block the list.
+  const { data: categoryRows } = await access.supabase.from("categories")
+    .select("id,name,sort_order").eq("owner_id", access.user.id)
+    .order("sort_order", { ascending: true }).order("name", { ascending: true }).limit(200);
+  const categories = (categoryRows ?? []) as { id: string; name: string }[];
+  let categoryModIds: string[] | null = null;
+  if (category) {
+    const { data: links } = await access.supabase.from("mod_categories")
+      .select("mod_id").eq("owner_id", access.user.id).eq("category_id", category).limit(CATALOG_LIST_LIMIT);
+    categoryModIds = (links ?? []).map(row => row.mod_id as string);
+  }
 
   // Scope the query to the signed-in owner before applying optional filters.
-  const req = applyCatalogListFilters(
-    access.supabase.from("mods")
-      .select("id,title,workshop_id,verification_status,build_compatibility,multiplayer_compatibility,is_archived,created_at,mod_ids(value)")
-      .eq("owner_id", access.user.id)
-      .limit(CATALOG_LIST_LIMIT),
-    { query, archive, sort, build, multiplayer }
-  );
+  const base = access.supabase.from("mods")
+    .select("id,title,workshop_id,verification_status,build_compatibility,multiplayer_compatibility,is_archived,created_at,mod_ids(value)")
+    .eq("owner_id", access.user.id)
+    .limit(CATALOG_LIST_LIMIT);
+  const scoped = categoryModIds === null ? base
+    : base.in("id", categoryModIds.length ? categoryModIds : ["00000000-0000-0000-0000-000000000000"]);
+  const req = applyCatalogListFilters(scoped, { query, archive, sort, build, multiplayer });
 
   const { data, error } = await req;
   const items = (data ?? []) as CatalogMod[];
 
-  const activeFilters = [archive !== "active", sort !== "recent", build !== "", multiplayer !== ""]
+  const primaryByMod = new Map<string, string>();
+  if (items.length > 0 && categories.length > 0) {
+    const { data: primaries } = await access.supabase.from("mod_category_primary")
+      .select("mod_id,category_id").eq("owner_id", access.user.id)
+      .in("mod_id", items.map(item => item.id));
+    const names = new Map(categories.map(item => [item.id, item.name]));
+    for (const row of primaries ?? []) {
+      const name = names.get(row.category_id as string);
+      if (name) primaryByMod.set(row.mod_id as string, name);
+    }
+  }
+
+  const activeFilters = [archive !== "active", sort !== "recent", build !== "", multiplayer !== "", category !== ""]
     .filter(Boolean).length;
 
   return (
@@ -78,6 +105,14 @@ export default async function ModsPage({ searchParams }: { searchParams: Promise
                 <option value="recent">최근 등록</option><option value="oldest">오래된 순</option><option value="name">이름 순</option>
               </select>
             </label>
+            {categories.length > 0 && (
+              <label className="col-span-2 text-sm">카테고리
+                <select name="category" defaultValue={category} className="field mt-1">
+                  <option value="">전체</option>
+                  {categories.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}
+                </select>
+              </label>
+            )}
             <label className="text-sm">B42.22
               <select name="build" defaultValue={build} className="field mt-1">
                 <option value="">전체</option><option value="unverified">미확인</option>
@@ -118,6 +153,9 @@ export default async function ModsPage({ searchParams }: { searchParams: Promise
                 Workshop {mod.workshop_id} · Mod ID {mod.mod_ids?.length ? mod.mod_ids.map(x => x.value).join(", ") : "미확인"}
               </p>
               <div className="flex flex-wrap gap-1.5 text-[11px]">
+                <span className="rounded-md bg-[#1f3a4d] px-2 py-0.5 text-[#bfe3ff]">
+                  {primaryByMod.get(mod.id) ?? "미분류"}
+                </span>
                 <span className={"rounded-md px-2 py-0.5 " + STATUS_STYLE[mod.build_compatibility]}>
                   B42.22 {STATUS_LABEL[mod.build_compatibility] ?? mod.build_compatibility}
                 </span>

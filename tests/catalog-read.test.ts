@@ -5,6 +5,7 @@ import {
   CATALOG_LIST_LIMIT,
   extractCatalogResearchSources,
   isCatalogModUuid,
+  parseCategoryFilter,
   parseCatalogListFilters
 } from "../lib/catalog-read";
 
@@ -134,4 +135,12 @@ test("an empty detail history remains an empty list", () => {
 test("current catalogue list limit is explicitly tracked for future pagination", () => {
   // This does NOT prove 101+ records are accessible: the UI currently fetches only 100.
   assert.equal(CATALOG_LIST_LIMIT, 100);
+});
+
+test("category filter accepts only a UUID and lowercases it", () => {
+  const id = "AAAAAAAA-1111-4111-8111-111111111111";
+  assert.equal(parseCategoryFilter(id), id.toLowerCase());
+  for (const bad of [undefined, "", "none", "x,y", `${id},${id}`, ["a"], 5, "1' or 1=1"]) {
+    assert.equal(parseCategoryFilter(bad), "");
+  }
 });

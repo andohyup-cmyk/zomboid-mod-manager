@@ -146,6 +146,15 @@ export function SelectionGroupPanel({ selections, writeEnabled, onGroupsChange }
           <button type="submit" className="action min-h-11 w-full sm:w-auto" disabled={busy || !label.trim() || picked.size === 0 || !ruleOk}>
             그룹 저장
           </button>
+          {(busy || !label.trim() || picked.size === 0 || !ruleOk) && (
+            <p className="muted text-xs" role="status">
+              저장하려면: {[
+                !label.trim() && "그룹 이름 입력",
+                picked.size === 0 && "구성원 1개 이상 체크",
+                picked.size > 0 && !ruleOk && "규칙에 맞게 구성원 추가"
+              ].filter(Boolean).join(" · ") || "저장 중…"}
+            </p>
+          )}
         </form>
       )}
 

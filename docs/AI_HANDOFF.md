@@ -41,8 +41,8 @@
    - 모드 목록(`/mods`)에서 카테고리 추가·이름 수정·삭제 및 일괄 분류 저장 실제 동작 확인.
    - 모드 상세(`/mods/[id]`)에서 카테고리 0개(미분류) 해제 확인.
 2. **후속 기능 준비:**
-   - 서버 프로필 편집기에서 로컬 `mod.info` JSON 참고 검사 UI 연동.
-   - 선택 그룹 자유 선택 기본값 UI 적용.
+   - (완료 PR #58) 프로필 편집기 선택 목록에 모드별 `mod.info` 참고 배지.
+   - (완료) 복수 Mod ID Workshop에 "자유 선택 · 0~N개" 안내(자동 활성화 없음). 사용자 정의 선택 그룹 저장은 시험 DB 테이블·RLS 마이그레이션(사용자 SQL 실행) 필요.
 
 ## 유지할 확정 원칙
 - Project Zomboid Build 42(현재 기준 B42.22), 모바일 우선 PWA, Next.js/TypeScript/Tailwind, Supabase Google OAuth + RLS, GitHub/Vercel.

@@ -17,7 +17,7 @@
 }
 
 * { box-sizing: border-box; }
-html { min-height: 100%; }
+html { min-height: 100%; overflow-x: clip; }
 body {
   margin: 0;
   background: var(--background);

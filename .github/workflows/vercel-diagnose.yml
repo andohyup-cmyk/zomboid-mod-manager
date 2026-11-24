@@ -1,6 +1,9 @@
 name: Vercel diagnose and deploy (develop preview)
 
 on:
+  push:
+    branches: [develop]
+    paths: [".github/workflows/vercel-diagnose.yml"]
   workflow_dispatch:
     inputs:
       deploy:
@@ -29,7 +32,7 @@ jobs:
           curl -sS -H "Authorization: Bearer $VERCEL_TOKEN" "https://api.vercel.com/v6/deployments?$Q" \
             | jq '[.deployments[]? | {uid, state, target, created: (.created/1000|todate), sha: .meta.githubCommitSha[0:7], ref: .meta.githubCommitRef, url}] , .error'
       - name: Create deployment from develop
-        if: ${{ github.event.inputs.deploy == 'true' }}
+        if: ${{ github.event_name == 'push' || github.event.inputs.deploy == 'true' }}
         run: |
           TEAM=$(curl -sS -H "Authorization: Bearer $VERCEL_TOKEN" https://api.vercel.com/v2/teams | jq -r '.teams[0].id // empty')
           Q="forceNew=1&skipAutoDetectionConfirmation=1"

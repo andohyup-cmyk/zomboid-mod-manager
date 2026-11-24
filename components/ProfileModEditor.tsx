@@ -24,6 +24,8 @@ import {
   type ProfileOrderPreviewOptions
 } from "@/lib/profile-order-preview";
 import { describeFreeSelection } from "@/lib/group-selection-rule";
+import { SelectionGroupPanel } from "@/components/SelectionGroupPanel";
+import { toSelectionGroupRules, type StoredSelectionGroup } from "@/lib/selection-group-input";
 import { validateProfileSelection, type ProfileSelectionError } from "@/lib/profile-selection";
 
 const tabs = [
@@ -40,11 +42,14 @@ const errorMessages: Record<ProfileSelectionError["code"], string> = {
 };
 
 export function ProfileModEditor({
-  recommendationOptions, relationships
+  recommendationOptions, relationships, groupWriteEnabled = false
 }: {
   recommendationOptions: ProfileOrderPreviewOptions;
   relationships?: ServerConfigInput["relationships"];
+  groupWriteEnabled?: boolean;
 }) {
+  const [storedGroups, setStoredGroups] = useState<readonly StoredSelectionGroup[]>([]);
+  const groupRules = useMemo(() => toSelectionGroupRules(storedGroups), [storedGroups]);
   const { catalog: catalogPage, loadCatalog } = useProfileEditorCatalog();
   const { knownEntries, request: catalogRequest, status: catalogStatus, nextCursor } = catalogPage;
   const [tab, setTab] = useState<EditorTab>("add");
@@ -464,7 +469,10 @@ export function ProfileModEditor({
           </section>
         )}
         {catalogStatus !== "denied" && (
-          <ProfileServerOutput selections={selections} catalog={catalog} downloadOnlyWorkshopIds={downloads}
+          <SelectionGroupPanel selections={selections} writeEnabled={groupWriteEnabled} onGroupsChange={setStoredGroups} />
+        )}
+        {catalogStatus !== "denied" && (
+          <ProfileServerOutput selectionGroups={groupRules} selections={selections} catalog={catalog} downloadOnlyWorkshopIds={downloads}
             recommendationOptions={recommendationOptions} relationships={relationships} onModInfoNotes={setModInfoNotes} />
         )}
       </div>

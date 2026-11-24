@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState, type ChangeEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
 import type { ProfileModSelection } from "@/lib/profile-mod-id-state";
 import type { ProfileOrderPreviewOptions } from "@/lib/profile-order-preview";
 import { buildProfileServerConfig } from "@/lib/profile-server-output";
@@ -13,6 +13,7 @@ type Props = {
   downloadOnlyWorkshopIds: readonly string[];
   recommendationOptions: ProfileOrderPreviewOptions;
   relationships?: ServerConfigInput["relationships"];
+  onModInfoNotes?: (notes: ReadonlyMap<string, { warnings: number; infos: number }> | undefined) => void;
 };
 
 const issueGroups = [
@@ -21,7 +22,7 @@ const issueGroups = [
   { severity: "info", label: "미확인 정보 및 참고 사항" }
 ] as const;
 
-export function ProfileServerOutput({ selections, catalog, downloadOnlyWorkshopIds, recommendationOptions, relationships }: Props) {
+export function ProfileServerOutput({ selections, catalog, downloadOnlyWorkshopIds, recommendationOptions, relationships, onModInfoNotes }: Props) {
   const [modIdPrefix, setModIdPrefix] = useState<"" | "\\">("\\");
   const snapshot = useMemo(() => ({
     selections, input: { catalog, downloadOnlyWorkshopIds, relationships }, recommendationOptions, modIdPrefix
@@ -38,6 +39,17 @@ export function ProfileServerOutput({ selections, catalog, downloadOnlyWorkshopI
   const localComparison = useMemo(() => localInventory
     ? compareLocalInventory(localInventory, selections)
     : null, [localInventory, selections]);
+  useEffect(() => {
+    if (!onModInfoNotes) return;
+    if (!localComparison) { onModInfoNotes(undefined); return; }
+    const notes = new Map<string, { warnings: number; infos: number }>();
+    for (const selection of selections) if (selection.enabled) notes.set(selection.modId, { warnings: 0, infos: 0 });
+    for (const issue of localComparison.issues) {
+      const note = issue.modId ? notes.get(issue.modId) : undefined;
+      if (note) issue.severity === "warning" ? note.warnings++ : note.infos++;
+    }
+    onModInfoNotes(notes);
+  }, [localComparison, selections, onModInfoNotes]);
 
   async function loadLocalInventory(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];

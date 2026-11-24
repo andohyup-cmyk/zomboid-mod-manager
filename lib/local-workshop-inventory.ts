@@ -30,6 +30,7 @@ export type InventoryIssue = {
     | "version-dependent-requires" | "required-mod-missing" | "required-mod-after";
   severity: "warning" | "info";
   message: string;
+  modId?: string;
 };
 
 export type InventoryComparison = {
@@ -126,7 +127,7 @@ export function compareLocalInventory(
     if (!records?.length) {
       const mismatch = byModId.has(selection.modId);
       issues.push({
-        code: mismatch ? "workshop-mismatch" : "mod-info-missing",
+        modId: selection.modId, code: mismatch ? "workshop-mismatch" : "mod-info-missing",
         severity: "warning",
         message: mismatch
           ? `${selection.modId}: 설치 조사 자료에 같은 Mod ID가 있지만 Workshop ${selection.workshopId}에서는 확인되지 않았습니다.`
@@ -138,23 +139,23 @@ export function compareLocalInventory(
     const candidates = buildCandidates(records, targetBuild);
     const b42 = candidates.some((record) => recordVersion(record.relativePath)?.startsWith("42"));
     if (!b42) issues.push({
-      code: "b42-metadata-unverified", severity: "info",
+      modId: selection.modId, code: "b42-metadata-unverified", severity: "info",
       message: `${selection.modId}: B42용 mod.info 경로를 확인하지 못했습니다. 이 파일의 적용 버전은 미확인입니다.`
     });
     const sets = candidates.map((record) => new Set(record.requires));
     const required = [...(sets[0] ?? [])].filter((id) => sets.every((set) => set.has(id)));
     if (sets.some((set) => set.size !== required.length)) issues.push({
-      code: "version-dependent-requires", severity: "info",
+      modId: selection.modId, code: "version-dependent-requires", severity: "info",
       message: `${selection.modId}: B42 하위 버전별 require= 값이 다릅니다. 공통으로 선언된 의존성만 비교하며 게임의 실제 로드 경로는 미확인입니다.`
     });
     for (const id of required) {
       const requiredIndex = positions.get(id);
       if (requiredIndex === undefined) issues.push({
-        code: "required-mod-missing", severity: "warning",
+        modId: selection.modId, code: "required-mod-missing", severity: "warning",
         message: `${selection.modId}: 로컬 mod.info의 require=${id}가 활성 목록에 없습니다. 적용 버전·필수 여부는 별도 확인이 필요합니다.`
       });
       else if (requiredIndex > index) issues.push({
-        code: "required-mod-after", severity: "warning",
+        modId: selection.modId, code: "required-mod-after", severity: "warning",
         message: `${selection.modId}: 로컬 mod.info에서 참조한 ${id}가 뒤에 배치되어 있습니다. 실제 로드 순서를 확인하세요.`
       });
     }

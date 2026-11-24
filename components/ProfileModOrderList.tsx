@@ -8,6 +8,7 @@ type Props = {
   selections: readonly ProfileModSelection[];
   titles: ReadonlyMap<string, string>;
   categories: ReadonlyMap<string, string>;
+  modInfoNotes?: ReadonlyMap<string, { warnings: number; infos: number }>;
   onMove: (from: number, to: number) => void;
   onInvalidPosition: () => void;
   onStateChange: (selection: ProfileModSelection, action: "enable" | "disable" | "remove") => void;
@@ -68,7 +69,7 @@ function PositionInput({
 }
 
 export function ProfileModOrderList({
-  selections, titles, categories, onMove, onInvalidPosition, onStateChange
+  selections, titles, categories, modInfoNotes, onMove, onInvalidPosition, onStateChange
 }: Props) {
   const list = useRef<HTMLOListElement>(null);
   const session = useRef<DragSession | null>(null);
@@ -186,6 +187,15 @@ export function ProfileModOrderList({
                 <span className={`rounded-md px-2 py-1 ${selection.enabled ? "bg-[#223a2e] text-[#b9e6ae]" : "bg-[#2a303b] text-[#bac4d1]"}`}>
                   {selection.enabled ? "활성" : "비활성"}
                 </span>
+                {(() => {
+                  const note = modInfoNotes?.get(selection.modId);
+                  if (!note) return null;
+                  return note.warnings + note.infos === 0
+                    ? <span className="rounded-md bg-[#223a2e] px-2 py-1 text-[#b9e6ae]">mod.info 참고 일치</span>
+                    : <span className={`rounded-md px-2 py-1 ${note.warnings ? "bg-[#3d3320] text-[#f2d6a0]" : "bg-[#2a303b] text-[#bac4d1]"}`}>
+                      mod.info 경고 {note.warnings} · 참고 {note.infos}
+                    </span>;
+                })()}
               </div>
             </div>
             <PositionInput

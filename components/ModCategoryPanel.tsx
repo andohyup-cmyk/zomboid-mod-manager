@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   canSaveModCategories, changeModPrimary, modCategoryChanged, parseCategoryCatalog,
@@ -16,6 +17,7 @@ async function getJson(path: string, signal?: AbortSignal): Promise<unknown> {
 export function ModCategoryPanel({
   modId, writeEnabled
 }: { modId: string; writeEnabled: boolean }) {
+  const router = useRouter();
   const [catalog, setCatalog] = useState<CategoryOption[] | null>(null);
   const [saved, setSaved] = useState<ModCategoryDraft | null>(null);
   const [draft, setDraft] = useState<ModCategoryDraft | null>(null);
@@ -96,6 +98,8 @@ export function ModCategoryPanel({
       setSaved(confirmed);
       setDraft(confirmed);
       setNotice("카테고리 저장 후 재조회까지 확인했습니다.");
+      // Drop the client router cache so the mods list reflects the new categories.
+      router.refresh();
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "저장 상태를 확인할 수 없습니다.");
     } finally {

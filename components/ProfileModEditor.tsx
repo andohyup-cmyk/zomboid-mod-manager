@@ -41,6 +41,9 @@ const errorMessages: Record<ProfileSelectionError["code"], string> = {
   "unknown-mod-id": "이 Workshop의 카탈로그에 없는 Mod ID입니다."
 };
 
+/** The server-output section is hidden for now; flip to true to show it again. */
+const SHOW_SERVER_OUTPUT = false;
+
 export function ProfileModEditor({
   recommendationOptions, relationships, groupWriteEnabled = false
 }: {
@@ -472,8 +475,11 @@ export function ProfileModEditor({
           <SelectionGroupPanel selections={selections} writeEnabled={groupWriteEnabled} onGroupsChange={setStoredGroups} />
         )}
         {catalogStatus !== "denied" && (
+          // Kept mounted but hidden (SHOW_SERVER_OUTPUT=false): reserved for later use, not deleted.
+          <div hidden={!SHOW_SERVER_OUTPUT}>
           <ProfileServerOutput selectionGroups={groupRules} selections={selections} catalog={catalog} downloadOnlyWorkshopIds={downloads}
             recommendationOptions={recommendationOptions} relationships={relationships} onModInfoNotes={setModInfoNotes} />
+          </div>
         )}
       </div>
 

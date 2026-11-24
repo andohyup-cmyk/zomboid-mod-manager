@@ -40,7 +40,7 @@ jobs:
           NAME=$(curl -sS -H "Authorization: Bearer $VERCEL_TOKEN" "https://api.vercel.com/v9/projects/$PROJECT_ID${TEAM:+?teamId=$TEAM}" | jq -r '.name')
           RES=$(curl -sS -X POST -H "Authorization: Bearer $VERCEL_TOKEN" -H "Content-Type: application/json" \
             "https://api.vercel.com/v13/deployments?$Q" \
-            -d "{\"name\":\"$NAME\",\"project\":\"$PROJECT_ID\",\"target\":\"preview\",\"gitSource\":{\"type\":\"github\",\"repo\":\"zomboid-mod-manager\",\"org\":\"andohyup-cmyk\",\"ref\":\"develop\"}}")
+            -d "{\"name\":\"$NAME\",\"project\":\"$PROJECT_ID\",\"gitSource\":{\"type\":\"github\",\"repo\":\"zomboid-mod-manager\",\"org\":\"andohyup-cmyk\",\"ref\":\"develop\"}}")
           echo "$RES" | jq '{id, url, readyState, error}'
           ID=$(echo "$RES" | jq -r '.id // empty')
           [ -z "$ID" ] && exit 1

@@ -55,3 +55,4 @@
 - 시험 DB(`smofdbjgcgdmscamknpw`) 더미 모드 3개(Mod ID 6개)·카테고리 2개 등록 확인 완료(ChatGPT 검증, 2026-11-24). 운영 DB 격리 유지.
 - 실기기 확인(2026-11-24): `/mods`·`/profiles/editor` 정상. 상세에서 카테고리 해제 후 목록이 이전 상태로 보이던 클라이언트 캐시 문제 → 저장 후 `router.refresh()`로 수정. "서버 설정 출력" 섹션은 삭제 없이 `SHOW_SERVER_OUTPUT=false`로 비가시(컴포넌트 유지, mod.info 참고 검사 불러오기 UI도 함께 숨김). `/register`는 `force-dynamic`으로 시험 쓰기 가드를 요청 시점에 평가.
 
+- 배포: develop push 시 `vercel-diagnose.yml`이 Vercel API로 Preview 자동 배포(수동 배포 불필요).

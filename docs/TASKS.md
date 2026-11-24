@@ -401,3 +401,5 @@
 - 선택 그룹 시험 DB 스키마(min/max NULL = 자유 선택 기본, 소유자 RLS, `save_selection_group` RPC) 작성. 로컬 Postgres(Supabase 스텁)에서 마이그레이션·롤백 검증·타 소유자 차단 확인. 시험 DB 적용은 미실행.
 - 사용자: 선택 그룹 마이그레이션 및 롤백 검증 SQL을 시험 DB에 실행 성공(2026-11-24).
 - 선택 그룹 API(`app/api/selection-groups/route.ts`) + `components/SelectionGroupPanel.tsx`(기본 자유 선택, 최대1/최소1/정확히1 선택 규칙, 근거 미확인 규칙은 권고만, 자동 활성화 없음). 명시 규칙 그룹만 서버 설정 출력 검증에 전달. verify 385 pass/build 통과. Preview·실기기 미확인.
+
+- 2026-11-24: 모바일 내비 '서버' 탭 밀림(긴 Mod ID 카드 overflow)·등록 후 `/mods` 미갱신(클라이언트 라우터 캐시) 수정(#66, force-dynamic, staleTimes 0). 시험 Preview 모바일 확인 완료. 배포는 `.github/workflows/vercel-diagnose.yml`(Vercel API, secret `VERCEL_TOKEN`)이 develop push마다 수행(Deploy Hook은 배포를 만들지 않아 사용 안 함).

@@ -3,7 +3,6 @@ name: Vercel diagnose and deploy (develop preview)
 on:
   push:
     branches: [develop]
-    paths: [".github/workflows/vercel-diagnose.yml"]
   workflow_dispatch:
     inputs:
       deploy:

@@ -1,0 +1,51 @@
+name: Vercel diagnose and deploy (develop preview)
+
+on:
+  workflow_dispatch:
+    inputs:
+      deploy:
+        description: "true면 develop 최신 커밋으로 Preview 배포 생성"
+        required: false
+        default: "false"
+
+jobs:
+  vercel:
+    runs-on: ubuntu-latest
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      PROJECT_ID: prj_XYLhTcgMEscWoUCB5UHZoDebfwPQ
+    steps:
+      - name: Teams and project info
+        run: |
+          echo "== teams =="
+          curl -sS -H "Authorization: Bearer $VERCEL_TOKEN" https://api.vercel.com/v2/teams | jq '[.teams[]? | {id, slug}]'
+          echo "== project (personal scope) =="
+          curl -sS -H "Authorization: Bearer $VERCEL_TOKEN" "https://api.vercel.com/v9/projects/$PROJECT_ID" | jq '{name, accountId, link: .link, error}'
+      - name: Recent deployments
+        run: |
+          TEAM=$(curl -sS -H "Authorization: Bearer $VERCEL_TOKEN" https://api.vercel.com/v2/teams | jq -r '.teams[0].id // empty')
+          Q="projectId=$PROJECT_ID&limit=10"
+          [ -n "$TEAM" ] && Q="$Q&teamId=$TEAM"
+          curl -sS -H "Authorization: Bearer $VERCEL_TOKEN" "https://api.vercel.com/v6/deployments?$Q" \
+            | jq '[.deployments[]? | {uid, state, target, created: (.created/1000|todate), sha: .meta.githubCommitSha[0:7], ref: .meta.githubCommitRef, url}] , .error'
+      - name: Create deployment from develop
+        if: ${{ github.event.inputs.deploy == 'true' }}
+        run: |
+          TEAM=$(curl -sS -H "Authorization: Bearer $VERCEL_TOKEN" https://api.vercel.com/v2/teams | jq -r '.teams[0].id // empty')
+          Q="forceNew=1&skipAutoDetectionConfirmation=1"
+          [ -n "$TEAM" ] && Q="$Q&teamId=$TEAM"
+          NAME=$(curl -sS -H "Authorization: Bearer $VERCEL_TOKEN" "https://api.vercel.com/v9/projects/$PROJECT_ID${TEAM:+?teamId=$TEAM}" | jq -r '.name')
+          RES=$(curl -sS -X POST -H "Authorization: Bearer $VERCEL_TOKEN" -H "Content-Type: application/json" \
+            "https://api.vercel.com/v13/deployments?$Q" \
+            -d "{\"name\":\"$NAME\",\"project\":\"$PROJECT_ID\",\"target\":\"preview\",\"gitSource\":{\"type\":\"github\",\"repo\":\"zomboid-mod-manager\",\"org\":\"andohyup-cmyk\",\"ref\":\"develop\"}}")
+          echo "$RES" | jq '{id, url, readyState, error}'
+          ID=$(echo "$RES" | jq -r '.id // empty')
+          [ -z "$ID" ] && exit 1
+          for i in $(seq 1 40); do
+            sleep 15
+            S=$(curl -sS -H "Authorization: Bearer $VERCEL_TOKEN" "https://api.vercel.com/v13/deployments/$ID${TEAM:+?teamId=$TEAM}" | jq -r '.readyState')
+            echo "state: $S"
+            [ "$S" = "READY" ] && exit 0
+            [ "$S" = "ERROR" ] || [ "$S" = "CANCELED" ] && { curl -sS -H "Authorization: Bearer $VERCEL_TOKEN" "https://api.vercel.com/v3/deployments/$ID/events${TEAM:+?teamId=$TEAM}" | jq -r '.[]? | .text // empty' | tail -40; exit 1; }
+          done
+          exit 1

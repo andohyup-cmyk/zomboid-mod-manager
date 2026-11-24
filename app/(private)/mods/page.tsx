@@ -11,6 +11,8 @@ import { isTestCategoryWriteAllowed } from "@/lib/category-persistence-input";
 import { CategoryManager } from "@/components/CategoryManager";
 import { ModCatalogList } from "@/components/ModCatalogList";
 
+export const dynamic = "force-dynamic";
+
 type CatalogMod = {
   id: string;
   title: string;

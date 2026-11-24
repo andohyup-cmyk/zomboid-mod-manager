@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { getOwnerAccess } from "@/lib/auth";
 
+export const dynamic = "force-dynamic";
+
 export default async function DashboardPage() {
   const access = await getOwnerAccess();
   if (access.kind !== "authorized") return null;

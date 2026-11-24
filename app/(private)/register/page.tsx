@@ -1,9 +1,11 @@
 import { ImportWorkbench } from "@/components/ImportWorkbench";
 import { isCatalogWriteAllowed } from "@/lib/catalog-write-protection";
+import { isTestCategoryWriteAllowed } from "@/lib/category-persistence-input";
 import { isPreviewQueueWriteAllowed } from "@/lib/preview-queue-write";
 
 export default function RegisterPage() {
-  const canWrite = isCatalogWriteAllowed(process.env, process.env.NEXT_PUBLIC_SUPABASE_URL);
+  const canWrite = isCatalogWriteAllowed(process.env, process.env.NEXT_PUBLIC_SUPABASE_URL)
+    || isTestCategoryWriteAllowed(process.env);
   const queueWritable = canWrite || isPreviewQueueWriteAllowed(process.env, process.env.NEXT_PUBLIC_SUPABASE_URL);
 
   return (

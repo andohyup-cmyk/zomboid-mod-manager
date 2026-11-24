@@ -2,7 +2,7 @@ import { defineConfig } from "playwright/test";
 
 const mode = process.env.BROWSER_TEST_MODE ?? "preview";
 if (mode !== "preview" && mode !== "approved") throw new Error("Unexpected test mode");
-const baseURL = "http://127.0.0.1:3172";
+const baseURL = "http://localhost:3172";
 
 export default defineConfig({
   testDir: "./tests/browser",

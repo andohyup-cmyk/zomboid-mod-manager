@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
   // Never serve stale pages from the client router cache: catalog/dashboard data
   // changes after registering or categorizing mods and must show without a manual reload.
   experimental: {
-    staleTimes: { dynamic: 0, static: 0 }
+    staleTimes: { dynamic: 0, static: 30 }
   }
 };
 

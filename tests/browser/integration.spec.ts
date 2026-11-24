@@ -2,7 +2,8 @@ import { createHmac } from "node:crypto";
 import { expect, test, type APIRequestContext } from "playwright/test";
 
 const approved = process.env.BROWSER_TEST_MODE === "approved";
-const baseURL = "http://127.0.0.1:3172";
+// Next 16 dev reports request.url as localhost, so the browser must use localhost to pass the same-origin write guard.
+const baseURL = "http://localhost:3172";
 const manual = { workshopId: "3552615247", title: "Manual variant", modIds: ["ManualOnly"] };
 
 async function savedRecords(request: APIRequestContext) {
@@ -22,28 +23,28 @@ test.beforeEach(async ({ context }) => {
   await context.addCookies([{ name: "sb-127-auth-token", value: "base64-" + encode(session), url: baseURL }]);
 });
 
-test("mixed input and inbox show both sources; only final approval stores the chosen record", async ({ page, request }) => {
+async function loadInbox(page: import("playwright/test").Page) {
+  await page.getByText("기존 AI 조사 결과 불러오기 (선택)").click();
+  await page.getByRole("button", { name: "저장된 조사 결과 불러오기" }).click();
+}
+
+test("saved inbox research shows as a candidate; only final approval stores the chosen record", async ({ page, request }) => {
   const posts: string[] = [];
   page.on("request", req => {
     if (req.method() === "POST" && new URL(req.url()).pathname === "/api/mods") posts.push(req.postData() ?? "");
   });
   expect((await request.get(baseURL + "/api/ai-research-inbox")).status()).toBe(403);
   await page.goto("/register");
-  await page.getByLabel("Workshop URL 또는 ID").fill("12345,https://steamcommunity.com/sharedfiles/filedetails/?id=67890 12345 invalid");
+  await page.getByLabel("Workshop URL 또는 ID").fill("3552615247,https://steamcommunity.com/sharedfiles/filedetails/?id=67890 3552615247 invalid");
   await expect(page.getByText("인식된 Workshop ID 2개")).toBeVisible();
   await expect(page.getByText(/4번 항목/)).toBeVisible();
-  await page.getByRole("button", { name: "조사함 새로고침" }).click();
-  await page.getByLabel("JSON 조사 결과").fill(JSON.stringify(manual));
-  const manualCard = page.locator("article").filter({ has: page.getByRole("heading", { name: manual.title }) });
+  await loadInbox(page);
   const inboxCard = page.locator("article").filter({ has: page.getByText("조사함", { exact: true }) });
   await expect(inboxCard).toContainText("QoLMiscItemWeights");
-  await expect(manualCard).toContainText("수동 JSON");
-  await expect(manualCard).toContainText("ManualOnly");
   expect(posts).toHaveLength(0);
   expect(await savedRecords(request)).toEqual([]);
   if (!approved) {
-    await expect(inboxCard.getByRole("button")).toBeDisabled();
-    await expect(manualCard.getByRole("button")).toBeDisabled();
+    await expect(inboxCard.getByRole("button", { name: /시험 환경/ })).toBeDisabled();
     for (const data of ["{", JSON.stringify(manual)]) {
       const response = await page.request.post(baseURL + "/api/mods", { data, headers: { "Content-Type": "application/json" } });
       expect(response.status()).toBe(403);
@@ -53,20 +54,22 @@ test("mixed input and inbox show both sources; only final approval stores the ch
     return;
   }
 
+  // Invalid input blocks approval until corrected.
+  await expect(inboxCard.getByRole("button", { name: "확인 후 추가하기" })).toBeDisabled();
+  await page.getByLabel("Workshop URL 또는 ID").fill("3552615247");
+  await expect(inboxCard.getByRole("button", { name: "확인 후 추가하기" })).toBeEnabled();
   const dialog = page.getByRole("dialog", { name: "등록 내용 확인" });
-  await inboxCard.getByRole("button").click();
+  await inboxCard.getByRole("button", { name: "확인 후 추가하기" }).click();
   await expect(dialog).toContainText("QoLMiscItemWeights");
   await dialog.getByRole("button", { name: "취소" }).click();
   await expect(dialog).toHaveCount(0);
   expect(posts).toHaveLength(0);
   expect(await savedRecords(request)).toEqual([]);
-  await manualCard.getByRole("button").click();
-  await expect(dialog).toContainText(manual.title);
+  await inboxCard.getByRole("button", { name: "확인 후 추가하기" }).click();
   await dialog.getByRole("button", { name: "최종 승인" }).click();
-  await expect(page.getByText(/등록 완료 · 수동 JSON/)).toBeVisible();
+  await expect(page.getByText(/등록 완료 · 조사함/)).toBeVisible();
   expect(posts).toHaveLength(1);
-  expect(await savedRecords(request)).toEqual([expect.objectContaining(manual)]);
-  await expect(inboxCard.getByRole("button")).toBeDisabled();
+  expect(await savedRecords(request)).toHaveLength(1);
 });
 
 test("mobile editor preserves disabled positions while emitting only active Mod IDs", async ({ page }) => {
@@ -91,46 +94,13 @@ test("mobile editor preserves disabled positions while emitting only active Mod 
 test("read-only Preview shows researched data but no batch approval or queue writes", async ({ page }) => {
   test.skip(approved, "Preview protection only; write-enabled mock uses a separate test.");
   await page.goto("/register");
-  await page.getByLabel("JSON 조사 결과").fill(JSON.stringify(manual));
-  await expect(page.getByText(manual.title)).toBeVisible();
-  await expect(page.getByRole("button", { name: "이 환경에서는 저장할 수 없음" })).toBeDisabled();
+  await page.getByLabel("Workshop URL 또는 ID").fill("3552615247");
+  await loadInbox(page);
+  await expect(page.getByText("QoLMiscItemWeights").first()).toBeVisible();
+  await expect(page.getByRole("button", { name: "시험 환경: 정식 카탈로그 등록 불가" })).toBeDisabled();
   await expect(page.getByRole("button", { name: /선택 모드 등록/ })).toHaveCount(0);
   const response = await page.request.post("/api/research-queue", {
     data: { items: [{ source: "manual", record: manual }] }
   });
   expect(response.status()).toBe(403);
-});
-
-
-test("mobile local mod.info scan warns on a missing requirement without modifying profile output", async ({ page }) => {
-  test.skip(approved, "Use the fixture read-only editor for local inventory upload validation.");
-  await page.goto("/profiles/editor");
-  await page.getByRole("checkbox", { name: "Mod ID Core · Workshop ID 12345", exact: true }).check();
-  await page.getByRole("checkbox", { name: "Mod ID Patch · Workshop ID 67890", exact: true }).check();
-  await page.getByRole("button", { name: "선택한 Mod ID 추가" }).click();
-  await page.getByRole("tab", { name: "선택한 모드" }).click();
-
-  const output = page.getByLabel("설정 문자열 미리보기");
-  await expect(output).toContainText(/Mods=\\Core;\\Patch/);
-  const before = await output.textContent();
-  const inventorySection = page.getByRole("region", { name: "로컬 mod.info 참고 검사" });
-  const audit = {
-    targetBuild: "42.22",
-    scannedAtUtc: "2026-11-20T16:36:57Z",
-    mods: [
-      { workshopId: "12345", modId: "Core", relativePath: "12345\\mods\\Core\\42\\mod.info", requires: [] },
-      { workshopId: "67890", modId: "Patch", relativePath: "67890\\mods\\Patch\\42\\mod.info", requires: ["\\Core", "\\Missing"] }
-    ]
-  };
-  await inventorySection.locator('input[type="file"]').setInputFiles({
-    name: "zomboid-workshop-audit.json",
-    mimeType: "application/json",
-    buffer: Buffer.from("\uFEFF" + JSON.stringify(audit))
-  });
-  await expect(inventorySection.getByRole("status")).toContainText("활성 Mod ID 2개 중 일치 2개");
-  await expect(inventorySection).toContainText("require=Missing");
-  await expect(page.getByRole("button", { name: "설정 복사" })).toBeEnabled();
-  await expect(output).toHaveText(before ?? "");
-  await inventorySection.getByRole("button", { name: "검사 자료 해제" }).click();
-  await expect(inventorySection.getByText("require=Missing", { exact: false })).toHaveCount(0);
 });

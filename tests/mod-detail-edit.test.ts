@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  buildPcRegistrationPayload,
   normalizeGameModId,
   parseBulkModIdBackfillInput,
   parseModDetailPatchInput,
@@ -113,4 +114,41 @@ test("planPcModIdBackfill proposes only missing Mod IDs on registered mods and s
   });
   assert.equal(plan.alreadyCompleteCount, 1);
   assert.equal(plan.unmatchedScanWorkshops, 1);
+  assert.deepEqual(plan.unregistered, [{ workshopId: "9999999999", modIds: ["NotInCatalog"] }]);
+});
+
+test("buildPcRegistrationPayload uses Steam metadata when present, falls back cleanly, and keeps statuses unverified", () => {
+  const withSteam = buildPcRegistrationPayload(
+    { workshopId: "2142622992", modIds: ["RepairAnyClothes"] },
+    {
+      workshopId: "2142622992",
+      title: "Repair Any Clothes",
+      description: "Steam desc",
+      sourceUrl: "https://steamcommunity.com/sharedfiles/filedetails/?id=2142622992",
+      modIds: ["RepairAnyClothes", "ExtraId"],
+      verificationStatus: "confirmed",
+      buildCompatibility: "confirmed",
+      singleplayerCompatibility: "confirmed",
+      multiplayerCompatibility: "confirmed",
+      midServerAdditionCompatibility: "confirmed",
+      checkedAt: "2026-11-24",
+      sources: ["https://steamcommunity.com/sharedfiles/filedetails/?id=2142622992"]
+    }
+  );
+  assert.equal(withSteam.title, "Repair Any Clothes");
+  assert.equal(withSteam.description, "Steam desc");
+  assert.deepEqual(withSteam.modIds, ["RepairAnyClothes", "ExtraId"]);
+  assert.equal(withSteam.verificationStatus, "unverified");
+  assert.equal(withSteam.buildCompatibility, "unverified");
+  assert.equal(withSteam.multiplayerCompatibility, "unverified");
+
+  const fallback = buildPcRegistrationPayload(
+    { workshopId: "2142622992", modIds: ["RepairAnyClothes"] },
+    null,
+    "2026-11-24"
+  );
+  assert.equal(fallback.title, "RepairAnyClothes (Workshop 2142622992)");
+  assert.deepEqual(fallback.modIds, ["RepairAnyClothes"]);
+  assert.equal(fallback.checkedAt, "2026-11-24");
+  assert.equal(fallback.buildCompatibility, "unverified");
 });

@@ -21,7 +21,40 @@ export function PcModIdBackfillPanel({ catalogMods, writeEnabled }: Props) {
   const [selectedModIds, setSelectedModIds] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
+  const [loadingRepo, setLoadingRepo] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  async function loadRepoAudit() {
+    if (loadingRepo) return;
+    setLoadingRepo(true);
+    setError(null);
+    setStatus(null);
+    try {
+      const response = await fetch("/api/pc-workshop-audit", { cache: "no-store" });
+      const body = (await response.json().catch(() => ({}))) as {
+        fileName?: string;
+        inventory?: unknown;
+        error?: string;
+      };
+      if (!response.ok || !body.inventory) {
+        throw new Error(body.error || "저장소 PC 스캔 파일을 불러오지 못했습니다.");
+      }
+      const parsed = parseLocalWorkshopInventory(body.inventory);
+      if (!parsed.ok) {
+        throw new Error(parsed.error);
+      }
+      const nextPlan = planPcModIdBackfill(parsed.inventory, catalogMods);
+      setFileName(body.fileName ?? "저장소 PC 스캔");
+      setPlan(nextPlan);
+      setSelectedModIds(nextPlan.updates.map(item => item.modId));
+    } catch (err) {
+      setPlan(null);
+      setFileName(null);
+      setError(err instanceof Error ? err.message : "저장소 PC 스캔 파일을 불러오지 못했습니다.");
+    } finally {
+      setLoadingRepo(false);
+    }
+  }
 
   async function onFileSelected(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -117,12 +150,20 @@ export function PcModIdBackfillPanel({ catalogMods, writeEnabled }: Props) {
       </summary>
       <div className="mt-3 space-y-3">
         <p className="muted text-xs leading-5">
-          PC에서 추출한 <code className="font-mono">zomboid-workshop-audit*.json</code>을 선택하면
-          이미 등록된 모드의 빈 Mod ID만 찾아 미리 보여줍니다. 미등록 모드는 자동 추가하지 않으며 B42.22·멀티 호환성도 바꾸지 않습니다.
+          저장소에 올린 PC 스캔(81개 워크숍)을 바로 불러오거나 새 <code className="font-mono">zomboid-workshop-audit*.json</code> 파일을 선택할 수 있습니다.
+          이미 등록된 모드의 빈 Mod ID만 미리 보여주고, 미등록 모드는 자동 추가하지 않으며 B42.22·멀티 호환성도 바꾸지 않습니다.
         </p>
         <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            disabled={loadingRepo}
+            onClick={() => { void loadRepoAudit(); }}
+            className="action min-h-11 text-xs"
+          >
+            {loadingRepo ? "스캔 불러오는 중..." : "저장소 PC 스캔 불러오기"}
+          </button>
           <label className="secondary-action inline-flex min-h-11 cursor-pointer items-center text-xs">
-            조사 JSON 파일 선택
+            다른 JSON 파일 선택
             <input
               type="file"
               accept=".json,application/json"

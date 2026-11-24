@@ -56,6 +56,7 @@ test("reports a Workshop/Mod ID pair mismatch separately from an absent Mod ID",
   const inventory = parse([row("12345", "Core")]);
   const result = compareLocalInventory(inventory, [selected("23456", "Core"), selected("23456", "Missing")]);
   assert.deepEqual(result.issues.map(({code}) => code), ["workshop-mismatch", "mod-info-missing"]);
+  assert.deepEqual(result.issues.map(({modId}) => modId), ["Core", "Missing"]);
 });
 
 test("uses exact 42.22 metadata; otherwise checks common requirements only when B42 variants disagree", () => {

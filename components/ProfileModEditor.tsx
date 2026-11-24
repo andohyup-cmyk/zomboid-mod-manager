@@ -49,6 +49,7 @@ export function ProfileModEditor({
   const [tab, setTab] = useState<EditorTab>("add");
   const [query, setQuery] = useState("");
   const [pending, setPending] = useState<readonly ProfileModAddition[]>([]);
+  const [modInfoNotes, setModInfoNotes] = useState<ReadonlyMap<string, { warnings: number; infos: number }> | undefined>();
   const [selections, setSelections] = useState<readonly ProfileModSelection[]>([]);
   const [orderPreview, setOrderPreview] = useState<OrderPreview | null>(null);
   const [downloads, setDownloads] = useState<readonly string[]>([]);
@@ -427,6 +428,7 @@ export function ProfileModEditor({
               selections={selections}
               titles={titles}
               categories={categories}
+              modInfoNotes={modInfoNotes}
               onStateChange={changeState}
               onMove={move}
               onInvalidPosition={() => setNotice({ message: `순서를 1~${selections.length} 사이의 정수로 입력하세요.`, error: true })}
@@ -451,7 +453,7 @@ export function ProfileModEditor({
         )}
         {catalogStatus !== "denied" && (
           <ProfileServerOutput selections={selections} catalog={catalog} downloadOnlyWorkshopIds={downloads}
-            recommendationOptions={recommendationOptions} relationships={relationships} />
+            recommendationOptions={recommendationOptions} relationships={relationships} onModInfoNotes={setModInfoNotes} />
         )}
       </div>
 

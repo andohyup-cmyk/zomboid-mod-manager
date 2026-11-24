@@ -394,3 +394,8 @@
 - [ ] 시험 Supabase **Authentication → URL Configuration → Redirect URLs**에서 고정 시험 브랜치 alias의 정확한 콜백 주소 1개가 허용되었는지 확인. 없으면 별도 승인·최소 변경 후 저장: `https://zomboid-mod-manager-git-feature-local-modi-f060b2-andohyup-cmyk.vercel.app/auth/callback`. 와일드카드·운영 DB·Google Cloud 설정은 수정하지 않음.
 - [ ] 지정한 고정 시험 alias로 Google 로그인 실기기 검증 및 같은 시각 Auth/Vercel 로그 대조. 실제 성공 전 문제 해결 완료로 보고하지 않음.
 - 본 연결에서 Supabase Auth URL Configuration 읽기/수정 도구는 제공되지 않음. 사용자가 시험 프로젝트에서 필요한 최소 조치를 수행해야 함. 그 외 코드는 수정·재배포 불필요.
+
+## 2026-11-24 선택 그룹·mod.info 후속
+- PR #58: 프로필 편집기 선택 목록에 모드별 mod.info 참고 배지(출력·복사 로직 불변).
+- PR #59: 복수 Mod ID Workshop에 "자유 선택 · 0~N개" 안내, 자동 활성화 없음.
+- 선택 그룹 시험 DB 스키마(min/max NULL = 자유 선택 기본, 소유자 RLS, `save_selection_group` RPC) 작성. 로컬 Postgres(Supabase 스텁)에서 마이그레이션·롤백 검증·타 소유자 차단 확인. 시험 DB 적용은 미실행.

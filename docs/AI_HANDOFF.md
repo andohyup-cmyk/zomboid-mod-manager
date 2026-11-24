@@ -42,7 +42,7 @@
    - 모드 상세(`/mods/[id]`)에서 카테고리 0개(미분류) 해제 확인.
 2. **후속 기능 준비:**
    - (완료 PR #58) 프로필 편집기 선택 목록에 모드별 `mod.info` 참고 배지.
-   - (완료) 복수 Mod ID Workshop에 "자유 선택 · 0~N개" 안내(자동 활성화 없음). 사용자 정의 선택 그룹 저장은 시험 DB 테이블·RLS 마이그레이션(사용자 SQL 실행) 필요.
+   - (완료) 복수 Mod ID Workshop에 "자유 선택 · 0~N개" 안내(자동 활성화 없음). 선택 그룹 저장 스키마 `supabase/migrations/20261124000100_test_selection_groups.sql` + 검증 `tests/sql/selection_groups_rollback.sql` 작성(로컬 Postgres 스텁 검증 통과, **시험 DB 미적용 — 사용자 SQL 실행 대기**). 적용 후 API·UI 연결 예정.
 
 ## 유지할 확정 원칙
 - Project Zomboid Build 42(현재 기준 B42.22), 모바일 우선 PWA, Next.js/TypeScript/Tailwind, Supabase Google OAuth + RLS, GitHub/Vercel.

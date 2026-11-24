@@ -1,10 +1,13 @@
 import Link from "next/link";
-import { statusLabel, statusStyle } from "@/lib/status-display";
 import { notFound } from "next/navigation";
 import { getOwnerAccess } from "@/lib/auth";
 import { extractCatalogResearchSources, isCatalogModUuid } from "@/lib/catalog-read";
+import { isCatalogWriteAllowed } from "@/lib/catalog-write-protection";
 import { isTestCategoryWriteAllowed } from "@/lib/category-persistence-input";
 import { ModCategoryPanel } from "@/components/ModCategoryPanel";
+import { ModDetailEditor } from "@/components/ModDetailEditor";
+
+export const dynamic = "force-dynamic";
 
 type CatalogDetail = {
   id: string; title: string; description: string; workshop_id: string; source_url: string;
@@ -23,12 +26,14 @@ export default async function ModDetailPage({ params }: { params: Promise<{ id: 
   if (error || !data) notFound();
   const mod = data as CatalogDetail;
   const [{ data: ids, error: idsError }, { data: records, error: recordsError }] = await Promise.all([
-    access.supabase.from("mod_ids").select("value").eq("mod_id", id).order("value").limit(50),
+    access.supabase.from("mod_ids").select("id,value").eq("mod_id", id).order("value").limit(50),
     access.supabase.from("research_records").select("raw_payload,created_at").eq("mod_id", id)
       .order("created_at", { ascending: false }).limit(20)
   ]);
   const sources = extractCatalogResearchSources(records ?? []);
   const steamLink = `https://steamcommunity.com/sharedfiles/filedetails/?id=${mod.workshop_id}`;
+  const writeEnabled = isCatalogWriteAllowed(process.env, process.env.NEXT_PUBLIC_SUPABASE_URL)
+    || isTestCategoryWriteAllowed(process.env);
 
   return (
     <section className="space-y-4">
@@ -41,21 +46,17 @@ export default async function ModDetailPage({ params }: { params: Promise<{ id: 
         <a href={steamLink} target="_blank" rel="noopener noreferrer"
           className="inline-block break-all text-sm text-[#b9efb0] underline">Steam Workshop 원문 열기</a>
       </div>
-      <div className="panel space-y-3 p-5">
-        <h2 className="text-lg font-bold">실제 Mod ID</h2>
-        {idsError && <p role="alert" className="text-sm text-red-300">Mod ID를 읽지 못했습니다.</p>}
-        <ul className="space-y-2 text-sm">
-          {(ids ?? []).map(item => <li key={item.value} className="rounded-lg bg-[#152333] p-2 font-mono break-all">{item.value}</li>)}
-        </ul>
-        {!idsError && !ids?.length && <p className="muted text-sm">실제 Mod ID 미확인. Workshop ID로 대체하지 않습니다.</p>}
-        <div className="flex flex-wrap gap-1.5 text-xs">
-          <span className={"rounded-md px-2 py-1 " + statusStyle(mod.verification_status)}>조사 {statusLabel(mod.verification_status)}</span>
-          <span className={"rounded-md px-2 py-1 " + statusStyle(mod.build_compatibility)}>B42.22 {statusLabel(mod.build_compatibility)}</span>
-          <span className={"rounded-md px-2 py-1 " + statusStyle(mod.multiplayer_compatibility)}>멀티 {statusLabel(mod.multiplayer_compatibility)}</span>
-        </div>
-        <p className="muted text-xs">확인일: {mod.researched_at || "미확인"}</p>
-        <p className="muted text-xs">싱글플레이 및 서버 중간 추가는 별도 상태로 보관되며, 아래 조사 기록의 근거를 확인해야 합니다.</p>
-      </div>
+      <ModDetailEditor
+        modId={id}
+        initialModIds={(ids ?? []) as { id: string; value: string }[]}
+        idsError={Boolean(idsError)}
+        initialVerificationStatus={mod.verification_status}
+        initialBuildCompatibility={mod.build_compatibility}
+        initialMultiplayerCompatibility={mod.multiplayer_compatibility}
+        initialResearchedAt={mod.researched_at}
+        initialDescription={mod.description}
+        writeEnabled={writeEnabled}
+      />
       <ModCategoryPanel modId={id} writeEnabled={isTestCategoryWriteAllowed(process.env)} />
       <details className="panel space-y-3 p-5" open={sources.length > 0 && sources.length <= 2}>
         <summary className="cursor-pointer text-lg font-bold">조사 기록과 출처 ({sources.length})</summary>

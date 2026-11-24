@@ -7,9 +7,11 @@ import {
   parseCategoryFilter,
   type CatalogListInput
 } from "@/lib/catalog-read";
+import { isCatalogWriteAllowed } from "@/lib/catalog-write-protection";
 import { isTestCategoryWriteAllowed } from "@/lib/category-persistence-input";
 import { CategoryManager } from "@/components/CategoryManager";
 import { ModCatalogList } from "@/components/ModCatalogList";
+import { PcModIdBackfillPanel } from "@/components/PcModIdBackfillPanel";
 
 export const dynamic = "force-dynamic";
 
@@ -129,6 +131,20 @@ export default async function ModsPage({ searchParams }: { searchParams: Promise
         </details>
       </form>
       <CategoryManager initialCategories={categories} writeEnabled={isTestCategoryWriteAllowed(process.env)} />
+      {!error && items.length > 0 && (
+        <PcModIdBackfillPanel
+          catalogMods={items.map((mod) => ({
+            id: mod.id,
+            title: mod.title,
+            workshopId: mod.workshop_id,
+            existingModIds: (mod.mod_ids ?? []).map((x) => x.value)
+          }))}
+          writeEnabled={
+            isCatalogWriteAllowed(process.env, process.env.NEXT_PUBLIC_SUPABASE_URL)
+            || isTestCategoryWriteAllowed(process.env)
+          }
+        />
+      )}
       {error && <p role="alert" className="text-sm text-red-300">모드 목록을 불러오지 못했습니다.</p>}
       {!error && items.length === 0 && (
         <div className="panel p-7 text-center">

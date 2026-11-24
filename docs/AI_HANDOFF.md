@@ -20,21 +20,29 @@
 3. 당분간 `main` 운영 배포는 제외하고 `develop` 시험 환경 완성도에 집중.
 4. 코드·테스트·PR은 승인 요청 없이 자율 진행하고 요약만 짧게 보고(작업 완료 시 텔레그램 알림 발송). 추천 모델이 같으면 재확인하지 않고 연속 진행. Supabase SQL 실행이나 모바일 실기기 확인이 필요할 때만 모아서 요청.
 
-## 사용자 일괄 확인 대기 항목 (5번·10번)
-1. **시험 Supabase(`smofdbjgcgdmscamknpw`) SQL 실행 (총 4건, 순서대로):**
-   - 마이그레이션 1: `supabase/migrations/20261123000100_test_mod_categories_allow_unclassified.sql` (카테고리 0개 미분류 해제 허용)
-   - 롤백 검증 1: `tests/sql/mod_category_unclassified_rollback.sql` (`ROLLBACK` 포함 단일 실행)
-   - 마이그레이션 2: `supabase/migrations/20261123000200_test_categories_delete_rpc.sql` (카테고리 삭제 RLS 및 `delete_category` RPC)
-   - 롤백 검증 2: `tests/sql/category_delete_rollback.sql` (`ROLLBACK` 포함 단일 실행)
-2. **시험 Preview 카테고리 쓰기 가드 승인 여부:**
-   - 현재 `lib/category-persistence-input.ts`의 `isTestCategoryWriteAllowed`는 `TEST_BRANCH = "test/category-preview-origin-guard-20261122"` 및 만료 시각(`2026-11-24T00:00:00+09:00`)으로 잠겨 있음(fail-closed).
-   - `develop` Preview에서 실제 카테고리 생성/수정/삭제/일괄분류 저장 E2E를 테스트하려면 `TEST_BRANCH`를 `"develop"`으로 전환하고 `MOD_CATEGORY_TEST_WRITE_ENABLED=true`를 임시 활성화하는 1회 승인이 필요함.
-3. **모바일 실기기 확인 체크리스트:**
-   - 하단 메뉴(홈·모드·등록·서버) 탭 전환 시 즉시 스켈레톤·점멸 피드백 동작 및 체감 속도(`#51`)
-   - 홈(`/dashboard`) 4개 통계 카드 링크 이동(`#50`)
-   - 모드 목록(`/mods`) 검색·접이식 필터·카테고리 관리 패널·일괄 분류 체크박스 UI(`#46`, `#52`, `#53`)
-   - 모드 상세(`/mods/[id]`) 상태 배지·접이식 조사 기록·카테고리 0개 해제 확인 문구(`#45`, `#47`)
-   - 모드 등록(`/register`) 모바일 하단 고정 일괄 등록 바(`#48`)
+## 2026-11-23 사용자 확인 및 검증 완료 항목
+1. **PC 로컬 워크숍 mod.info 스캔 완료:**
+   - 81개 워크숍 / 209개 mod.info / 고유 130개 Mod ID 스캔 및 앱 파서 통과 (`zomboid-workshop-audit-20261123-2334.json`).
+2. **시험 Supabase(`smofdbjgcgdmscamknpw`) SQL 4건 적용 완료:**
+   - 마이그레이션 1 (`20261123000100_test_mod_categories_allow_unclassified.sql`): 성공.
+   - 롤백 검증 1 (`mod_category_unclassified_rollback.sql`): 소유자 UUID 세션으로 단일 트랜잭션 성공.
+   - 마이그레이션 2 (`20261123000200_test_categories_delete_rpc.sql`): 성공.
+   - 롤백 검증 2 (`category_delete_rollback.sql`): 단일 트랜잭션 성공.
+3. **Vercel Preview 환경변수 및 쓰기 가드 연동:**
+   - `MOD_CATEGORY_TEST_WRITE_ENABLED=true` (Preview 환경) 설정 완료.
+   - PR #55에서 `develop` 브랜치 허용 및 만료 시각 2026-11-26 00:00 KST로 연장 반영 완료.
+4. **Google OAuth 콜백 및 실로그인 확인:**
+   - 시험 Supabase Redirect URLs에 Preview 콜백 주소 등록 완료.
+   - 실제 브라우저 Google 로그인 및 대시보드 진입 성공 (소유자 RLS 정상 연결 확인).
+
+## 다음 우선 작업
+1. **모바일 실기기 UI 확인 및 E2E 실사용:**
+   - 하단 메뉴(홈·모드·등록·서버) 탭 전환 반응 체감 (Issue #1, PR #51).
+   - 모드 목록(`/mods`)에서 카테고리 추가·이름 수정·삭제 및 일괄 분류 저장 실제 동작 확인.
+   - 모드 상세(`/mods/[id]`)에서 카테고리 0개(미분류) 해제 확인.
+2. **후속 기능 준비:**
+   - 서버 프로필 편집기에서 로컬 `mod.info` JSON 참고 검사 UI 연동.
+   - 선택 그룹 자유 선택 기본값 UI 적용.
 
 ## 유지할 확정 원칙
 - Project Zomboid Build 42(현재 기준 B42.22), 모바일 우선 PWA, Next.js/TypeScript/Tailwind, Supabase Google OAuth + RLS, GitHub/Vercel.

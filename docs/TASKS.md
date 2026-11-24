@@ -1,5 +1,22 @@
 # 작업 현황
 
+## 2026-11-23 PC 연동 및 시험 Supabase 마이그레이션·OAuth 실검증 완료
+
+- **PC 로컬 워크숍 `mod.info` 스캔:**
+  - `C:\Program Files (x86)\Steam\steamapps\workshop\content\108600` 대상 읽기 전용 스캔 실행.
+  - 81개 워크숍, 209개 `mod.info`, 130개 고유 Mod ID 스캔 완료 (`zomboid-workshop-audit-20261123-2334.json`). 앱 파서 `parseLocalWorkshopInventory` 정상 통과(130.1 KB).
+- **시험 Supabase (`smofdbjgcgdmscamknpw`) SQL 4건 적용 및 롤백 검증 성공:**
+  - 마이그레이션 1 (`20261123000100_test_mod_categories_allow_unclassified.sql`): `save_mod_categories`에 카테고리 0개(미분류, primary=null) 해제 허용 반영 성공.
+  - 롤백 검증 1 (`tests/sql/mod_category_unclassified_rollback.sql`): 단일 트랜잭션 내 2개 카테고리 지정→0개 해제→대표 불일치 거부→재지정 후 `ROLLBACK` 성공.
+  - 마이그레이션 2 (`20261123000200_test_categories_delete_rpc.sql`): 카테고리 삭제 RLS 및 `delete_category(uuid)` 원자적 RPC(소유자 확인, 어드바이저리 락, 대표 자동 승계, 미분류 전환) 등록 성공.
+  - 롤백 검증 2 (`tests/sql/category_delete_rollback.sql`): 단일 트랜잭션 내 카테고리 삭제 후 대표 자동 승계 및 1개 카테고리 모드의 미분류 전환 후 `ROLLBACK` 성공.
+- **Vercel Preview 환경변수 및 쓰기 가드 연동:**
+  - Vercel 시험 프로젝트(`prj_XYLhTcgMEscWoUCB5UHZoDebfwPQ`) Preview 환경에 `MOD_CATEGORY_TEST_WRITE_ENABLED=true` 설정 완료.
+  - PR `#55`에서 `develop` 브랜치 허용 및 만료 시각 2026-11-26 00:00 KST로 연장 반영 완료.
+- **Google OAuth 콜백 및 실로그인 검증 성공:**
+  - 시험 Supabase Authentication Redirect URLs에 활성 Preview 도메인 콜백(`https://zomboid-mod-manager-7mweavsm4-andohyup-cmyk.vercel.app/auth/callback`) 등록 완료.
+  - 실제 브라우저 Google 로그인 및 대시보드 진입 성공, 허용된 소유자 RLS 정상 연결 확인.
+
 ## 2026-11-23 개발 통합 브랜치(`develop`) 구성 및 Antigravity 기준 지침 정비
 
 - 사용자 승인에 따라 `#33`(백업 v4)에서 3갈래로 분기돼 있던 검증 완료 PR들을 단일 개발 통합 브랜치 **`develop`**으로 무충돌 통합: `#34`(문서) + `#36`→`#38`→`#39`(카테고리 읽기 가드·모바일 상세 패널·origin 가드; `#37`은 `#38`에 포함) + `#40`→`#41`(백업 v4 DB 롤백 SQL·실제 GET 라우트 모의 응답 테스트).

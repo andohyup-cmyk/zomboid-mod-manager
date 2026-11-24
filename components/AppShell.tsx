@@ -28,7 +28,6 @@ function NavLink({ href, label, compact }: { href: string; label: string; compac
   return (
     <Link
       href={href}
-      prefetch
       aria-current={active ? "page" : undefined}
       className={
         "flex items-center justify-center rounded-xl text-sm font-semibold transition-colors md:justify-start " +

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { checkGroupSelection } from "../lib/group-selection-rule";
+import { checkGroupSelection, describeFreeSelection } from "../lib/group-selection-rule";
 
 const members = ["a", "b", "c"];
 
@@ -57,4 +57,11 @@ test("validation never changes member or selected order", () => {
   assert.deepEqual(checkGroupSelection(group, selected), { ok: true });
   assert.deepEqual(group, ["c", "b", "a"]);
   assert.deepEqual(selected, ["b", "c"]);
+});
+
+test("describeFreeSelection shows free 0..N range and clamps counts", () => {
+  assert.equal(describeFreeSelection(3, 0), "자유 선택 · 0~3개 중 0개 선택");
+  assert.equal(describeFreeSelection(3, 2), "자유 선택 · 0~3개 중 2개 선택");
+  assert.equal(describeFreeSelection(2, 5), "자유 선택 · 0~2개 중 2개 선택");
+  assert.equal(describeFreeSelection(-1, -1), "자유 선택 · 0~0개 중 0개 선택");
 });

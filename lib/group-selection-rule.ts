@@ -35,3 +35,10 @@ export function checkGroupSelection(
   }
   return { ok: true };
 }
+
+/** Label for a group with no explicit rule: free selection, 0..N, nothing auto-activated. */
+export function describeFreeSelection(total: number, selected: number): string {
+  const safeTotal = Number.isSafeInteger(total) && total > 0 ? total : 0;
+  const safeSelected = Math.min(Math.max(Number.isSafeInteger(selected) ? selected : 0, 0), safeTotal);
+  return `자유 선택 · 0~${safeTotal}개 중 ${safeSelected}개 선택`;
+}

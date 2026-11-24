@@ -23,6 +23,7 @@ import {
   type ProfileOrderPreview as OrderPreview,
   type ProfileOrderPreviewOptions
 } from "@/lib/profile-order-preview";
+import { describeFreeSelection } from "@/lib/group-selection-rule";
 import { validateProfileSelection, type ProfileSelectionError } from "@/lib/profile-selection";
 
 const tabs = [
@@ -359,6 +360,17 @@ export function ProfileModEditor({
                   onChange={() => toggleDownload(entry.workshopId)} />
                 다운로드 전용으로 포함
               </label>
+              {entry.modIds.length > 1 && (
+                <div className="mt-3 rounded-lg border border-[#3d4f63] bg-[#132131] px-2.5 py-2 text-xs leading-5">
+                  <p className="font-semibold text-[#d9e6f2]">
+                    {describeFreeSelection(entry.modIds.length, entry.modIds.filter(({ value }) => {
+                      const k = profileModKey({ workshopId: entry.workshopId, modId: value });
+                      return selectedKeys.has(k) || pendingKeys.has(k);
+                    }).length)}
+                  </p>
+                  <p className="muted">Mod ID가 여러 개입니다. 자동으로 함께 활성화하지 않으니 필요한 것만 직접 고르세요. 필수·배타 여부는 미확인입니다.</p>
+                </div>
+              )}
               {entry.modIds.length ? (
                 <div role="group" aria-label={`${entry.title} · 게임 Mod ID`} className="mt-3 grid gap-1.5 sm:grid-cols-2">
                   {entry.modIds.map(({ value: modId, uuid }) => {

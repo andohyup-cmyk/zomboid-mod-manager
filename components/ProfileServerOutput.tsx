@@ -5,6 +5,7 @@ import type { ProfileModSelection } from "@/lib/profile-mod-id-state";
 import type { ProfileOrderPreviewOptions } from "@/lib/profile-order-preview";
 import { buildProfileServerConfig } from "@/lib/profile-server-output";
 import type { ServerConfigInput } from "@/lib/server-config";
+import type { SelectionGroupRule } from "@/lib/selection-groups";
 import { compareLocalInventory, parseLocalWorkshopInventory, type LocalWorkshopInventory } from "@/lib/local-workshop-inventory";
 
 type Props = {
@@ -13,6 +14,7 @@ type Props = {
   downloadOnlyWorkshopIds: readonly string[];
   recommendationOptions: ProfileOrderPreviewOptions;
   relationships?: ServerConfigInput["relationships"];
+  selectionGroups?: readonly SelectionGroupRule[];
   onModInfoNotes?: (notes: ReadonlyMap<string, { warnings: number; infos: number }> | undefined) => void;
 };
 
@@ -22,15 +24,17 @@ const issueGroups = [
   { severity: "info", label: "미확인 정보 및 참고 사항" }
 ] as const;
 
-export function ProfileServerOutput({ selections, catalog, downloadOnlyWorkshopIds, recommendationOptions, relationships, onModInfoNotes }: Props) {
+const noGroups: readonly SelectionGroupRule[] = [];
+
+export function ProfileServerOutput({ selections, catalog, downloadOnlyWorkshopIds, recommendationOptions, relationships, onModInfoNotes, selectionGroups = noGroups }: Props) {
   const [modIdPrefix, setModIdPrefix] = useState<"" | "\\">("\\");
   const snapshot = useMemo(() => ({
-    selections, input: { catalog, downloadOnlyWorkshopIds, relationships }, recommendationOptions, modIdPrefix
-  }), [selections, catalog, downloadOnlyWorkshopIds, recommendationOptions, relationships, modIdPrefix]);
+    selections, input: { catalog, downloadOnlyWorkshopIds, relationships }, recommendationOptions, modIdPrefix, selectionGroups
+  }), [selections, catalog, downloadOnlyWorkshopIds, recommendationOptions, relationships, modIdPrefix, selectionGroups]);
   const [acknowledged, setAcknowledged] = useState<typeof snapshot | null>(null);
   const warningsAcknowledged = snapshot === acknowledged;
   const result = useMemo(() => buildProfileServerConfig(
-    snapshot.selections, snapshot.input, snapshot.recommendationOptions, { modIdPrefix: snapshot.modIdPrefix, warningsAcknowledged }
+    snapshot.selections, snapshot.input, snapshot.recommendationOptions, { modIdPrefix: snapshot.modIdPrefix, warningsAcknowledged }, snapshot.selectionGroups
   ), [snapshot, warningsAcknowledged]);
   const [feedback, setFeedback] = useState<{ result: typeof result; message: string } | null>(null);
   const copyAttempt = useRef(0);
@@ -46,7 +50,8 @@ export function ProfileServerOutput({ selections, catalog, downloadOnlyWorkshopI
     for (const selection of selections) if (selection.enabled) notes.set(selection.modId, { warnings: 0, infos: 0 });
     for (const issue of localComparison.issues) {
       const note = issue.modId ? notes.get(issue.modId) : undefined;
-      if (note) issue.severity === "warning" ? note.warnings++ : note.infos++;
+      if (!note) continue;
+      if (issue.severity === "warning") note.warnings++; else note.infos++;
     }
     onModInfoNotes(notes);
   }, [localComparison, selections, onModInfoNotes]);

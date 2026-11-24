@@ -399,3 +399,5 @@
 - PR #58: 프로필 편집기 선택 목록에 모드별 mod.info 참고 배지(출력·복사 로직 불변).
 - PR #59: 복수 Mod ID Workshop에 "자유 선택 · 0~N개" 안내, 자동 활성화 없음.
 - 선택 그룹 시험 DB 스키마(min/max NULL = 자유 선택 기본, 소유자 RLS, `save_selection_group` RPC) 작성. 로컬 Postgres(Supabase 스텁)에서 마이그레이션·롤백 검증·타 소유자 차단 확인. 시험 DB 적용은 미실행.
+- 사용자: 선택 그룹 마이그레이션 및 롤백 검증 SQL을 시험 DB에 실행 성공(2026-11-24).
+- 선택 그룹 API(`app/api/selection-groups/route.ts`) + `components/SelectionGroupPanel.tsx`(기본 자유 선택, 최대1/최소1/정확히1 선택 규칙, 근거 미확인 규칙은 권고만, 자동 활성화 없음). 명시 규칙 그룹만 서버 설정 출력 검증에 전달. verify 385 pass/build 통과. Preview·실기기 미확인.

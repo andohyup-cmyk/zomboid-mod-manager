@@ -13,4 +13,5 @@
 `lib/group-selection-rule.ts`의 `checkGroupSelection`은 기본 자유 선택과 명시적 최소·최대 선택 수의 유효성을 검증하는 **순수 함수**다. `tests/group-selection-rule.test.ts`에서 검증한다. 현재 서버 프로필 API, 실제 `Mods=` 생성 경로, DB, 화면에는 연결하지 않았다.
 
 ## DB 적용 보류
+시험 DB 초안: `supabase/migrations/20261124000100_test_selection_groups.sql`(min/max NULL = 자유 선택, verified 기본 false), 검증 `tests/sql/selection_groups_rollback.sql`. 시험 DB 적용은 사용자 실행 후 확정.
 선택 그룹과 구성원·규칙을 저장할 테이블, RLS, 권한은 별도 검토와 사용자 승인이 필요하다. UI 디자인, 운영 배포, main 병합 및 데이터 변경은 하지 않는다.

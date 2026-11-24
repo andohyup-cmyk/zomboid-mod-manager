@@ -51,4 +51,5 @@
 
 ## 배포 메모 (2026-11-24)
 - 비공개 저장소 + Vercel Hobby에서 커밋 이메일 불일치(noreply)로 PR #40 이후 배포 차단 → 저장소를 Public으로 전환(사용자 승인), 커밋 이메일 `andohyup@gmail.com` 통일.
-2026-11-24 02:55:22 UTC
+- PR #62(선택 그룹 저장 비활성 안내)·PR #63(`develop` Preview 등록 탭 쓰기 허용) 병합 완료. `gh pr merge` 스쿼시 커밋(`Committer: GitHub <noreply@github.com>`)은 Vercel 자동 배포가 누락되는 현상 확인 → `andohyup@gmail.com` 직접 `git push origin develop`으로 최신 Preview 반영.
+- 시험 DB(`smofdbjgcgdmscamknpw`) 더미 모드 3개(Mod ID 6개)·카테고리 2개 등록 확인 완료(ChatGPT 검증, 2026-11-24). 운영 DB 격리 유지.

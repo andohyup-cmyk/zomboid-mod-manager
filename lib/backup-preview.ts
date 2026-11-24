@@ -12,13 +12,16 @@ export const V2_BACKUP_TABLES = [...LEGACY_BACKUP_TABLES, ...NEW_PROFILE_BACKUP_
 export const V3_BACKUP_TABLES = [...V2_BACKUP_TABLES, ...NEW_RELATION_BACKUP_TABLES] as const;
 export const NEW_CATEGORY_BACKUP_TABLES = ["categories", "modCategories", "modCategoryPrimary"] as const;
 export const BACKUP_TABLES = [...V3_BACKUP_TABLES, ...NEW_CATEGORY_BACKUP_TABLES] as const;
+export const OPTIONAL_GROUP_BACKUP_TABLES = ["selectionGroups", "selectionGroupMembers"] as const;
 
 export type BackupTable = typeof BACKUP_TABLES[number];
+export type OptionalGroupBackupTable = typeof OPTIONAL_GROUP_BACKUP_TABLES[number];
 export type BackupPreview = {
   exportedAt: string;
   complete: boolean;
   warnings: string[];
   counts: Record<BackupTable, number | null>;
+  optionalCounts?: Partial<Record<OptionalGroupBackupTable, number>>;
 };
 
 /**
@@ -71,6 +74,17 @@ export function inspectBackupSnapshot(input: unknown):
     counts[table] = entries.length;
   }
 
+  const optionalCounts: Partial<Record<OptionalGroupBackupTable, number>> = {};
+  for (const table of OPTIONAL_GROUP_BACKUP_TABLES) {
+    if (!(table in data) || data[table] === undefined) continue;
+    const entries = data[table];
+    if (!Array.isArray(entries) || entries.length > 10000
+      || entries.some(row => !row || typeof row !== "object" || Array.isArray(row))) {
+      return { error: `${table} 백업 항목의 형식·개수 제한이 올바르지 않습니다.` };
+    }
+    optionalCounts[table] = entries.length;
+  }
+
   if (raw.complete && (counts.researchQueue === null || raw.warnings.length !== 0)) {
     return { error: "완전한 백업 표시와 실제 데이터·경고 상태가 일치하지 않습니다." };
   }
@@ -104,7 +118,8 @@ export function inspectBackupSnapshot(input: unknown):
       exportedAt: raw.exportedAt,
       complete: raw.complete && version === 4,
       warnings,
-      counts
+      counts,
+      ...(Object.keys(optionalCounts).length > 0 ? { optionalCounts } : {})
     }
   };
 }

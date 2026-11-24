@@ -3,7 +3,7 @@ import test from "node:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import ts from "typescript";
-import { BACKUP_TABLES, inspectBackupSnapshot } from "../lib/backup-preview";
+import { BACKUP_TABLES, OPTIONAL_GROUP_BACKUP_TABLES, inspectBackupSnapshot } from "../lib/backup-preview";
 
 // Exercise the actual Next route's GET implementation while replacing only its
 // authentication and Supabase transport imports. No real DB or user credentials.
@@ -124,7 +124,10 @@ test("v4 route exports real 13-area payload contract with two categories and UI 
   const snapshot = await response.json();
   assert.equal(snapshot.schemaVersion, 4);
   assert.equal(snapshot.complete, true);
-  assert.deepEqual(Object.keys(snapshot.data).sort(), [...BACKUP_TABLES].sort());
+  assert.deepEqual(
+    Object.keys(snapshot.data).sort(),
+    [...BACKUP_TABLES, ...OPTIONAL_GROUP_BACKUP_TABLES].sort()
+  );
   assert.deepEqual(snapshot.data.categories.map((row: Row) => row.name), ["의상", "UI"]);
   assert.deepEqual(snapshot.data.modCategories.map((row: Row) => row.category_id), ["cat-a", "cat-b"]);
   assert.equal(snapshot.data.modCategoryPrimary[0].category_id, "cat-b");

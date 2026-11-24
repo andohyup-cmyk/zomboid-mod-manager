@@ -157,3 +157,24 @@ test("structure checks do not mutate the supplied source object", () => {
   assert.equal(inspectBackupSnapshot(snapshot).error, undefined);
   assert.equal(JSON.stringify(snapshot), before);
 });
+
+test("optional selection group tables are counted when present and validated", () => {
+  const withGroups = {
+    ...sample,
+    data: {
+      ...sample.data,
+      selectionGroups: [{ id: "g1", name: "체형" }],
+      selectionGroupMembers: [{ group_id: "g1", mod_id_ref: "m1" }, { group_id: "g1", mod_id_ref: "m2" }]
+    }
+  };
+  const ok = inspectBackupSnapshot(withGroups);
+  assert.equal(ok.error, undefined);
+  assert.equal(ok.preview?.complete, true);
+  assert.deepEqual(ok.preview?.optionalCounts, { selectionGroups: 1, selectionGroupMembers: 2 });
+
+  const malformed = {
+    ...sample,
+    data: { ...sample.data, selectionGroups: "not-an-array" }
+  };
+  assert.ok(inspectBackupSnapshot(malformed).error);
+});

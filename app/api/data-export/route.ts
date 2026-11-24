@@ -67,6 +67,19 @@ export async function GET() {
       warnings.push("영구 대기함을 내보내지 못했습니다. DB 마이그레이션 적용 여부를 확인해야 합니다.");
     }
 
+    let selectionGroups: Record<string, unknown>[] | undefined;
+    let selectionGroupMembers: Record<string, unknown>[] | undefined;
+    try {
+      const [groups, members] = await Promise.all([
+        readRows("selection_groups", "owner_id", [uid], "id"),
+        readRows("selection_group_members", "owner_id", [uid], "group_id", "mod_id_ref")
+      ]);
+      selectionGroups = groups;
+      selectionGroupMembers = members;
+    } catch {
+      // Older DBs without selection_groups remain compatible with schemaVersion 4.
+    }
+
     const snapshot = {
       schemaVersion: 4,
       exportedAt: new Date().toISOString(),
@@ -76,7 +89,10 @@ export async function GET() {
       data: {
         mods, modIds: gameModIds, researchRecords, profiles, profileMods,
         researchQueue: queue, profileRevisions, profileModChoices, profileDownloads, modRelations,
-        categories, modCategories, modCategoryPrimary
+        categories, modCategories, modCategoryPrimary,
+        ...(selectionGroups !== undefined && selectionGroupMembers !== undefined
+          ? { selectionGroups, selectionGroupMembers }
+          : {})
       }
     };
     // A readable JSON structure is not enough: never label inconsistent

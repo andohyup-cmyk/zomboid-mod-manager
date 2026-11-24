@@ -6,7 +6,9 @@ import {
   extractCatalogResearchSources,
   isCatalogModUuid,
   parseCategoryFilter,
-  parseCatalogListFilters
+  parseCategoryScopeFilter,
+  parseCatalogListFilters,
+  parseModIdFilter
 } from "../lib/catalog-read";
 
 type QueryCall = { method: "eq" | "ilike" | "order"; column: string; value: string | boolean };
@@ -133,8 +135,7 @@ test("an empty detail history remains an empty list", () => {
 });
 
 test("current catalogue list limit is explicitly tracked for future pagination", () => {
-  // This does NOT prove 101+ records are accessible: the UI currently fetches only 100.
-  assert.equal(CATALOG_LIST_LIMIT, 100);
+  assert.equal(CATALOG_LIST_LIMIT, 300);
 });
 
 test("category filter accepts only a UUID and lowercases it", () => {
@@ -143,4 +144,14 @@ test("category filter accepts only a UUID and lowercases it", () => {
   for (const bad of [undefined, "", "none", "x,y", `${id},${id}`, ["a"], 5, "1' or 1=1"]) {
     assert.equal(parseCategoryFilter(bad), "");
   }
+});
+
+test("category scope filter supports unclassified and modId filter supports missing/present", () => {
+  const id = "AAAAAAAA-1111-4111-8111-111111111111";
+  assert.equal(parseCategoryScopeFilter("unclassified"), "unclassified");
+  assert.equal(parseCategoryScopeFilter(id), id.toLowerCase());
+  assert.equal(parseCategoryScopeFilter("invalid"), "");
+  assert.equal(parseModIdFilter("missing"), "missing");
+  assert.equal(parseModIdFilter("present"), "present");
+  assert.equal(parseModIdFilter("other"), "");
 });

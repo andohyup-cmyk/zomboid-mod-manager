@@ -48,3 +48,6 @@
 - Project Zomboid Build 42(현재 기준 B42.22), 모바일 우선 PWA, Next.js/TypeScript/Tailwind, Supabase Google OAuth + RLS, GitHub/Vercel.
 - 다중 카테고리 + 대표 1개 + **0개(미분류) 해제 허용**, 선택 그룹 기본값 = **자유 선택**.
 - 승인 전 카탈로그 저장 금지, Workshop ID ≠ Mod ID, 호환성 미확인은 미확인 유지, 유료 AI API 도입 금지.
+
+## 배포 메모 (2026-11-24)
+- 비공개 저장소 + Vercel Hobby에서 커밋 이메일 불일치(noreply)로 PR #40 이후 배포 차단 → 저장소를 Public으로 전환(사용자 승인), 커밋 이메일 `andohyup@gmail.com` 통일.

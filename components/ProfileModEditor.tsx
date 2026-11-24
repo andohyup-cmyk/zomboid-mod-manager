@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useRef, useState, type ChangeEvent, type KeyboardEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent, type KeyboardEvent } from "react";
 import { createPortableProfile, parsePortableProfile } from "@/lib/profile-portable";
 import { ProfileModOrderList } from "@/components/ProfileModOrderList";
 import type { ServerConfigInput } from "@/lib/server-config";
@@ -44,13 +44,37 @@ const errorMessages: Record<ProfileSelectionError["code"], string> = {
 /** The server-output section is hidden for now; flip to true to show it again. */
 const SHOW_SERVER_OUTPUT = false;
 
+export type ProfileSummaryItem = Readonly<{ id: string; name: string }>;
+
+const EMPTY_PROFILES: readonly ProfileSummaryItem[] = [];
+
 export function ProfileModEditor({
-  recommendationOptions, relationships, groupWriteEnabled = false
+  recommendationOptions,
+  relationships,
+  groupWriteEnabled = false,
+  profileWriteEnabled = false,
+  initialProfiles = EMPTY_PROFILES,
+  initialProfileId = null
 }: {
   recommendationOptions: ProfileOrderPreviewOptions;
   relationships?: ServerConfigInput["relationships"];
   groupWriteEnabled?: boolean;
+  profileWriteEnabled?: boolean;
+  initialProfiles?: readonly ProfileSummaryItem[];
+  initialProfileId?: string | null;
 }) {
+  const [profiles, setProfiles] = useState<ProfileSummaryItem[]>([...initialProfiles]);
+  const [activeProfileId, setActiveProfileId] = useState<string>(initialProfileId ?? "");
+  const [savedRevision, setSavedRevision] = useState<number | null>(null);
+  const [loadNonce, setLoadNonce] = useState(0);
+  const [loadingProfile, setLoadingProfile] = useState(false);
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [creatingProfile, setCreatingProfile] = useState(false);
+  const [newProfileName, setNewProfileName] = useState("");
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [dbFeedback, setDbFeedback] = useState<{ message: string; error?: boolean; stale?: boolean } | null>(null);
+  const skipLoadIdRef = useRef<string | null>(null);
+
   const [storedGroups, setStoredGroups] = useState<readonly StoredSelectionGroup[]>([]);
   const groupRules = useMemo(() => toSelectionGroupRules(storedGroups), [storedGroups]);
   const { catalog: catalogPage, loadCatalog } = useProfileEditorCatalog();
@@ -67,6 +91,64 @@ export function ProfileModEditor({
   const [errors, setErrors] = useState<ProfileSelectionError[]>([]);
   const [notice, setNotice] = useState<{ message: string; error?: boolean } | null>(null);
   const review = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    if (!activeProfileId) return;
+    if (skipLoadIdRef.current === activeProfileId) {
+      skipLoadIdRef.current = null;
+      return;
+    }
+    const controller = new AbortController();
+    async function loadSnapshot() {
+      setLoadingProfile(true);
+      setDbFeedback(null);
+      try {
+        const response = await fetch(
+          `/api/profile-snapshots?profileId=${encodeURIComponent(activeProfileId)}`,
+          { cache: "no-store", signal: controller.signal }
+        );
+        const body = (await response.json().catch(() => ({}))) as {
+          revision?: number;
+          selections?: { workshopId: string; modId: string; enabled: boolean }[];
+          downloadOnlyWorkshopIds?: string[];
+          error?: string;
+        };
+        if (!response.ok) {
+          throw new Error(body.error || "저장된 프로필을 불러오지 못했습니다.");
+        }
+        const loadedSelections: ProfileModSelection[] = (body.selections ?? []).map((item) => ({
+          workshopId: item.workshopId,
+          modId: item.modId,
+          enabled: item.enabled
+        }));
+        const loadedDownloads = body.downloadOnlyWorkshopIds ?? [];
+        const rev = typeof body.revision === "number" ? body.revision : 0;
+        setSelections(loadedSelections);
+        setConfirmed(loadedSelections);
+        setDownloads(loadedDownloads);
+        setConfirmedDownloads(loadedDownloads);
+        setSavedRevision(rev);
+        setPending([]);
+        setOrderPreview(null);
+        setErrors([]);
+        setDbFeedback({
+          message: rev > 0
+            ? `저장본 v${rev} 불러옴 (Mod ID ${loadedSelections.length}개)`
+            : "아직 저장된 조합이 없는 새 프로필입니다. 모드를 고른 뒤 DB에 저장하세요."
+        });
+      } catch (err) {
+        if (controller.signal.aborted) return;
+        setDbFeedback({
+          message: err instanceof Error ? err.message : "저장된 프로필을 불러오지 못했습니다.",
+          error: true
+        });
+      } finally {
+        if (!controller.signal.aborted) setLoadingProfile(false);
+      }
+    }
+    void loadSnapshot();
+    return () => controller.abort();
+  }, [activeProfileId, loadNonce]);
 
   const catalog = useMemo(() => knownEntries.map(({ workshopId, modIds }) => ({
     workshopId, modIds: modIds.map(({ value }) => value)
@@ -201,6 +283,97 @@ export function ProfileModEditor({
     }
   }
 
+  async function handleCreateProfile(event: FormEvent) {
+    event.preventDefault();
+    if (!profileWriteEnabled || creatingProfile) return;
+    const trimmed = newProfileName.trim();
+    if (!trimmed) {
+      setDbFeedback({ message: "프로필 이름을 입력해 주세요.", error: true });
+      return;
+    }
+    setCreatingProfile(true);
+    setDbFeedback(null);
+    try {
+      const response = await fetch("/api/profiles", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: trimmed })
+      });
+      const body = (await response.json().catch(() => ({}))) as {
+        profile?: { id: string; name: string };
+        error?: string;
+      };
+      if (!response.ok || !body.profile?.id) {
+        throw new Error(body.error || "프로필을 만들지 못했습니다.");
+      }
+      const created = { id: body.profile.id, name: body.profile.name };
+      // Keep any unsaved selections the user already built in this tab.
+      skipLoadIdRef.current = created.id;
+      setProfiles((current) => [created, ...current]);
+      setActiveProfileId(created.id);
+      setSavedRevision(0);
+      setNewProfileName("");
+      setShowCreateForm(false);
+      setDbFeedback({ message: `'${created.name}' 프로필을 만들었습니다. 아래 'DB에 저장'을 눌러 현재 조합을 저장하세요.` });
+    } catch (err) {
+      setDbFeedback({
+        message: err instanceof Error ? err.message : "프로필을 만들지 못했습니다.",
+        error: true
+      });
+    } finally {
+      setCreatingProfile(false);
+    }
+  }
+
+  async function handleSaveToDb() {
+    if (!profileWriteEnabled || !activeProfileId || savingProfile || loadingProfile) return;
+    setSavingProfile(true);
+    setDbFeedback(null);
+    try {
+      const response = await fetch("/api/profile-snapshots", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          profileId: activeProfileId,
+          expectedRevision: savedRevision ?? 0,
+          selections: selections.map((item) => ({
+            workshopId: item.workshopId,
+            modId: item.modId,
+            enabled: item.enabled
+          })),
+          downloadOnlyWorkshopIds: [...downloads]
+        })
+      });
+      const body = (await response.json().catch(() => ({}))) as {
+        revision?: number;
+        error?: string;
+      };
+      if (response.status === 409) {
+        setDbFeedback({
+          message: body.error || "다른 기기에서 먼저 저장했습니다. '다시 불러오기'를 눌러 주세요.",
+          error: true,
+          stale: true
+        });
+        return;
+      }
+      if (!response.ok) {
+        throw new Error(body.error || "프로필 DB 저장에 실패했습니다.");
+      }
+      const nextRev = typeof body.revision === "number" ? body.revision : (savedRevision ?? 0) + 1;
+      setSavedRevision(nextRev);
+      setConfirmed(selections);
+      setConfirmedDownloads(downloads);
+      setDbFeedback({ message: `DB에 저장 완료 (v${nextRev} · Mod ID ${selections.length}개)` });
+    } catch (err) {
+      setDbFeedback({
+        message: err instanceof Error ? err.message : "프로필 DB 저장에 실패했습니다.",
+        error: true
+      });
+    } finally {
+      setSavingProfile(false);
+    }
+  }
+
   return (
     <section className="mx-auto max-w-3xl space-y-5">
       <header>
@@ -208,21 +381,108 @@ export function ProfileModEditor({
           <span aria-hidden="true" className="mr-2">←</span>서버 프로필
         </Link>
         <h1 className="mt-1 text-2xl font-bold tracking-tight sm:text-3xl">Mod ID 편집</h1>
-        <p className="mt-3 rounded-xl border border-[#3e4e3d] bg-[#17251e] px-3.5 py-3 text-sm leading-6 text-[#d0e3c8]">
-          등록된 카탈로그로 편집합니다. 확정한 내용도 현재 탭에만 남으며 새로고침하면 사라집니다.
-        </p>
       </header>
 
       <div className="panel space-y-3 p-4">
-        <h2 className="font-bold">임시 프로필 파일</h2>
-        <p className="muted text-xs leading-5">DB 저장 기능이 준비되기 전에도 PC·모바일에서 사용 중인 조합을 JSON 파일로 보관할 수 있습니다. 실제 서버 파일은 변경하지 않습니다.</p>
-        <div className="flex flex-wrap gap-2">
-          <button type="button" className="secondary-action" onClick={downloadPortableDraft}>현재 선택 JSON 내려받기</button>
-          <label className="secondary-action cursor-pointer">
-            JSON 파일 불러오기
-            <input type="file" accept=".json,application/json" className="sr-only" onChange={event => { void importPortableDraft(event); }} />
-          </label>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-sm font-bold">서버 프로필 DB 저장 · 불러오기</h2>
+          {savedRevision !== null && activeProfileId && (
+            <span className="rounded-md bg-[#234332] px-2 py-0.5 text-[11px] font-semibold text-[#b9efb0]">
+              {savedRevision > 0 ? `저장본 v${savedRevision}` : "미저장"}
+            </span>
+          )}
         </div>
+        <div className="flex flex-wrap gap-2">
+          <label className="sr-only" htmlFor="active-profile-select">저장할 서버 프로필 선택</label>
+          <select
+            id="active-profile-select"
+            value={activeProfileId}
+            disabled={loadingProfile || savingProfile}
+            onChange={(event) => {
+              const nextId = event.target.value;
+              setActiveProfileId(nextId);
+              if (!nextId) {
+                setSavedRevision(null);
+                setDbFeedback(null);
+              }
+            }}
+            className="field min-w-0 flex-1 text-sm"
+          >
+            <option value="">임시 편집 (프로필 미선택)</option>
+            {profiles.map((profile) => (
+              <option key={profile.id} value={profile.id}>{profile.name}</option>
+            ))}
+          </select>
+          {profileWriteEnabled && (
+            <button
+              type="button"
+              onClick={() => setShowCreateForm((open) => !open)}
+              className="secondary-action shrink-0 px-3 text-xs"
+            >
+              {showCreateForm ? "닫기" : "+ 새 프로필"}
+            </button>
+          )}
+        </div>
+
+        {showCreateForm && profileWriteEnabled && (
+          <form onSubmit={(event) => { void handleCreateProfile(event); }} className="flex gap-2">
+            <label className="sr-only" htmlFor="inline-new-profile-name">새 프로필 이름</label>
+            <input
+              id="inline-new-profile-name"
+              type="text"
+              maxLength={120}
+              value={newProfileName}
+              onChange={(event) => setNewProfileName(event.target.value)}
+              placeholder="새 프로필 이름 (예: B42 멀티 서버)"
+              className="field min-w-0 flex-1 text-sm"
+            />
+            <button type="submit" disabled={creatingProfile} className="action shrink-0 text-xs">
+              {creatingProfile ? "생성 중" : "생성"}
+            </button>
+          </form>
+        )}
+
+        {activeProfileId && (
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              disabled={!profileWriteEnabled || savingProfile || loadingProfile}
+              onClick={() => { void handleSaveToDb(); }}
+              className="action flex-1 text-xs"
+            >
+              {!profileWriteEnabled
+                ? "이 환경에서는 DB 저장 불가"
+                : savingProfile
+                  ? "DB 저장 중..."
+                  : `DB에 저장 (${selections.length}개)`}
+            </button>
+            <button
+              type="button"
+              disabled={loadingProfile || savingProfile}
+              onClick={() => setLoadNonce((n) => n + 1)}
+              className="secondary-action shrink-0 px-3 text-xs"
+            >
+              {loadingProfile ? "불러오는 중..." : "다시 불러오기"}
+            </button>
+          </div>
+        )}
+
+        {dbFeedback && (
+          <p role={dbFeedback.error ? "alert" : "status"} className={`text-xs ${dbFeedback.error ? "text-red-300" : "text-[#b9efb0]"}`}>
+            {dbFeedback.message}
+          </p>
+        )}
+
+        <details className="border-t border-[#304154] pt-2.5">
+          <summary className="muted cursor-pointer text-xs font-semibold">임시 프로필 JSON 파일 내보내기 / 불러오기</summary>
+          <div className="mt-2.5 flex flex-wrap gap-2">
+            <button type="button" className="secondary-action text-xs" onClick={downloadPortableDraft}>현재 선택 JSON 내려받기</button>
+            <label className="secondary-action cursor-pointer text-xs">
+              JSON 파일 불러오기
+              <input type="file" accept=".json,application/json" className="sr-only" onChange={event => { void importPortableDraft(event); }} />
+            </label>
+          </div>
+        </details>
       </div>
 
       <div role="tablist" aria-label="Mod ID 편집" className="grid grid-cols-2 gap-1 rounded-2xl border border-[#304154] bg-[#111c29] p-1">

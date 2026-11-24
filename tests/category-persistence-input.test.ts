@@ -24,7 +24,7 @@ test("only exact test Preview opt-in within expiry can write",()=>{
  ])assert.equal(isTestCategoryWriteAllowed({...env,[key]:value},now),false,key);
  assert.equal(isTestCategoryWriteAllowed({...env,MOD_CATEGORY_TEST_WRITE_ENABLED:undefined},now),false);
  assert.equal(isTestCategoryWriteAllowed({...env,VERCEL_GIT_COMMIT_REF:"develop"},now),true);
- assert.equal(isTestCategoryWriteAllowed(env,Date.parse("2026-11-26T00:00:00+09:00")),false);
+ assert.equal(isTestCategoryWriteAllowed(env,Date.parse("2027-01-01T00:00:00+09:00")),false);
  assert.equal(isTestCategoryWriteAllowed(env,Number.NaN),false);
 });
 test("category creation rejects extra fields and untrimmed names",()=>{

@@ -7,7 +7,7 @@ const ALLOWED_TEST_BRANCHES = new Set([
   "test/category-preview-origin-guard-20261122"
 ]);
 // The isolated test-write pathway expires even if a Preview env flag is left on.
-const TEST_WRITE_CUTOFF_MS = Date.parse("2026-11-26T00:00:00+09:00");
+const TEST_WRITE_CUTOFF_MS = Date.parse("2027-01-01T00:00:00+09:00");
 const TEST_PROJECT = "prj_XYLhTcgMEscWoUCB5UHZoDebfwPQ";
 
 export function isTestCategoryWriteAllowed(

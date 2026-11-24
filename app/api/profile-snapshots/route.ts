@@ -7,6 +7,8 @@ import { projectCatalogEvidence, type CatalogEvidenceParent } from "@/lib/catalo
 import { buildSavedProfileOutput } from "@/lib/saved-profile-output";
 import { projectReviewedRelations, type ReviewedRelationRow } from "@/lib/reviewed-mod-relations";
 import { planSavedRelationTargetCoverage } from "@/lib/saved-relation-target-coverage";
+import { isCatalogWriteAllowed } from "@/lib/catalog-write-protection";
+import { isTestCategoryWriteAllowed } from "@/lib/category-persistence-input";
 import {
   isTestProfileSnapshotWriteAllowed,
   profileSnapshotErrorStatus,
@@ -25,14 +27,16 @@ function reply(data: unknown, status = 200) {
 }
 
 /**
- * Test-only POST. Deliberately not connected to a button or the production
- * app. The Supabase RPC is the final atomic owner-scoped CAS enforcement.
+ * Atomic owner-scoped profile snapshot save.
+ * The Supabase RPC enforces owner scope and optimistic CAS revision checks.
  */
 export async function POST(request: NextRequest) {
   if (!isSameOriginRequest(request.url, request.headers.get("origin"))) {
     return reply({ error: "요청 출처가 올바르지 않습니다." }, 403);
   }
-  if (!isTestProfileSnapshotWriteAllowed(process.env, process.env.NEXT_PUBLIC_SUPABASE_URL)) {
+  if (!isTestProfileSnapshotWriteAllowed(process.env, process.env.NEXT_PUBLIC_SUPABASE_URL)
+    && !isTestCategoryWriteAllowed(process.env)
+    && !isCatalogWriteAllowed(process.env, process.env.NEXT_PUBLIC_SUPABASE_URL)) {
     return reply({ error: "이 배포에서는 프로필 DB 저장이 차단되어 있습니다." }, 403);
   }
 

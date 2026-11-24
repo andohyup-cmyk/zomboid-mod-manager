@@ -1,5 +1,6 @@
 import { isCatalogModUuid } from "./catalog-read";
 import type { LocalWorkshopInventory } from "./local-workshop-inventory";
+import type { ResearchRecord } from "./workshop";
 
 export const COMPATIBILITY_STATUSES = ["unverified", "confirmed", "reported_issue"] as const;
 export type CompatibilityStatus = (typeof COMPATIBILITY_STATUSES)[number];
@@ -41,8 +42,14 @@ export type PcBackfillCandidate = Readonly<{
   newModIds: readonly string[];
 }>;
 
+export type PcUnregisteredWorkshop = Readonly<{
+  workshopId: string;
+  modIds: readonly string[];
+}>;
+
 export type PcBackfillPlan = Readonly<{
   updates: readonly PcBackfillCandidate[];
+  unregistered: readonly PcUnregisteredWorkshop[];
   alreadyCompleteCount: number;
   unmatchedScanWorkshops: number;
 }>;
@@ -245,10 +252,52 @@ export function planPcModIdBackfill(
     }
   }
 
-  let unmatchedScanWorkshops = 0;
-  for (const workshopId of byWorkshop.keys()) {
-    if (!catalogWorkshops.has(workshopId)) unmatchedScanWorkshops += 1;
+  const unregistered: PcUnregisteredWorkshop[] = [];
+  for (const [workshopId, modIds] of byWorkshop.entries()) {
+    if (!catalogWorkshops.has(workshopId)) {
+      unregistered.push({ workshopId, modIds });
+    }
   }
 
-  return { updates, alreadyCompleteCount, unmatchedScanWorkshops };
+  return {
+    updates,
+    unregistered,
+    alreadyCompleteCount,
+    unmatchedScanWorkshops: unregistered.length
+  };
+}
+
+/**
+ * Build a catalog approval payload for a PC-scanned workshop after explicit user review.
+ * Uses Steam public title/description when available, falls back to the first Mod ID + Workshop ID,
+ * and always keeps compatibility statuses unverified.
+ */
+export function buildPcRegistrationPayload(
+  workshop: PcUnregisteredWorkshop,
+  steamMatch?: ResearchRecord | null,
+  checkedAt?: string
+): ResearchRecord {
+  const sourceUrl = `https://steamcommunity.com/sharedfiles/filedetails/?id=${workshop.workshopId}`;
+  const mergedModIds: string[] = [];
+  for (const id of [...workshop.modIds, ...(steamMatch?.modIds ?? [])]) {
+    if (!mergedModIds.includes(id)) mergedModIds.push(id);
+  }
+  const fallbackTitle = (workshop.modIds[0]
+    ? `${workshop.modIds[0]} (Workshop ${workshop.workshopId})`
+    : `Workshop ${workshop.workshopId}`).slice(0, 200);
+  const title = (steamMatch?.title?.trim() || fallbackTitle).slice(0, 200);
+  return {
+    workshopId: workshop.workshopId,
+    title,
+    description: steamMatch?.description ?? "",
+    sourceUrl,
+    modIds: mergedModIds,
+    verificationStatus: "unverified",
+    buildCompatibility: "unverified",
+    singleplayerCompatibility: "unverified",
+    multiplayerCompatibility: "unverified",
+    midServerAdditionCompatibility: "unverified",
+    checkedAt: steamMatch?.checkedAt ?? checkedAt ?? null,
+    sources: steamMatch?.sources?.length ? [...steamMatch.sources] : [sourceUrl]
+  };
 }

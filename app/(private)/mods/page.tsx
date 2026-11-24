@@ -55,8 +55,20 @@ export default async function ModsPage({ searchParams }: { searchParams: Promise
     : base.in("id", categoryModIds.length ? categoryModIds : ["00000000-0000-0000-0000-000000000000"]);
   const req = applyCatalogListFilters(scoped, { query, archive, sort, build, multiplayer });
 
-  const { data, error } = await req;
+  const [{ data, error }, { data: allModsData }] = await Promise.all([
+    req,
+    access.supabase.from("mods")
+      .select("id,title,workshop_id,mod_ids(value)")
+      .eq("owner_id", access.user.id)
+      .limit(500)
+  ]);
   const items = (data ?? []) as CatalogMod[];
+  const allOwnerMods = (allModsData ?? items) as {
+    id: string;
+    title: string;
+    workshop_id: string;
+    mod_ids: { value: string }[] | null;
+  }[];
 
   const primaryByMod = new Map<string, string>();
   if (items.length > 0 && categories.length > 0) {
@@ -131,9 +143,9 @@ export default async function ModsPage({ searchParams }: { searchParams: Promise
         </details>
       </form>
       <CategoryManager initialCategories={categories} writeEnabled={isTestCategoryWriteAllowed(process.env)} />
-      {!error && items.length > 0 && (
+      {!error && (
         <PcModIdBackfillPanel
-          catalogMods={items.map((mod) => ({
+          catalogMods={allOwnerMods.map((mod) => ({
             id: mod.id,
             title: mod.title,
             workshopId: mod.workshop_id,

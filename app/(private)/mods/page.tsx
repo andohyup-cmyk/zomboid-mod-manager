@@ -4,7 +4,9 @@ import {
   applyCatalogListFilters,
   CATALOG_LIST_LIMIT,
   parseCatalogListFilters,
-  parseCategoryFilter,
+  parseCategoryScopeFilter,
+  parseModIdFilter,
+  UNCLASSIFIED_CATEGORY_FILTER,
   type CatalogListInput
 } from "@/lib/catalog-read";
 import { isCatalogWriteAllowed } from "@/lib/catalog-write-protection";
@@ -27,20 +29,31 @@ type CatalogMod = {
   mod_ids: { value: string }[] | null;
 };
 
-export default async function ModsPage({ searchParams }: { searchParams: Promise<CatalogListInput & { category?: string }> }) {
+export default async function ModsPage({
+  searchParams
+}: {
+  searchParams: Promise<CatalogListInput & { category?: string }>;
+}) {
   const access = await getOwnerAccess();
   if (access.kind !== "authorized") return null;
   const rawParams = await searchParams;
   const { query, archive, sort, build, multiplayer } = parseCatalogListFilters(rawParams);
-  const category = parseCategoryFilter(rawParams.category);
+  const category = parseCategoryScopeFilter(rawParams.category);
+  const modIdFilter = parseModIdFilter(rawParams.modId);
 
   // Owner-scoped category data. Failures degrade to "no category info", never block the list.
   const { data: categoryRows } = await access.supabase.from("categories")
     .select("id,name,sort_order").eq("owner_id", access.user.id)
     .order("sort_order", { ascending: true }).order("name", { ascending: true }).limit(200);
   const categories = (categoryRows ?? []) as { id: string; name: string }[];
+
   let categoryModIds: string[] | null = null;
-  if (category) {
+  let classifiedModIds: Set<string> | null = null;
+  if (category === UNCLASSIFIED_CATEGORY_FILTER) {
+    const { data: links } = await access.supabase.from("mod_categories")
+      .select("mod_id").eq("owner_id", access.user.id).limit(2000);
+    classifiedModIds = new Set((links ?? []).map(row => row.mod_id as string));
+  } else if (category) {
     const { data: links } = await access.supabase.from("mod_categories")
       .select("mod_id").eq("owner_id", access.user.id).eq("category_id", category).limit(CATALOG_LIST_LIMIT);
     categoryModIds = (links ?? []).map(row => row.mod_id as string);
@@ -62,8 +75,16 @@ export default async function ModsPage({ searchParams }: { searchParams: Promise
       .eq("owner_id", access.user.id)
       .limit(500)
   ]);
-  const items = (data ?? []) as CatalogMod[];
-  const allOwnerMods = (allModsData ?? items) as {
+
+  const rawItems = (data ?? []) as CatalogMod[];
+  const items = rawItems.filter((mod) => {
+    if (classifiedModIds && classifiedModIds.has(mod.id)) return false;
+    if (modIdFilter === "missing" && (mod.mod_ids?.length ?? 0) > 0) return false;
+    if (modIdFilter === "present" && (mod.mod_ids?.length ?? 0) === 0) return false;
+    return true;
+  });
+
+  const allOwnerMods = (allModsData ?? rawItems) as {
     id: string;
     title: string;
     workshop_id: string;
@@ -82,8 +103,37 @@ export default async function ModsPage({ searchParams }: { searchParams: Promise
     }
   }
 
-  const activeFilters = [archive !== "active", sort !== "recent", build !== "", multiplayer !== "", category !== ""]
-    .filter(Boolean).length;
+  const activeFilters = [
+    archive !== "active",
+    sort !== "recent",
+    build !== "",
+    multiplayer !== "",
+    category !== "",
+    modIdFilter !== ""
+  ].filter(Boolean).length;
+
+  const quickChips = [
+    {
+      label: "전체",
+      href: "/mods",
+      active: !query && activeFilters === 0
+    },
+    {
+      label: "미분류만",
+      href: `/mods?category=${UNCLASSIFIED_CATEGORY_FILTER}`,
+      active: category === UNCLASSIFIED_CATEGORY_FILTER && !modIdFilter && !build
+    },
+    {
+      label: "Mod ID 미확인",
+      href: "/mods?modId=missing",
+      active: modIdFilter === "missing" && !category && !build
+    },
+    {
+      label: "B42.22 미확인",
+      href: "/mods?build=unverified",
+      active: build === "unverified" && !category && !modIdFilter
+    }
+  ];
 
   return (
     <section className="space-y-4">
@@ -91,6 +141,24 @@ export default async function ModsPage({ searchParams }: { searchParams: Promise
         <h1 className="text-2xl font-bold">모드 카탈로그</h1>
         <Link href="/register" className="action shrink-0 text-sm">+ 등록</Link>
       </div>
+
+      <div className="flex flex-wrap gap-1.5" aria-label="빠른 필터">
+        {quickChips.map((chip) => (
+          <Link
+            key={chip.label}
+            href={chip.href}
+            className={
+              "rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors " +
+              (chip.active
+                ? "border-[#8fcb85] bg-[#294535] text-[#b9efb0]"
+                : "border-[#304154] bg-[#101824] text-[#9baebe]")
+            }
+          >
+            {chip.label}
+          </Link>
+        ))}
+      </div>
+
       <form method="get" className="space-y-3">
         <div className="flex gap-2">
           <label className="sr-only" htmlFor="q">이름 또는 Workshop ID 검색</label>
@@ -115,14 +183,20 @@ export default async function ModsPage({ searchParams }: { searchParams: Promise
                 <option value="recent">최근 등록</option><option value="oldest">오래된 순</option><option value="name">이름 순</option>
               </select>
             </label>
-            {categories.length > 0 && (
-              <label className="col-span-2 text-sm">카테고리
-                <select name="category" defaultValue={category} className="field mt-1">
-                  <option value="">전체</option>
-                  {categories.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}
-                </select>
-              </label>
-            )}
+            <label className="text-sm">카테고리
+              <select name="category" defaultValue={category} className="field mt-1">
+                <option value="">전체</option>
+                <option value={UNCLASSIFIED_CATEGORY_FILTER}>미분류만</option>
+                {categories.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}
+              </select>
+            </label>
+            <label className="text-sm">Mod ID
+              <select name="modId" defaultValue={modIdFilter} className="field mt-1">
+                <option value="">전체</option>
+                <option value="missing">미확인만</option>
+                <option value="present">확인됨만</option>
+              </select>
+            </label>
             <label className="text-sm">B42.22
               <select name="build" defaultValue={build} className="field mt-1">
                 <option value="">전체</option><option value="unverified">미확인</option>
@@ -180,7 +254,9 @@ export default async function ModsPage({ searchParams }: { searchParams: Promise
           writeEnabled={isTestCategoryWriteAllowed(process.env)}
         />
       )}
-      {items.length >= CATALOG_LIST_LIMIT && <p className="muted text-xs">최대 100건만 표시됩니다. 조건을 좁혀 검색해 주세요.</p>}
+      {rawItems.length >= CATALOG_LIST_LIMIT && (
+        <p className="muted text-xs">최대 {CATALOG_LIST_LIMIT}건만 표시됩니다. 조건을 좁혀 검색해 주세요.</p>
+      )}
     </section>
   );
 }

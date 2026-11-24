@@ -1,6 +1,7 @@
 import { normalizeResearchRecord, type ResearchRecord } from "./workshop";
 
-export const CATALOG_LIST_LIMIT = 100;
+export const CATALOG_LIST_LIMIT = 300;
+export const UNCLASSIFIED_CATEGORY_FILTER = "unclassified" as const;
 
 export type CatalogListInput = {
   q?: string;
@@ -8,6 +9,7 @@ export type CatalogListInput = {
   build?: string;
   multiplayer?: string;
   sort?: string;
+  modId?: string;
 };
 
 export type CatalogListFilters = {
@@ -66,6 +68,17 @@ export function applyCatalogListFilters<Q extends FilterableCatalogQuery<Q>>(
 /** Category filter is a separate, strictly validated UUID; anything else means "no filter". */
 export function parseCategoryFilter(value: unknown): string {
   return typeof value === "string" && isCatalogModUuid(value) ? value.toLowerCase() : "";
+}
+
+/** Extended category scope filter that also accepts "unclassified" for 0-category mods. */
+export function parseCategoryScopeFilter(value: unknown): "" | typeof UNCLASSIFIED_CATEGORY_FILTER | string {
+  if (value === UNCLASSIFIED_CATEGORY_FILTER) return UNCLASSIFIED_CATEGORY_FILTER;
+  return parseCategoryFilter(value);
+}
+
+/** Filter mods by whether any real game Mod ID has been recorded yet. */
+export function parseModIdFilter(value: unknown): "" | "missing" | "present" {
+  return value === "missing" || value === "present" ? value : "";
 }
 
 export function isCatalogModUuid(id: string): boolean {

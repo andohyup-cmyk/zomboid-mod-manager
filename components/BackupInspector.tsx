@@ -1,13 +1,24 @@
 "use client";
 
 import { useState, type ChangeEvent } from "react";
-import { inspectBackupSnapshot, BACKUP_TABLES, type BackupPreview } from "@/lib/backup-preview";
+import {
+  inspectBackupSnapshot,
+  BACKUP_TABLES,
+  OPTIONAL_GROUP_BACKUP_TABLES,
+  type BackupPreview,
+  type OptionalGroupBackupTable
+} from "@/lib/backup-preview";
 
 const labels: Record<typeof BACKUP_TABLES[number], string> = {
   mods: "카탈로그 모드", modIds: "실제 Mod ID", researchRecords: "조사 기록",
   profiles: "서버 프로필", profileMods: "기존 프로필 연결", researchQueue: "영구 등록 대기함",
   profileRevisions: "프로필 저장 회차", profileModChoices: "개별 Mod ID 선택", profileDownloads: "다운로드 전용 Workshop", modRelations: "모드 관계·승인 기록",
   categories: "카테고리 정의", modCategories: "모드별 카테고리", modCategoryPrimary: "대표 카테고리"
+};
+
+const optionalLabels: Record<OptionalGroupBackupTable, string> = {
+  selectionGroups: "선택 그룹 정의",
+  selectionGroupMembers: "선택 그룹 멤버"
 };
 
 export function BackupInspector() {
@@ -53,6 +64,13 @@ export function BackupInspector() {
               <div key={name} className="flex justify-between gap-2 rounded-lg bg-[#162432] p-2">
                 <dt>{labels[name]}</dt><dd>{preview.counts[name] ?? "누락"}</dd>
               </div>
+            ))}
+            {preview.optionalCounts && OPTIONAL_GROUP_BACKUP_TABLES.map(name => (
+              preview.optionalCounts?.[name] !== undefined ? (
+                <div key={name} className="flex justify-between gap-2 rounded-lg bg-[#162432] p-2">
+                  <dt>{optionalLabels[name]}</dt><dd>{preview.optionalCounts[name]}</dd>
+                </div>
+              ) : null
             ))}
           </dl>
           {preview.warnings.map((warning, index) => <p key={index} className="text-xs text-amber-200">{warning}</p>)}

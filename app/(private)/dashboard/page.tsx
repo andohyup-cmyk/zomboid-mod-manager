@@ -24,7 +24,7 @@ export default async function DashboardPage() {
     { label: "등록된 모드", value: total, href: "/mods" },
     { label: "서버 프로필", value: profiles.count ?? null, href: "/profiles" },
     { label: "B42.22 미확인", value: unverified.error ? null : (unverified.count ?? null), href: "/mods?build=unverified" },
-    { label: "미분류 (추정)", value: unclassified, href: "/mods" }
+    { label: "미분류 (추정)", value: unclassified, href: "/mods?category=unclassified" }
   ];
 
   return (

@@ -3,6 +3,9 @@ import { isCatalogWriteAllowed } from "@/lib/catalog-write-protection";
 import { isTestCategoryWriteAllowed } from "@/lib/category-persistence-input";
 import { isPreviewQueueWriteAllowed } from "@/lib/preview-queue-write";
 
+// Evaluate write guards at request time, not at build time.
+export const dynamic = "force-dynamic";
+
 export default function RegisterPage() {
   const canWrite = isCatalogWriteAllowed(process.env, process.env.NEXT_PUBLIC_SUPABASE_URL)
     || isTestCategoryWriteAllowed(process.env);

@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getOwnerAccess } from "@/lib/auth";
 import { canonicalWorkshopId } from "@/lib/workshop";
 import { parseSteamWorkshopDetails } from "@/lib/steam-metadata";
+import { attachPcModIdsToResearchRecords } from "@/lib/repo-workshop-audit";
 import { readBoundedResponseText, ResponseTooLargeError } from "@/lib/response-limit";
 
 export const runtime = "nodejs";
@@ -69,5 +70,6 @@ export async function POST(request: NextRequest) {
     && parsed.errors[0] === "Steam 응답 형식을 확인할 수 없습니다.") {
     return respond({ error: parsed.errors[0] }, 502);
   }
-  return respond({ ...parsed, source: "steam-public-metadata", aiAnalyzed: false });
+  const records = attachPcModIdsToResearchRecords(parsed.records);
+  return respond({ ...parsed, records, source: "steam-public-metadata", aiAnalyzed: false });
 }

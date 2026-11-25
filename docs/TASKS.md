@@ -405,3 +405,5 @@
 - 2026-11-24: 모바일 내비 '서버' 탭 밀림(긴 Mod ID 카드 overflow)·등록 후 `/mods` 미갱신(클라이언트 라우터 캐시) 수정(#66, force-dynamic, staleTimes 0). 시험 Preview 모바일 확인 완료. 배포는 `.github/workflows/vercel-diagnose.yml`(Vercel API, secret `VERCEL_TOKEN`)이 develop push마다 수행(Deploy Hook은 배포를 만들지 않아 사용 안 함).
 
 - 2026-11-24: PC 스캔 Mod ID 채우기 + 모드 상세 편집(#67, 시험 DB 마이그레이션 `20261124000200` 적용 완료), 저장소 PC 스캔 JSON(`tests/fixtures/zomboid-workshop-audit-20261123-2334.json`) 1탭 연동·Steam 조회 자동 첨부(#69), PC 스캔 미등록 새 모드 일괄 조회·승인 등록(#70), 시험 쓰기 만료일 연장(2027-01-01) 및 서버 프로필 DB 생성·저장·불러오기 UI 연결(#71), `/mods` 미분류·Mod ID 미확인 빠른 필터 및 300건 상한 확장, JSON 백업 `selectionGroups` 포함, `docs/AI_HANDOFF.md` 및 완료 이슈 정리.
+
+- 2026-11-25: `/mods` `B42.22 미확인` 빠른 칩 제거·클라이언트 즉시(0ms) 필터 전환·DB 조회 병렬화(#73, 모바일 확인 완료), `/mods/[id]` 보관·복원 토글 및 DB 조회 병렬화(#74, `20261125000100_test_mod_archive_grant.sql` 추가), 새 채팅방 인수인계용 `docs/AI_HANDOFF.md` 최신화.

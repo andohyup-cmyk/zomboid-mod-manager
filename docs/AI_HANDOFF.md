@@ -40,15 +40,21 @@
   - `lib/data-sync.ts` 단일 기준(`SYNC_DOMAIN_PATHS`, `PRIVATE_NO_STORE_HEADERS`, `revalidateDomain`, `buildPrimaryCategoryMap`, `countActiveUnclassifiedMods`) + `docs/DATA_SYNC_CONTRACT.md` 계약 수립.
   - `tests/data-sync-contract.test.ts` 자동 아키텍처 가드 추가(모든 private 페이지 `force-dynamic`, 모든 API `no-store`+`revalidateDomain`, 백업 테이블 누락 자동 차단).
   - `/profiles/editor` 대표 카테고리·저장 프로필 `modIdUuid`/제목/보관 알림 연동, `/dashboard` 보관 제외 정확 미분류 계산, `/mods` PC 스캔 보관 모드 인식, 백업 `selectionGroups` 참조 무결성 검증 보강.
+- **Steam 태그 기반 9단계 자동 카테고리 · 프로필 추천 정렬 연동:**
+  - `Mod Load Order Sorter [b42]` (`3423660713`) 공식 9단계 순서(`프레임워크·API·트윅` → `리소스·텍스처` → `맵·지역` → `차량` → `기능·코드` → `의상·방어구` → `UI·인터페이스` → `기타 모드` → `번역·한글화`)로 Steam 태그를 매핑(`lib/steam-category-rules.ts`).
+  - `/register`·PC 스캔 신규 등록 시 추천 카테고리 표시 및 최종 승인 후 자동 생성·적용.
+  - `/mods`에 `Steam 태그로 카테고리 자동 분류` 패널 추가(`GET`/`POST /api/mod-categories/auto-classify`, 미리보기 → 확인 후 기존 미분류/전체 모드 일괄 적용).
+  - `/profiles/editor` 기존 `추천 정렬` 버튼에 사용자의 1~9번 로드 순서 카테고리 우선순위(`categoryPriority`) 연동 완료.
 - **백업 & 저장소 정리:**
   - JSON 내보내기(`/api/data-export`)에 `selectionGroups`·`selectionGroupMembers` 선택 포함·무결성 검증 및 `BackupInspector` 표시.
   - 구형 원격 브랜치 52개 정리 및 `delete_branch_on_merge = true` 활성화 완료(`main`/`develop` 2개만 유지, 열린 이슈·PR 0건).
 
 ## 미검증 / 다음 작업
-1. **모바일 실기기 확인 (데이터 연동 보강분):**
-   - `/profiles/editor`에서 대표 카테고리 표시·저장 프로필 불러오기 후 선택 그룹 구성원 노출 확인, `/dashboard` 미분류 건수 일치 확인.
+1. **모바일 실기기 실행·확인:**
+   - `/mods` → **`Steam 태그로 카테고리 자동 분류 (인게임 정렬 9단계)`** 열기 → 미리보기 → **확인 후 적용**으로 현재 미분류 모드 일괄 분류 실행.
+   - `/profiles/editor` → **`선택한 모드`** 탭 → **`추천 정렬`** 버튼으로 1~9번 순서 미리보기·적용 확인.
 2. **후속 작업 후보:**
-   - 사용자가 원하는 모바일 화면/기능 추가 개선 (추가 시 `docs/DATA_SYNC_CONTRACT.md` 5단계 필수 준수).
+   - 추가 기능·화면 수정사항 완료 후 일괄 성능 최적화.
    - 시험 환경 실사용 안정화 후, 사용자 별도 승인 시 `main` 운영 반영 및 운영 DB 마이그레이션 준비.
 
 ## 유지할 확정 원칙

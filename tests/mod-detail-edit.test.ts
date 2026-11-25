@@ -82,6 +82,10 @@ test("parseModDetailPatchInput validates statuses, date, description, and blocks
   const clearedDate = parseModDetailPatchInput({ researchedAt: "" });
   assert.deepEqual(clearedDate, { ok: true, patch: { researched_at: null } });
 
+  const archived = parseModDetailPatchInput({ isArchived: true });
+  assert.deepEqual(archived, { ok: true, patch: { is_archived: true } });
+
+  assert.equal(parseModDetailPatchInput({ isArchived: "yes" }).ok, false);
   assert.equal(parseModDetailPatchInput({ workshopId: "12345" }).ok, false);
   assert.equal(parseModDetailPatchInput({ buildCompatibility: "compatible" }).ok, false);
   assert.equal(parseModDetailPatchInput({ researchedAt: "2026-02-30" }).ok, false);

@@ -20,16 +20,20 @@ export default async function ModDetailPage({ params }: { params: Promise<{ id: 
   if (access.kind !== "authorized") return null;
   const { id } = await params;
   if (!isCatalogModUuid(id)) notFound();
-  const { data, error } = await access.supabase.from("mods")
-    .select("id,title,description,workshop_id,source_url,verification_status,build_compatibility,multiplayer_compatibility,researched_at,is_archived,created_at,updated_at")
-    .eq("owner_id", access.user.id).eq("id", id).maybeSingle();
-  if (error || !data) notFound();
-  const mod = data as CatalogDetail;
-  const [{ data: ids, error: idsError }, { data: records, error: recordsError }] = await Promise.all([
+  const [
+    { data, error },
+    { data: ids, error: idsError },
+    { data: records, error: recordsError }
+  ] = await Promise.all([
+    access.supabase.from("mods")
+      .select("id,title,description,workshop_id,source_url,verification_status,build_compatibility,multiplayer_compatibility,researched_at,is_archived,created_at,updated_at")
+      .eq("owner_id", access.user.id).eq("id", id).maybeSingle(),
     access.supabase.from("mod_ids").select("id,value").eq("mod_id", id).order("value").limit(50),
     access.supabase.from("research_records").select("raw_payload,created_at").eq("mod_id", id)
       .order("created_at", { ascending: false }).limit(20)
   ]);
+  if (error || !data) notFound();
+  const mod = data as CatalogDetail;
   const sources = extractCatalogResearchSources(records ?? []);
   const steamLink = `https://steamcommunity.com/sharedfiles/filedetails/?id=${mod.workshop_id}`;
   const writeEnabled = isCatalogWriteAllowed(process.env, process.env.NEXT_PUBLIC_SUPABASE_URL)
@@ -55,6 +59,7 @@ export default async function ModDetailPage({ params }: { params: Promise<{ id: 
         initialMultiplayerCompatibility={mod.multiplayer_compatibility}
         initialResearchedAt={mod.researched_at}
         initialDescription={mod.description}
+        initialIsArchived={mod.is_archived}
         writeEnabled={writeEnabled}
       />
       <ModCategoryPanel modId={id} writeEnabled={isTestCategoryWriteAllowed(process.env)} />

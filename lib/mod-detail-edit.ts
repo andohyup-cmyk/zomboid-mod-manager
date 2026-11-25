@@ -25,6 +25,7 @@ export type ModDetailPatch = Readonly<{
   multiplayer_compatibility?: CompatibilityStatus;
   researched_at?: string | null;
   description?: string;
+  is_archived?: boolean;
 }>;
 
 export type PcBackfillCatalogMod = Readonly<{
@@ -61,7 +62,8 @@ const PATCH_KEYS = new Set([
   "buildCompatibility",
   "multiplayerCompatibility",
   "researchedAt",
-  "description"
+  "description",
+  "isArchived"
 ]);
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -170,6 +172,7 @@ export function parseModDetailPatchInput(
     multiplayer_compatibility?: CompatibilityStatus;
     researched_at?: string | null;
     description?: string;
+    is_archived?: boolean;
   } = {};
 
   if ("verificationStatus" in input) {
@@ -204,6 +207,12 @@ export function parseModDetailPatchInput(
       return { ok: false, error: "설명은 최대 4000자여야 합니다." };
     }
     patch.description = input.description.trim();
+  }
+  if ("isArchived" in input) {
+    if (typeof input.isArchived !== "boolean") {
+      return { ok: false, error: "보관 상태 값이 올바르지 않습니다." };
+    }
+    patch.is_archived = input.isArchived;
   }
 
   return { ok: true, patch };

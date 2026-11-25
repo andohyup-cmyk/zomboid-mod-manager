@@ -51,7 +51,7 @@ export async function PATCH(
     .update({ ...parsed.patch, updated_at: new Date().toISOString() })
     .eq("id", id)
     .eq("owner_id", access.user.id)
-    .select("id,description,verification_status,build_compatibility,multiplayer_compatibility,researched_at,updated_at")
+    .select("id,description,verification_status,build_compatibility,multiplayer_compatibility,researched_at,is_archived,updated_at")
     .maybeSingle();
 
   if (error) {

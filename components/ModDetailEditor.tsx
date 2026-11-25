@@ -20,6 +20,7 @@ type Props = {
   initialMultiplayerCompatibility: string;
   initialResearchedAt: string | null;
   initialDescription: string;
+  initialIsArchived: boolean;
   writeEnabled: boolean;
 };
 
@@ -73,6 +74,7 @@ export function ModDetailEditor({
   initialMultiplayerCompatibility,
   initialResearchedAt,
   initialDescription,
+  initialIsArchived,
   writeEnabled
 }: Props) {
   const router = useRouter();
@@ -93,6 +95,37 @@ export function ModDetailEditor({
   const [savingStatus, setSavingStatus] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [statusError, setStatusError] = useState<string | null>(null);
+
+  const [isArchived, setIsArchived] = useState(initialIsArchived);
+  const [confirmArchive, setConfirmArchive] = useState(false);
+  const [togglingArchive, setTogglingArchive] = useState(false);
+  const [archiveError, setArchiveError] = useState<string | null>(null);
+
+  async function handleToggleArchive() {
+    if (!writeEnabled || togglingArchive) return;
+    setTogglingArchive(true);
+    setArchiveError(null);
+    const nextArchived = !isArchived;
+    try {
+      const response = await fetch(`/api/mods/${modId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isArchived: nextArchived })
+      });
+      const body = (await response.json().catch(() => ({}))) as { error?: string };
+      if (!response.ok) {
+        throw new Error(body.error || "보관 상태 변경에 실패했습니다.");
+      }
+      setIsArchived(nextArchived);
+      setConfirmArchive(false);
+      setStatusMessage(nextArchived ? "모드를 보관함으로 옮겼습니다." : "모드를 사용 중 목록으로 복원했습니다.");
+      router.refresh();
+    } catch (err) {
+      setArchiveError(err instanceof Error ? err.message : "보관 상태 변경에 실패했습니다.");
+    } finally {
+      setTogglingArchive(false);
+    }
+  }
 
   async function handleAddModIds(event: FormEvent) {
     event.preventDefault();
@@ -348,6 +381,45 @@ export function ModDetailEditor({
         <p className="muted text-xs">
           싱글플레이 및 서버 중간 추가는 별도 상태로 보관되며, 아래 조사 기록의 근거를 확인해야 합니다.
         </p>
+
+        {writeEnabled && (
+          <div className="space-y-2 border-t border-[#304154] pt-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="muted text-xs">
+                {isArchived ? "현재 보관된 모드입니다." : "사용하지 않는 모드는 보관함으로 숨길 수 있습니다."}
+              </span>
+              {confirmArchive ? (
+                <div className="flex gap-1.5">
+                  <button
+                    type="button"
+                    disabled={togglingArchive}
+                    onClick={() => { void handleToggleArchive(); }}
+                    className="rounded-lg bg-[#5b2a2f] px-3 py-1.5 text-xs font-semibold text-[#ffd2d5]"
+                  >
+                    {togglingArchive ? "처리 중..." : isArchived ? "복원 확인" : "보관 확인"}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={togglingArchive}
+                    onClick={() => setConfirmArchive(false)}
+                    className="secondary-action px-3 py-1.5 text-xs"
+                  >
+                    취소
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => { setConfirmArchive(true); setArchiveError(null); }}
+                  className="secondary-action px-3 py-1.5 text-xs"
+                >
+                  {isArchived ? "사용 중으로 복원" : "모드 보관"}
+                </button>
+              )}
+            </div>
+            {archiveError && <p role="alert" className="text-xs text-red-300">{archiveError}</p>}
+          </div>
+        )}
       </div>
     </div>
   );

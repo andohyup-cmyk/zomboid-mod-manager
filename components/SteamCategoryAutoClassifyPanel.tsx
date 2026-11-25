@@ -24,7 +24,13 @@ type PreviewResponse = {
   error?: string;
 };
 
-export function SteamCategoryAutoClassifyPanel({ writeEnabled }: { writeEnabled: boolean }) {
+export function SteamCategoryAutoClassifyPanel({
+  writeEnabled,
+  embedded = false
+}: {
+  writeEnabled: boolean;
+  embedded?: boolean;
+}) {
   const router = useRouter();
   const [includeClassified, setIncludeClassified] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -140,19 +146,8 @@ export function SteamCategoryAutoClassifyPanel({ writeEnabled }: { writeEnabled:
   const chosenCount = classifiableItems.filter((item) => selectedModIds.includes(item.modId)).length;
   const busy = loading || applying;
 
-  return (
-    <details className="panel group p-4">
-      <summary className="flex cursor-pointer list-none items-center justify-between text-sm font-semibold">
-        <span>Steam 태그로 카테고리 자동 분류 (인게임 정렬 9단계)</span>
-        <span className="muted text-xs group-open:hidden">펼치기</span>
-        <span className="muted hidden text-xs group-open:inline">접기</span>
-      </summary>
-      <div className="mt-3 space-y-3">
-        <p className="muted text-xs leading-5">
-          <code className="font-mono">Mod Load Order Sorter [b42]</code> 기준 9개 로드 순서 카테고리(프레임워크 → 리소스 → 맵 → 차량 → 기능·코드 → 의상 → UI → 기타 → 번역)로
-          Steam 공개 태그를 분석해 없는 카테고리를 자동 생성하고 다중 소속 + 대표 1개를 적용합니다. (호환성 상태는 변경하지 않습니다.)
-        </p>
-
+  const body = (
+    <div className={embedded ? "space-y-3" : "mt-3 space-y-3"}>
         <label className="flex cursor-pointer items-center gap-2 text-xs">
           <input
             type="checkbox"
@@ -346,6 +341,18 @@ export function SteamCategoryAutoClassifyPanel({ writeEnabled }: { writeEnabled:
           </div>
         )}
       </div>
+  );
+
+  if (embedded) return body;
+
+  return (
+    <details className="panel group p-4">
+      <summary className="flex cursor-pointer list-none items-center justify-between text-sm font-semibold">
+        <span>자동 카테고리 설정</span>
+        <span className="muted text-xs group-open:hidden">펼치기</span>
+        <span className="muted hidden text-xs group-open:inline">접기</span>
+      </summary>
+      {body}
     </details>
   );
 }

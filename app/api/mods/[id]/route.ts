@@ -68,3 +68,46 @@ export async function PATCH(
   revalidateDomain("mod", { modIds: [id] });
   return reply({ mod: data }, 200);
 }
+
+export async function DELETE(
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
+  if (!isSameOriginRequest(request.url, request.headers.get("origin"))) {
+    return reply({ error: "요청 출처가 올바르지 않습니다." }, 403);
+  }
+  if (!isCatalogWriteAllowed(process.env, process.env.NEXT_PUBLIC_SUPABASE_URL)
+    && !isTestCategoryWriteAllowed(process.env)) {
+    return reply({ error: "이 배포에서는 모드를 삭제할 수 없습니다." }, 403);
+  }
+
+  const access = await getOwnerAccess();
+  if (access.kind !== "authorized") {
+    return reply({ error: "이 작업을 수행할 권한이 없습니다." }, 403);
+  }
+
+  const { id } = await context.params;
+  if (!isCatalogModUuid(id)) {
+    return reply({ error: "모드 식별자가 올바르지 않습니다." }, 400);
+  }
+
+  const { error } = await access.supabase.rpc("delete_mod", { p_mod_id: id });
+  if (error) {
+    if (error.code === "PZ003" || error.code === "23503") {
+      return reply(
+        { error: "이 모드는 저장된 서버 프로필이나 관계 기록에서 사용 중이라 삭제할 수 없습니다. 프로필에서 먼저 제거하거나 보관 기능을 사용해 주세요." },
+        409
+      );
+    }
+    if (error.code === "P0002") {
+      return reply({ error: "모드를 찾을 수 없습니다." }, 404);
+    }
+    if (error.code === "42501" || error.code === "42883") {
+      return reply({ error: "DB 삭제 함수가 아직 적용되지 않았습니다. 시험 DB 마이그레이션 SQL을 실행해 주세요." }, 403);
+    }
+    return reply({ error: "모드 삭제에 실패했습니다." }, 500);
+  }
+
+  revalidateDomain("mod", { modIds: [id] });
+  return reply({ deleted: true, id }, 200);
+}

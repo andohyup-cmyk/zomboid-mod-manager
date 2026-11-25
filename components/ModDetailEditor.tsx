@@ -2,78 +2,24 @@
 
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
-import {
-  COMPATIBILITY_STATUSES,
-  parseModIdText,
-  type CompatibilityStatus
-} from "@/lib/mod-detail-edit";
-import { statusLabel, statusStyle } from "@/lib/status-display";
+import { parseModIdText } from "@/lib/mod-detail-edit";
 
 type ModIdRow = { id: string; value: string };
 
 type Props = {
   modId: string;
+  modTitle: string;
   initialModIds: readonly ModIdRow[];
   idsError: boolean;
-  initialVerificationStatus: string;
-  initialBuildCompatibility: string;
-  initialMultiplayerCompatibility: string;
-  initialResearchedAt: string | null;
-  initialDescription: string;
   initialIsArchived: boolean;
   writeEnabled: boolean;
 };
 
-function toStatus(value: string): CompatibilityStatus {
-  return value === "confirmed" || value === "reported_issue" ? value : "unverified";
-}
-
-function StatusPicker({
-  label,
-  value,
-  onChange
-}: {
-  label: string;
-  value: CompatibilityStatus;
-  onChange: (next: CompatibilityStatus) => void;
-}) {
-  return (
-    <fieldset className="space-y-1.5">
-      <legend className="text-xs font-semibold text-[#c9d8e5]">{label}</legend>
-      <div className="grid grid-cols-3 gap-1.5">
-        {COMPATIBILITY_STATUSES.map((option) => {
-          const active = value === option;
-          return (
-            <button
-              key={option}
-              type="button"
-              aria-pressed={active}
-              onClick={() => onChange(option)}
-              className={
-                "min-h-10 rounded-xl border px-2 py-1.5 text-xs font-semibold transition-colors " +
-                (active
-                  ? "border-[#8fcb85] bg-[#294535] text-[#b9efb0]"
-                  : "border-[#304154] bg-[#10202d] text-[#9baebe]")
-              }
-            >
-              {statusLabel(option)}
-            </button>
-          );
-        })}
-      </div>
-    </fieldset>
-  );
-}
-
 export function ModDetailEditor({
   modId,
+  modTitle,
   initialModIds,
   idsError,
-  initialVerificationStatus,
-  initialBuildCompatibility,
-  initialMultiplayerCompatibility,
-  initialResearchedAt,
-  initialDescription,
   initialIsArchived,
   writeEnabled
 }: Props) {
@@ -87,45 +33,22 @@ export function ModDetailEditor({
   const [modIdMessage, setModIdMessage] = useState<string | null>(null);
   const [modIdError, setModIdError] = useState<string | null>(null);
 
-  const serverStatusKey = `${initialVerificationStatus}|${initialBuildCompatibility}|${initialMultiplayerCompatibility}|${initialResearchedAt ?? ""}|${initialDescription}`;
-  const [statusOverride, setStatusOverride] = useState<{
-    base: string;
-    verificationStatus: CompatibilityStatus;
-    buildCompatibility: CompatibilityStatus;
-    multiplayerCompatibility: CompatibilityStatus;
-    researchedAt: string;
-    description: string;
-  } | null>(null);
-  const activeStatus = statusOverride?.base === serverStatusKey
-    ? statusOverride
-    : {
-        verificationStatus: toStatus(initialVerificationStatus),
-        buildCompatibility: toStatus(initialBuildCompatibility),
-        multiplayerCompatibility: toStatus(initialMultiplayerCompatibility),
-        researchedAt: initialResearchedAt ?? "",
-        description: initialDescription
-      };
-
-  const [editingStatus, setEditingStatus] = useState(false);
-  const [verificationStatus, setVerificationStatus] = useState<CompatibilityStatus>(activeStatus.verificationStatus);
-  const [buildCompatibility, setBuildCompatibility] = useState<CompatibilityStatus>(activeStatus.buildCompatibility);
-  const [multiplayerCompatibility, setMultiplayerCompatibility] = useState<CompatibilityStatus>(activeStatus.multiplayerCompatibility);
-  const [researchedAt, setResearchedAt] = useState(activeStatus.researchedAt);
-  const [description, setDescription] = useState(activeStatus.description);
-  const [savingStatus, setSavingStatus] = useState(false);
-  const [statusMessage, setStatusMessage] = useState<string | null>(null);
-  const [statusError, setStatusError] = useState<string | null>(null);
-
   const [archiveOverride, setArchiveOverride] = useState<{ base: boolean; value: boolean } | null>(null);
   const isArchived = archiveOverride?.base === initialIsArchived ? archiveOverride.value : initialIsArchived;
   const [confirmArchive, setConfirmArchive] = useState(false);
   const [togglingArchive, setTogglingArchive] = useState(false);
+  const [archiveMessage, setArchiveMessage] = useState<string | null>(null);
   const [archiveError, setArchiveError] = useState<string | null>(null);
+
+  const [confirmDeleteMod, setConfirmDeleteMod] = useState(false);
+  const [deletingMod, setDeletingMod] = useState(false);
+  const [deleteModError, setDeleteModError] = useState<string | null>(null);
 
   async function handleToggleArchive() {
     if (!writeEnabled || togglingArchive) return;
     setTogglingArchive(true);
     setArchiveError(null);
+    setArchiveMessage(null);
     const nextArchived = !isArchived;
     try {
       const response = await fetch(`/api/mods/${modId}`, {
@@ -139,12 +62,36 @@ export function ModDetailEditor({
       }
       setArchiveOverride({ base: initialIsArchived, value: nextArchived });
       setConfirmArchive(false);
-      setStatusMessage(nextArchived ? "모드를 보관함으로 옮겼습니다." : "모드를 사용 중 목록으로 복원했습니다.");
+      setArchiveMessage(nextArchived ? "모드를 보관함으로 옮겼습니다." : "모드를 사용 중 목록으로 복원했습니다.");
       router.refresh();
     } catch (err) {
       setArchiveError(err instanceof Error ? err.message : "보관 상태 변경에 실패했습니다.");
     } finally {
       setTogglingArchive(false);
+    }
+  }
+
+  async function handleDeleteMod() {
+    if (!writeEnabled || deletingMod) return;
+    setDeletingMod(true);
+    setDeleteModError(null);
+    try {
+      const response = await fetch(`/api/mods/${modId}`, {
+        method: "DELETE",
+        credentials: "same-origin",
+        cache: "no-store"
+      });
+      const body = (await response.json().catch(() => ({}))) as { error?: string };
+      if (!response.ok) {
+        throw new Error(body.error || "모드 삭제에 실패했습니다.");
+      }
+      router.push("/mods");
+      router.refresh();
+    } catch (err) {
+      setDeleteModError(err instanceof Error ? err.message : "모드 삭제에 실패했습니다.");
+      setConfirmDeleteMod(false);
+    } finally {
+      setDeletingMod(false);
     }
   }
 
@@ -228,50 +175,10 @@ export function ModDetailEditor({
     }
   }
 
-  async function handleSaveStatus(event: FormEvent) {
-    event.preventDefault();
-    if (!writeEnabled || savingStatus) return;
-    setSavingStatus(true);
-    setStatusError(null);
-    setStatusMessage(null);
-    try {
-      const response = await fetch(`/api/mods/${modId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          verificationStatus,
-          buildCompatibility,
-          multiplayerCompatibility,
-          researchedAt: researchedAt || null,
-          description
-        })
-      });
-      const body = (await response.json().catch(() => ({}))) as { error?: string };
-      if (!response.ok) {
-        throw new Error(body.error || "상태 저장에 실패했습니다.");
-      }
-      setStatusOverride({
-        base: serverStatusKey,
-        verificationStatus,
-        buildCompatibility,
-        multiplayerCompatibility,
-        researchedAt,
-        description
-      });
-      setStatusMessage("호환성·메모를 저장했습니다.");
-      setEditingStatus(false);
-      router.refresh();
-    } catch (err) {
-      setStatusError(err instanceof Error ? err.message : "상태 저장에 실패했습니다.");
-    } finally {
-      setSavingStatus(false);
-    }
-  }
-
   return (
     <div className="panel space-y-4 p-5">
       <div className="space-y-3">
-        <h2 className="text-lg font-bold">실제 Mod ID</h2>
+        <h2 className="text-base font-bold">실제 Mod ID</h2>
         {idsError && <p role="alert" className="text-sm text-red-300">Mod ID를 읽지 못했습니다.</p>}
         {modIds.length > 0 ? (
           <ul className="space-y-2 text-sm">
@@ -337,106 +244,20 @@ export function ModDetailEditor({
         {modIdError && <p role="alert" className="text-xs text-red-300">{modIdError}</p>}
       </div>
 
-      <div className="space-y-3 border-t border-[#304154] pt-4">
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex flex-wrap gap-1.5 text-xs">
-            <span className={"rounded-md px-2 py-1 " + statusStyle(activeStatus.verificationStatus)}>
-              조사 {statusLabel(activeStatus.verificationStatus)}
+      {writeEnabled && (
+        <div className="space-y-3 border-t border-[#304154] pt-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <span className="muted text-xs">
+              {isArchived ? "현재 보관된 모드입니다." : "사용하지 않는 모드는 보관하거나 삭제할 수 있습니다."}
             </span>
-            <span className={"rounded-md px-2 py-1 " + statusStyle(activeStatus.buildCompatibility)}>
-              B42.22 {statusLabel(activeStatus.buildCompatibility)}
-            </span>
-            <span className={"rounded-md px-2 py-1 " + statusStyle(activeStatus.multiplayerCompatibility)}>
-              멀티 {statusLabel(activeStatus.multiplayerCompatibility)}
-            </span>
-          </div>
-          {writeEnabled && (
-            <button
-              type="button"
-              onClick={() => {
-                setEditingStatus(open => {
-                  if (!open) {
-                    setVerificationStatus(activeStatus.verificationStatus);
-                    setBuildCompatibility(activeStatus.buildCompatibility);
-                    setMultiplayerCompatibility(activeStatus.multiplayerCompatibility);
-                    setResearchedAt(activeStatus.researchedAt);
-                    setDescription(activeStatus.description);
-                  }
-                  return !open;
-                });
-                setStatusError(null);
-              }}
-              className="secondary-action shrink-0 px-3 py-1.5 text-xs"
-            >
-              {editingStatus ? "닫기" : "상태·메모 편집"}
-            </button>
-          )}
-        </div>
-        <p className="muted text-xs">확인일: {activeStatus.researchedAt || "미확인"}</p>
-        {statusMessage && <p role="status" className="text-xs text-[#b9efb0]">{statusMessage}</p>}
-        {statusError && <p role="alert" className="text-xs text-red-300">{statusError}</p>}
-
-        {editingStatus && writeEnabled && (
-          <form
-            onSubmit={(event) => { void handleSaveStatus(event); }}
-            className="space-y-3 rounded-xl border border-[#304154] bg-[#101824] p-3.5"
-          >
-            <StatusPicker label="조사 상태" value={verificationStatus} onChange={setVerificationStatus} />
-            <StatusPicker label="B42.22 호환성" value={buildCompatibility} onChange={setBuildCompatibility} />
-            <StatusPicker label="멀티 호환성" value={multiplayerCompatibility} onChange={setMultiplayerCompatibility} />
-            <div className="space-y-1.5">
-              <label htmlFor="researched-at" className="block text-xs font-semibold text-[#c9d8e5]">확인일</label>
-              <div className="flex gap-2">
-                <input
-                  id="researched-at"
-                  type="date"
-                  value={researchedAt}
-                  onChange={(event) => setResearchedAt(event.target.value)}
-                  className="field min-w-0 flex-1 text-sm"
-                />
-                <button
-                  type="button"
-                  onClick={() => setResearchedAt(new Date().toISOString().slice(0, 10))}
-                  className="secondary-action shrink-0 px-3 text-xs"
-                >
-                  오늘
-                </button>
-              </div>
-            </div>
-            <div className="space-y-1.5">
-              <label htmlFor="mod-description" className="block text-xs font-semibold text-[#c9d8e5]">메모 / 설명</label>
-              <textarea
-                id="mod-description"
-                rows={4}
-                value={description}
-                onChange={(event) => setDescription(event.target.value)}
-                className="field w-full resize-y text-sm"
-                placeholder="호환성 확인 근거나 개인 메모를 남길 수 있습니다."
-              />
-            </div>
-            <button type="submit" disabled={savingStatus} className="action w-full text-xs">
-              {savingStatus ? "저장 중..." : "상태·메모 저장"}
-            </button>
-          </form>
-        )}
-
-        <p className="muted text-xs">
-          싱글플레이 및 서버 중간 추가는 별도 상태로 보관되며, 아래 조사 기록의 근거를 확인해야 합니다.
-        </p>
-
-        {writeEnabled && (
-          <div className="space-y-2 border-t border-[#304154] pt-3">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <span className="muted text-xs">
-                {isArchived ? "현재 보관된 모드입니다." : "사용하지 않는 모드는 보관함으로 숨길 수 있습니다."}
-              </span>
+            <div className="flex flex-wrap gap-2">
               {confirmArchive ? (
-                <div className="flex gap-1.5">
+                <>
                   <button
                     type="button"
                     disabled={togglingArchive}
                     onClick={() => { void handleToggleArchive(); }}
-                    className="rounded-lg bg-[#5b2a2f] px-3 py-1.5 text-xs font-semibold text-[#ffd2d5]"
+                    className="rounded-lg bg-[#294535] px-3 py-1.5 text-xs font-semibold text-[#b9efb0]"
                   >
                     {togglingArchive ? "처리 중..." : isArchived ? "복원 확인" : "보관 확인"}
                   </button>
@@ -448,21 +269,60 @@ export function ModDetailEditor({
                   >
                     취소
                   </button>
-                </div>
+                </>
               ) : (
                 <button
                   type="button"
-                  onClick={() => { setConfirmArchive(true); setArchiveError(null); }}
+                  disabled={deletingMod}
+                  onClick={() => { setConfirmArchive(true); setConfirmDeleteMod(false); setArchiveError(null); }}
                   className="secondary-action px-3 py-1.5 text-xs"
                 >
                   {isArchived ? "사용 중으로 복원" : "모드 보관"}
                 </button>
               )}
+
+              {confirmDeleteMod ? (
+                <>
+                  <button
+                    type="button"
+                    disabled={deletingMod}
+                    onClick={() => { void handleDeleteMod(); }}
+                    className="rounded-lg bg-[#5b2a2f] px-3 py-1.5 text-xs font-semibold text-[#ffd2d5]"
+                  >
+                    {deletingMod ? "삭제 중..." : "영구 삭제 확인"}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={deletingMod}
+                    onClick={() => setConfirmDeleteMod(false)}
+                    className="secondary-action px-3 py-1.5 text-xs"
+                  >
+                    취소
+                  </button>
+                </>
+              ) : (
+                <button
+                  type="button"
+                  disabled={togglingArchive}
+                  onClick={() => { setConfirmDeleteMod(true); setConfirmArchive(false); setDeleteModError(null); }}
+                  className="secondary-action px-3 py-1.5 text-xs text-red-300"
+                >
+                  모드 삭제
+                </button>
+              )}
             </div>
-            {archiveError && <p role="alert" className="text-xs text-red-300">{archiveError}</p>}
           </div>
-        )}
-      </div>
+
+          {confirmDeleteMod && (
+            <p className="rounded-lg border border-[#84414a] bg-[#2c191f] p-2.5 text-xs text-[#ffd2d5]">
+              &ldquo;{modTitle}&rdquo; 모드를 카탈로그에서 영구 삭제할까요? 서버 프로필에 포함된 모드는 삭제가 차단됩니다.
+            </p>
+          )}
+          {archiveMessage && <p role="status" className="text-xs text-[#b9efb0]">{archiveMessage}</p>}
+          {archiveError && <p role="alert" className="text-xs text-red-300">{archiveError}</p>}
+          {deleteModError && <p role="alert" className="text-xs text-red-300">{deleteModError}</p>}
+        </div>
+      )}
     </div>
   );
 }

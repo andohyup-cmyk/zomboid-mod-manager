@@ -54,7 +54,6 @@ export default async function ProfilesPage() {
           </li>
         ))}
       </ul>
-      <Link href="/backup" className="secondary-action block text-center text-sm">JSON 데이터 내보내기</Link>
     </section>
   );
 }

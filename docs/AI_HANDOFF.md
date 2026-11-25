@@ -17,7 +17,7 @@
    - **모바일 Supabase SQL 주의:** 여러 줄 괄호 SQL은 모바일 Monaco 에디터가 끝에 `)`를 중복 붙여 구문 에러를 유발하므로 **한 문장 = 한 줄** 형식으로 제공(크롬 번역 끄기 안내).
    - `[추천 모델]` 표기 시 성능 등급 괄호 표기 + Claude 추천 시 사용량 제한 대체 모델 병기 (예: `` `Claude Sonnet 5.5` (medium) / 제한 시 `Gemini 4 Neon` (medium) ``).
    - **매 턴 텔레그램 알림 발송** (`telegram-notify` 스킬 필수 실행).
-3. **로컬/테스트 팁:** `npm install --no-package-lock` 사용(lockfile 없음), 커밋 전 `git checkout next-env.d.ts`, `npm run build` = `verify` + `next build` (현재 단위 테스트 398/398 통과, 브라우저 테스트 `npm run test:browser` 정비 완료).
+3. **로컬/테스트 팁:** `npm install --no-package-lock` 사용(lockfile 없음), 커밋 전 `git checkout next-env.d.ts`, `npm run build` = `verify` + `next build` (현재 단위 테스트 416/416 통과, 브라우저 테스트 `npm run test:browser` 정비 완료).
 
 ## 구현·병합 완료 요약 (`develop`)
 - **모드 등록 · PC 스캔 연동 (#67, #68, #69, #70):**
@@ -45,17 +45,23 @@
   - `/register`·PC 스캔 신규 등록 시 추천 카테고리 표시 및 최종 승인 후 자동 생성·적용.
   - `/mods`에 `Steam 태그로 카테고리 자동 분류` 패널 추가(`GET`/`POST /api/mod-categories/auto-classify`, 미리보기 → 확인 후 기존 미분류/전체 모드 일괄 적용).
   - `/profiles/editor` 기존 `추천 정렬` 버튼에 사용자의 1~9번 로드 순서 카테고리 우선순위(`categoryPriority`) 연동 완료.
+- **전 화면 UI 대개편 · 모드 설명/업데이트 날짜/안전 삭제:**
+  - 전역 `42.22` 배지 제거(`AppShell`, `dashboard`, `loading`, `login`), 홈 통계 카드 2개(`등록된 모드`·`미분류`)로 단순화, `/profiles` 하단 `JSON 내보내기` 버튼 제거(`/backup` 기능은 유지).
+  - `/mods`: `+ 등록` → **`갱신`** 버튼(`POST /api/mods/refresh-updates`, `steam_updated_at`만 갱신·설명 보호), 상단 3개 1줄 탭(`필터`·`카테고리`·`자동 카테고리 설정`) 적용, PC 스캔·일괄 분류 패널 제거, 카테고리 빠른 선택 단일 드롭다운, 목록 카드(이름·간단 설명·할당 카테고리만 표시).
+  - `/mods/[id]`: 상단 요약 카드 + `자세한 설명` + 최근 스팀 업데이트 날짜 + `모드 영구 삭제`(`DELETE /api/mods/[id]` → `delete_mod` RPC, 서버 프로필 사용 중 차단), `상태·메모 편집`·`조사 기록과 출처` 제거.
+  - `/register`: URL 입력+Steam 조회 통합 카드, 컴팩트 카드(이름·Workshop ID·추천 카테고리·간단/자세히 설명·업데이트 날짜), `기존 AI 조사 결과` 제거, `영구 대기함 새로고침` 하단 이동, 카드 클릭 체크 선택 + 선택 삭제.
+  - 시험 DB 마이그레이션 SQL 초안: `supabase/migrations/20261125000200_test_mod_summary_updated_and_delete.sql` (`short_description`, `steam_updated_at`, `delete_mod` RPC — 사용자 실행 대기).
 - **백업 & 저장소 정리:**
   - JSON 내보내기(`/api/data-export`)에 `selectionGroups`·`selectionGroupMembers` 선택 포함·무결성 검증 및 `BackupInspector` 표시.
   - 구형 원격 브랜치 52개 정리 및 `delete_branch_on_merge = true` 활성화 완료(`main`/`develop` 2개만 유지, 열린 이슈·PR 0건).
 
 ## 미검증 / 다음 작업
-1. **모바일 실기기 실행·확인:**
-   - `/mods` → **`Steam 태그로 카테고리 자동 분류 (인게임 정렬 9단계)`** 열기 → 미리보기 → **확인 후 적용**으로 현재 미분류 모드 일괄 분류 실행.
-   - `/profiles/editor` → **`선택한 모드`** 탭 → **`추천 정렬`** 버튼으로 1~9번 순서 미리보기·적용 확인.
-2. **후속 작업 후보:**
-   - 추가 기능·화면 수정사항 완료 후 일괄 성능 최적화.
-   - 시험 환경 실사용 안정화 후, 사용자 별도 승인 시 `main` 운영 반영 및 운영 DB 마이그레이션 준비.
+1. **사용자 실행·확인 대기:**
+   - 시험 DB SQL(`20261125000200`: `short_description`, `steam_updated_at`, `delete_mod` RPC) 실행 + 기존 81개 모드 한국어 간단/자세히 설명 일괄 반영(사용자 요청 시 제공).
+   - 모바일 실기기에서 개편된 홈·모드·상세·등록·서버 화면 확인 및 `/mods` **`갱신`** 버튼 테스트.
+2. **필수 후속 단계 (`main` 전환 전 반드시 사용자에게 안내):**
+   - 모든 UI/기능 수정이 끝나고 모바일 확인이 완료되면, **`main` 운영 전환 전에 전체 화면 전환·성능 최적화(렉/느린 화면 개선)** 를 먼저 제안하고 진행.
+   - 이후 사용자 별도 승인 시 `main` 운영 반영 및 운영 DB 마이그레이션 준비.
 
 ## 유지할 확정 원칙
 - Project Zomboid Build 42(현재 기준 B42.22), 모바일 우선 PWA, Next.js/TypeScript/Tailwind, Supabase Google OAuth + RLS, GitHub/Vercel.

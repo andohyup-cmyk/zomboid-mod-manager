@@ -3,7 +3,6 @@ export default function Loading() {
     <main aria-busy="true" aria-live="polite" className="mx-auto min-h-screen max-w-5xl px-6 py-10">
       <div className="mb-12 flex items-center justify-between border-b border-[#304154] pb-6">
         <span className="text-xl font-bold tracking-wide">PZ MODS</span>
-        <span className="text-sm font-semibold text-[#8fcb85]">B42.22</span>
       </div>
       <div className="animate-pulse space-y-5">
         <div className="h-4 w-44 rounded bg-[#304154]" />

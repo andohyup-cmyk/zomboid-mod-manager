@@ -20,6 +20,7 @@ import {
   profileSnapshotErrorStatus,
   toAtomicProfileRpcPayload
 } from "@/lib/profile-snapshot-write";
+import { stripWorkshopSuffixFromTitle } from "@/lib/steam-description";
 import { isSameOriginRequest } from "@/lib/write-origin";
 
 export const runtime = "nodejs";
@@ -278,7 +279,7 @@ export async function GET(request: NextRequest) {
   }> = {};
   for (const parent of parents) {
     byWorkshopId[parent.workshop_id] = {
-      title: parent.title,
+      title: stripWorkshopSuffixFromTitle(parent.title),
       isArchived: parent.is_archived,
       primaryCategory: primaryByMod.get(parent.id) ?? null
     };
@@ -286,7 +287,7 @@ export async function GET(request: NextRequest) {
   for (const row of (downloadModsRes.data ?? []) as { workshop_id: string; title: string; is_archived: boolean }[]) {
     if (!byWorkshopId[row.workshop_id]) {
       byWorkshopId[row.workshop_id] = {
-        title: row.title,
+        title: stripWorkshopSuffixFromTitle(row.title),
         isArchived: row.is_archived,
         primaryCategory: null
       };

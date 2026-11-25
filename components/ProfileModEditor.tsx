@@ -27,6 +27,7 @@ import {
 import { describeFreeSelection } from "@/lib/group-selection-rule";
 import { SelectionGroupPanel } from "@/components/SelectionGroupPanel";
 import { toSelectionGroupRules, type StoredSelectionGroup } from "@/lib/selection-group-input";
+import { stripWorkshopSuffixFromTitle } from "@/lib/steam-description";
 import { validateProfileSelection, type ProfileSelectionError } from "@/lib/profile-selection";
 
 const tabs = [
@@ -670,7 +671,7 @@ export function ProfileModEditor({
             <article key={entry.workshopId} className="panel min-w-0 p-3.5 sm:p-4">
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div className="min-w-0">
-                  <h2 className="text-base font-bold [overflow-wrap:anywhere]">{entry.title}</h2>
+                  <h2 className="text-base font-bold [overflow-wrap:anywhere]">{stripWorkshopSuffixFromTitle(entry.title)}</h2>
                   <p className="muted mt-1 text-xs [overflow-wrap:anywhere]">
                     Workshop ID <span className="font-mono">{entry.workshopId}</span>
                   </p>

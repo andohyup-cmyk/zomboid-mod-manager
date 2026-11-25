@@ -5,7 +5,7 @@ import { isCatalogModUuid } from "@/lib/catalog-read";
 import { isCatalogWriteAllowed } from "@/lib/catalog-write-protection";
 import { isTestCategoryWriteAllowed } from "@/lib/category-persistence-input";
 import { sortCategoriesForLoadOrder } from "@/lib/steam-category-rules";
-import { cleanSteamDescription, formatSteamDate, summarizeModDescription } from "@/lib/steam-description";
+import { cleanSteamDescription, formatSteamDate, stripWorkshopSuffixFromTitle, summarizeModDescription } from "@/lib/steam-description";
 import { ModCategoryPanel } from "@/components/ModCategoryPanel";
 import { ModDetailEditor } from "@/components/ModDetailEditor";
 
@@ -79,6 +79,7 @@ export default async function ModDetailPage({ params }: { params: Promise<{ id: 
       return (rankById.get(a.id) ?? 999) - (rankById.get(b.id) ?? 999);
     });
 
+  const displayTitle = stripWorkshopSuffixFromTitle(mod.title);
   const detailedDescription = cleanSteamDescription(mod.description || "") || mod.description || "";
   const shortDescription = (mod.short_description ?? "").trim()
     || summarizeModDescription(detailedDescription);
@@ -91,7 +92,7 @@ export default async function ModDetailPage({ params }: { params: Promise<{ id: 
       {/* Top summary card: mirrors what appears in /mods list + last Steam update date */}
       <div className="panel space-y-3 p-5 sm:p-6">
         <div className="flex items-start justify-between gap-2">
-          <h1 className="min-w-0 break-words text-2xl font-bold sm:text-3xl">{mod.title}</h1>
+          <h1 className="min-w-0 break-words text-2xl font-bold sm:text-3xl">{displayTitle}</h1>
           {mod.is_archived && (
             <span className="shrink-0 rounded-md bg-[#2a3441] px-2.5 py-1 text-xs text-amber-200">보관</span>
           )}
@@ -141,7 +142,7 @@ export default async function ModDetailPage({ params }: { params: Promise<{ id: 
       <ModDetailEditor
         key={id}
         modId={id}
-        modTitle={mod.title}
+        modTitle={displayTitle}
         initialModIds={(ids ?? []) as { id: string; value: string }[]}
         idsError={Boolean(idsError)}
         initialIsArchived={mod.is_archived}

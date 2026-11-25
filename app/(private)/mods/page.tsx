@@ -12,7 +12,7 @@ import { isCatalogWriteAllowed } from "@/lib/catalog-write-protection";
 import { isTestCategoryWriteAllowed } from "@/lib/category-persistence-input";
 import { buildPrimaryCategoryMap } from "@/lib/data-sync";
 import { sortCategoriesForLoadOrder } from "@/lib/steam-category-rules";
-import { summarizeModDescription } from "@/lib/steam-description";
+import { stripWorkshopSuffixFromTitle, summarizeModDescription } from "@/lib/steam-description";
 import { ModCatalogList, type CatalogCategoryBadge } from "@/components/ModCatalogList";
 import { ModRefreshButton } from "@/components/ModRefreshButton";
 import { ModsToolbar } from "@/components/ModsToolbar";
@@ -171,7 +171,7 @@ export default async function ModsPage({
               || summarizeModDescription(mod.description ?? "");
             return {
               id: mod.id,
-              title: mod.title,
+              title: stripWorkshopSuffixFromTitle(mod.title),
               shortDescription: shortText,
               is_archived: mod.is_archived,
               categoryIds: uniqueIds,

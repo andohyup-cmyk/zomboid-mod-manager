@@ -7,6 +7,7 @@ import {
   toEditorCatalogPage,
   type CatalogRow
 } from "@/lib/profile-editor-catalog";
+import { stripWorkshopSuffixFromTitle } from "@/lib/steam-description";
 
 export const dynamic = "force-dynamic";
 
@@ -68,6 +69,7 @@ export async function GET(request: Request) {
 
   const rows = (data as unknown as (CatalogRow & { id: string })[]).map((row) => ({
     ...row,
+    title: stripWorkshopSuffixFromTitle(row.title),
     primaryCategory: primaryByMod.get(row.id) ?? null
   }));
 

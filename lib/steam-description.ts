@@ -106,3 +106,13 @@ export function formatSteamDate(iso: string | null | undefined): string | null {
   if (!Number.isFinite(ms)) return null;
   return new Date(ms).toISOString().slice(0, 10);
 }
+
+/**
+ * Removes trailing "(Workshop 1234567890)" fallback suffixes from mod display titles
+ * so Workshop ID is not shown twice in cards.
+ */
+export function stripWorkshopSuffixFromTitle(title: string): string {
+  if (!title || typeof title !== "string") return "";
+  const stripped = title.replace(/\s*\(Workshop\s+\d{5,20}\)\s*$/i, "").trim();
+  return stripped || title.trim();
+}

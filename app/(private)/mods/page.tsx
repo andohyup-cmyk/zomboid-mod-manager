@@ -12,7 +12,7 @@ import {
 import { isCatalogWriteAllowed } from "@/lib/catalog-write-protection";
 import { isTestCategoryWriteAllowed } from "@/lib/category-persistence-input";
 import { CategoryManager } from "@/components/CategoryManager";
-import { ModCatalogList } from "@/components/ModCatalogList";
+import { ModCatalogList, type QuickFilterMode } from "@/components/ModCatalogList";
 import { PcModIdBackfillPanel } from "@/components/PcModIdBackfillPanel";
 
 export const dynamic = "force-dynamic";
@@ -41,50 +41,65 @@ export default async function ModsPage({
   const category = parseCategoryScopeFilter(rawParams.category);
   const modIdFilter = parseModIdFilter(rawParams.modId);
 
-  // Owner-scoped category data. Failures degrade to "no category info", never block the list.
-  const { data: categoryRows } = await access.supabase.from("categories")
-    .select("id,name,sort_order").eq("owner_id", access.user.id)
-    .order("sort_order", { ascending: true }).order("name", { ascending: true }).limit(200);
-  const categories = (categoryRows ?? []) as { id: string; name: string }[];
+  const specificCategoryUuid = category && category !== UNCLASSIFIED_CATEGORY_FILTER ? category : "";
+  const hasServerFilters = Boolean(
+    query
+    || archive !== "active"
+    || build
+    || multiplayer
+    || specificCategoryUuid
+    || modIdFilter === "present"
+  );
 
-  let categoryModIds: string[] | null = null;
-  let classifiedModIds: Set<string> | null = null;
-  if (category === UNCLASSIFIED_CATEGORY_FILTER) {
-    const { data: links } = await access.supabase.from("mod_categories")
-      .select("mod_id").eq("owner_id", access.user.id).limit(2000);
-    classifiedModIds = new Set((links ?? []).map(row => row.mod_id as string));
-  } else if (category) {
-    const { data: links } = await access.supabase.from("mod_categories")
-      .select("mod_id").eq("owner_id", access.user.id).eq("category_id", category).limit(CATALOG_LIST_LIMIT);
-    categoryModIds = (links ?? []).map(row => row.mod_id as string);
-  }
-
-  // Scope the query to the signed-in owner before applying optional filters.
+  // Run all owner-scoped reads in a single parallel round-trip to minimize mobile latency.
   const base = access.supabase.from("mods")
     .select("id,title,workshop_id,verification_status,build_compatibility,multiplayer_compatibility,is_archived,created_at,mod_ids(value)")
     .eq("owner_id", access.user.id)
     .limit(CATALOG_LIST_LIMIT);
-  const scoped = categoryModIds === null ? base
-    : base.in("id", categoryModIds.length ? categoryModIds : ["00000000-0000-0000-0000-000000000000"]);
-  const req = applyCatalogListFilters(scoped, { query, archive, sort, build, multiplayer });
+  const req = applyCatalogListFilters(base, { query, archive, sort, build, multiplayer });
 
-  const [{ data, error }, { data: allModsData }] = await Promise.all([
+  const [
+    { data: categoryRows },
+    { data: primaryRows },
+    { data, error },
+    categoryLinksRes,
+    allModsRes
+  ] = await Promise.all([
+    access.supabase.from("categories")
+      .select("id,name,sort_order").eq("owner_id", access.user.id)
+      .order("sort_order", { ascending: true }).order("name", { ascending: true }).limit(200),
+    access.supabase.from("mod_category_primary")
+      .select("mod_id,category_id").eq("owner_id", access.user.id).limit(500),
     req,
-    access.supabase.from("mods")
-      .select("id,title,workshop_id,mod_ids(value)")
-      .eq("owner_id", access.user.id)
-      .limit(500)
+    specificCategoryUuid
+      ? access.supabase.from("mod_categories")
+          .select("mod_id").eq("owner_id", access.user.id)
+          .eq("category_id", specificCategoryUuid).limit(CATALOG_LIST_LIMIT)
+      : Promise.resolve({ data: null }),
+    hasServerFilters
+      ? access.supabase.from("mods")
+          .select("id,title,workshop_id,mod_ids(value)")
+          .eq("owner_id", access.user.id)
+          .limit(500)
+      : Promise.resolve({ data: null })
   ]);
 
+  const categories = (categoryRows ?? []) as { id: string; name: string }[];
   const rawItems = (data ?? []) as CatalogMod[];
+
+  const categoryModIdSet = specificCategoryUuid
+    ? new Set((categoryLinksRes.data ?? []).map((row) => row.mod_id as string))
+    : null;
+
+  // Apply server-level filters (specific category UUID or modId=present);
+  // unclassified / missing Mod ID quick chips filter instantly on the client.
   const items = rawItems.filter((mod) => {
-    if (classifiedModIds && classifiedModIds.has(mod.id)) return false;
-    if (modIdFilter === "missing" && (mod.mod_ids?.length ?? 0) > 0) return false;
+    if (categoryModIdSet && !categoryModIdSet.has(mod.id)) return false;
     if (modIdFilter === "present" && (mod.mod_ids?.length ?? 0) === 0) return false;
     return true;
   });
 
-  const allOwnerMods = (allModsData ?? rawItems) as {
+  const allOwnerMods = (allModsRes.data ?? rawItems) as {
     id: string;
     title: string;
     workshop_id: string;
@@ -92,16 +107,20 @@ export default async function ModsPage({
   }[];
 
   const primaryByMod = new Map<string, string>();
-  if (items.length > 0 && categories.length > 0) {
-    const { data: primaries } = await access.supabase.from("mod_category_primary")
-      .select("mod_id,category_id").eq("owner_id", access.user.id)
-      .in("mod_id", items.map(item => item.id));
-    const names = new Map(categories.map(item => [item.id, item.name]));
-    for (const row of primaries ?? []) {
+  if (categories.length > 0 && primaryRows?.length) {
+    const names = new Map(categories.map((item) => [item.id, item.name]));
+    for (const row of primaryRows) {
       const name = names.get(row.category_id as string);
       if (name) primaryByMod.set(row.mod_id as string, name);
     }
   }
+
+  const initialQuickFilter: QuickFilterMode =
+    category === UNCLASSIFIED_CATEGORY_FILTER
+      ? "unclassified"
+      : modIdFilter === "missing"
+        ? "missing_mod_id"
+        : "all";
 
   const activeFilters = [
     archive !== "active",
@@ -112,51 +131,15 @@ export default async function ModsPage({
     modIdFilter !== ""
   ].filter(Boolean).length;
 
-  const quickChips = [
-    {
-      label: "전체",
-      href: "/mods",
-      active: !query && activeFilters === 0
-    },
-    {
-      label: "미분류만",
-      href: `/mods?category=${UNCLASSIFIED_CATEGORY_FILTER}`,
-      active: category === UNCLASSIFIED_CATEGORY_FILTER && !modIdFilter && !build
-    },
-    {
-      label: "Mod ID 미확인",
-      href: "/mods?modId=missing",
-      active: modIdFilter === "missing" && !category && !build
-    },
-    {
-      label: "B42.22 미확인",
-      href: "/mods?build=unverified",
-      active: build === "unverified" && !category && !modIdFilter
-    }
-  ];
+  const catalogWriteEnabled =
+    isCatalogWriteAllowed(process.env, process.env.NEXT_PUBLIC_SUPABASE_URL)
+    || isTestCategoryWriteAllowed(process.env);
 
   return (
     <section className="space-y-4">
       <div className="flex items-center justify-between gap-3">
         <h1 className="text-2xl font-bold">모드 카탈로그</h1>
         <Link href="/register" className="action shrink-0 text-sm">+ 등록</Link>
-      </div>
-
-      <div className="flex flex-wrap gap-1.5" aria-label="빠른 필터">
-        {quickChips.map((chip) => (
-          <Link
-            key={chip.label}
-            href={chip.href}
-            className={
-              "rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors " +
-              (chip.active
-                ? "border-[#8fcb85] bg-[#294535] text-[#b9efb0]"
-                : "border-[#304154] bg-[#101824] text-[#9baebe]")
-            }
-          >
-            {chip.label}
-          </Link>
-        ))}
       </div>
 
       <form method="get" className="space-y-3">
@@ -166,7 +149,7 @@ export default async function ModsPage({
             type="search" inputMode="search" placeholder="모드 이름 또는 Workshop ID" />
           <button type="submit" className="action shrink-0">검색</button>
         </div>
-        <details className="panel group p-4" open={activeFilters > 0}>
+        <details className="panel group p-4" open={hasServerFilters || sort !== "recent"}>
           <summary className="flex cursor-pointer list-none items-center justify-between text-sm font-semibold">
             <span>필터·정렬{activeFilters > 0 ? ` (${activeFilters}개 적용 중)` : ""}</span>
             <span className="muted text-xs group-open:hidden">펼치기</span>
@@ -225,10 +208,7 @@ export default async function ModsPage({
             workshopId: mod.workshop_id,
             existingModIds: (mod.mod_ids ?? []).map((x) => x.value)
           }))}
-          writeEnabled={
-            isCatalogWriteAllowed(process.env, process.env.NEXT_PUBLIC_SUPABASE_URL)
-            || isTestCategoryWriteAllowed(process.env)
-          }
+          writeEnabled={catalogWriteEnabled}
         />
       )}
       {error && <p role="alert" className="text-sm text-red-300">모드 목록을 불러오지 못했습니다.</p>}
@@ -240,6 +220,7 @@ export default async function ModsPage({
       )}
       {!error && items.length > 0 && (
         <ModCatalogList
+          key={initialQuickFilter}
           items={items.map((mod) => ({
             id: mod.id,
             title: mod.title,
@@ -248,10 +229,13 @@ export default async function ModsPage({
             multiplayer_compatibility: mod.multiplayer_compatibility,
             is_archived: mod.is_archived,
             modIdsText: mod.mod_ids?.length ? mod.mod_ids.map((x) => x.value).join(", ") : "미확인",
+            hasModId: Boolean(mod.mod_ids?.length),
             primaryCategoryName: primaryByMod.get(mod.id) ?? null
           }))}
           categories={categories}
           writeEnabled={isTestCategoryWriteAllowed(process.env)}
+          initialQuickFilter={initialQuickFilter}
+          hasServerFilters={hasServerFilters}
         />
       )}
       {rawItems.length >= CATALOG_LIST_LIMIT && (

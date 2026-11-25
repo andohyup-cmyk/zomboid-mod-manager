@@ -56,8 +56,8 @@ export function ModsToolbar({
         {(
           [
             { id: "filter", label: activeFilterCount > 0 ? `필터 (${activeFilterCount})` : "필터" },
-            { id: "category", label: `카테고리 (${categories.length})` },
-            { id: "auto", label: "자동 카테고리 설정" }
+            { id: "category", label: "카테고리" },
+            { id: "auto", label: <>카테고리<br />자동설정</> }
           ] as const
         ).map((item) => {
           const active = openTab === item.id;
@@ -68,7 +68,7 @@ export function ModsToolbar({
               aria-expanded={active}
               onClick={() => toggle(item.id)}
               className={
-                "min-h-11 rounded-xl border px-2 py-2 text-center text-xs font-semibold transition-colors " +
+                "flex min-h-11 items-center justify-center rounded-xl border px-2 py-1.5 text-center text-xs font-semibold leading-tight transition-colors " +
                 (active
                   ? "border-[#8fcb85] bg-[#294535] text-[#b9efb0]"
                   : "border-[#304154] bg-[#101824] text-[#c9d8e5] hover:border-[#6ca67b]")

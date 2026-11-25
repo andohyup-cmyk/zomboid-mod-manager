@@ -4,6 +4,7 @@ import {
   cleanSteamDescription,
   extractSteamUpdatedAt,
   formatSteamDate,
+  stripWorkshopSuffixFromTitle,
   summarizeModDescription
 } from "../lib/steam-description";
 import { parseSteamWorkshopDetails } from "../lib/steam-metadata";
@@ -64,4 +65,11 @@ test("parseSteamWorkshopDetails returns cleaned description, short summary, and 
   assert.doesNotMatch(parsed.records[0].description, /\[img\]|Workshop ID:/);
   assert.ok(parsed.shortDescriptionByWorkshopId["3640496116"].includes("Great mod"));
   assert.equal(parsed.steamUpdatedAtByWorkshopId["3640496116"], "2026-11-15T14:36:08.000Z");
+});
+
+test("stripWorkshopSuffixFromTitle removes trailing (Workshop ID) suffix without losing normal titles", () => {
+  assert.equal(stripWorkshopSuffixFromTitle("RepairAnyClothes (Workshop 2142622992)"), "RepairAnyClothes");
+  assert.equal(stripWorkshopSuffixFromTitle("BetterSortCC (Workshop 2313387159)"), "BetterSortCC");
+  assert.equal(stripWorkshopSuffixFromTitle("[B42.22] VSGirlBody(Integrated)"), "[B42.22] VSGirlBody(Integrated)");
+  assert.equal(stripWorkshopSuffixFromTitle("Workshop 2142622992"), "Workshop 2142622992");
 });

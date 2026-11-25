@@ -9,6 +9,7 @@ import {
   type PcBackfillCatalogMod,
   type PcBackfillPlan
 } from "@/lib/mod-detail-edit";
+import type { SuggestedCategories } from "@/lib/steam-category-rules";
 import type { ResearchRecord } from "@/lib/workshop";
 
 type Props = {
@@ -18,6 +19,7 @@ type Props = {
 
 type SteamLookupState = {
   record: ResearchRecord | null;
+  suggested?: SuggestedCategories;
   failed: boolean;
 };
 
@@ -191,17 +193,19 @@ export function PcModIdBackfillPanel({ catalogMods, writeEnabled }: Props) {
         });
         const body = (await response.json().catch(() => ({}))) as {
           records?: ResearchRecord[];
+          suggestedCategoriesByWorkshopId?: Record<string, SuggestedCategories>;
           error?: string;
         };
         const foundMap = new Map<string, ResearchRecord>();
         if (response.ok && Array.isArray(body.records)) {
           for (const rec of body.records) foundMap.set(rec.workshopId, rec);
         }
+        const suggestedMap = body.suggestedCategoriesByWorkshopId ?? {};
         setSteamByWorkshop(current => {
           const next = { ...current };
           for (const wid of chunk) {
             const match = foundMap.get(wid) ?? null;
-            next[wid] = { record: match, failed: !match };
+            next[wid] = { record: match, suggested: suggestedMap[wid], failed: !match };
           }
           return next;
         });
@@ -234,6 +238,7 @@ export function PcModIdBackfillPanel({ catalogMods, writeEnabled }: Props) {
 
     const today = new Date().toISOString().slice(0, 10);
     const doneWorkshops = new Set<string>();
+    const categoryApplyItems: { modId: string; categoryNames: readonly string[]; primaryCategoryName: string }[] = [];
     let saved = 0;
     let alreadyRegistered = 0;
     let failed = 0;
@@ -256,6 +261,15 @@ export function PcModIdBackfillPanel({ catalogMods, writeEnabled }: Props) {
         if (response.status === 201) {
           saved += 1;
           doneWorkshops.add(item.workshopId);
+          const created = (await response.json().catch(() => ({}))) as { id?: string };
+          const suggested = steamByWorkshop[item.workshopId]?.suggested;
+          if (created.id && suggested && suggested.categoryNames.length > 0 && suggested.primaryCategoryName) {
+            categoryApplyItems.push({
+              modId: created.id,
+              categoryNames: suggested.categoryNames,
+              primaryCategoryName: suggested.primaryCategoryName
+            });
+          }
         } else if (response.status === 409) {
           alreadyRegistered += 1;
           doneWorkshops.add(item.workshopId);
@@ -263,6 +277,22 @@ export function PcModIdBackfillPanel({ catalogMods, writeEnabled }: Props) {
           failed += 1;
           const body = (await response.json().catch(() => ({}))) as { error?: string };
           lastError = body.error || `HTTP ${response.status}`;
+        }
+      }
+
+      let categorized = 0;
+      if (categoryApplyItems.length > 0) {
+        setRegisterProgress("추천 카테고리 자동 적용 중...");
+        const catRes = await fetch("/api/mod-categories/auto-classify", {
+          method: "POST",
+          credentials: "same-origin",
+          cache: "no-store",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ items: categoryApplyItems })
+        }).catch(() => null);
+        if (catRes?.ok) {
+          const catBody = (await catRes.json().catch(() => ({}))) as { appliedCount?: number };
+          categorized = catBody.appliedCount ?? 0;
         }
       }
 
@@ -276,6 +306,7 @@ export function PcModIdBackfillPanel({ catalogMods, writeEnabled }: Props) {
       setSelectedNewWorkshops(current => current.filter(id => !doneWorkshops.has(id)));
       setStatus(
         `새 모드 등록 완료: 추가 ${saved}개` +
+        (categorized > 0 ? ` · 자동 분류 ${categorized}개` : "") +
         (alreadyRegistered > 0 ? ` · 기존 등록 ${alreadyRegistered}개` : "") +
         (failed > 0 ? ` · 실패 ${failed}개` : "")
       );

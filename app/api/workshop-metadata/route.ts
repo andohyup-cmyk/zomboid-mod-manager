@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getOwnerAccess } from "@/lib/auth";
 import { canonicalWorkshopId } from "@/lib/workshop";
 import { parseSteamWorkshopDetails } from "@/lib/steam-metadata";
+import { classifySteamTags, type SuggestedCategories } from "@/lib/steam-category-rules";
 import { attachPcModIdsToResearchRecords } from "@/lib/repo-workshop-audit";
 import { readBoundedResponseText, ResponseTooLargeError } from "@/lib/response-limit";
 
@@ -71,5 +72,15 @@ export async function POST(request: NextRequest) {
     return respond({ error: parsed.errors[0] }, 502);
   }
   const records = attachPcModIdsToResearchRecords(parsed.records);
-  return respond({ ...parsed, records, source: "steam-public-metadata", aiAnalyzed: false });
+  const suggestedCategoriesByWorkshopId: Record<string, SuggestedCategories> = {};
+  for (const [wid, tags] of Object.entries(parsed.tagsByWorkshopId)) {
+    suggestedCategoriesByWorkshopId[wid] = classifySteamTags(tags);
+  }
+  return respond({
+    ...parsed,
+    records,
+    suggestedCategoriesByWorkshopId,
+    source: "steam-public-metadata",
+    aiAnalyzed: false
+  });
 }

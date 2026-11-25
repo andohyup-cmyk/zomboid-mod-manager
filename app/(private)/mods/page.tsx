@@ -15,6 +15,7 @@ import { buildPrimaryCategoryMap } from "@/lib/data-sync";
 import { CategoryManager } from "@/components/CategoryManager";
 import { ModCatalogList, type QuickFilterMode } from "@/components/ModCatalogList";
 import { PcModIdBackfillPanel } from "@/components/PcModIdBackfillPanel";
+import { SteamCategoryAutoClassifyPanel } from "@/components/SteamCategoryAutoClassifyPanel";
 
 export const dynamic = "force-dynamic";
 
@@ -208,6 +209,7 @@ export default async function ModsPage({
         </details>
       </form>
       <CategoryManager initialCategories={categories} writeEnabled={isTestCategoryWriteAllowed(process.env)} />
+      <SteamCategoryAutoClassifyPanel writeEnabled={catalogWriteEnabled} />
       {!error && (
         <PcModIdBackfillPanel
           catalogMods={allOwnerMods.map((mod) => ({

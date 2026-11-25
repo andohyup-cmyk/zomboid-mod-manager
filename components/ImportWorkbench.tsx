@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { groupResearchCandidates, matchResearchCandidatesToInput, type ResearchCandidate } from "@/lib/research-candidates";
 import { eligibleBatchApprovals, unambiguousBatchCandidates } from "@/lib/batch-approval-selection";
 import { parseWorkshopInput, type ResearchRecord } from "@/lib/workshop";
+import type { SuggestedCategories } from "@/lib/steam-category-rules";
 
 const sourceLabels = { inbox: "조사함", manual: "수동 JSON", steam: "Steam 공개 정보 · AI 미분석", queue: "영구 대기함" } as const;
 
@@ -15,11 +16,16 @@ type Result = {
 type InboxResponse = { records: ResearchRecord[]; alreadyRegistered: number; errors: string[] };
 type QueueItem = { id: string; source: "steam" | "manual" | "inbox"; record: ResearchRecord };
 
-function RecordDetails({ item }: { item: ResearchRecord }) {
+function RecordDetails({ item, suggested }: { item: ResearchRecord; suggested?: SuggestedCategories }) {
   return (
     <>
       <p className="muted text-xs">Workshop ID {item.workshopId}</p>
       <p className="text-sm">Mod ID: {item.modIds.length ? item.modIds.join(", ") : "미확인"}</p>
+      {suggested && suggested.categoryNames.length > 0 && (
+        <p className="text-xs text-[#b9efb0]">
+          자동 추천 카테고리: {suggested.categoryNames.map((name) => name === suggested.primaryCategoryName ? `★ ${name}` : name).join(", ")}
+        </p>
+      )}
       <p className="muted whitespace-pre-wrap text-sm">{item.description || "설명 없음"}</p>
       <div className="grid grid-cols-2 gap-2 text-xs">
         <p>조사 상태: {item.verificationStatus}</p>
@@ -128,6 +134,7 @@ export function ImportWorkbench({
   const [inbox, setInbox] = useState<InboxResponse | null>(null);
   const [loadingInbox, setLoadingInbox] = useState(false);
   const [steamRecords, setSteamRecords] = useState<ResearchRecord[]>([]);
+  const [suggestedCategories, setSuggestedCategories] = useState<Record<string, SuggestedCategories>>({});
   const [steamErrors, setSteamErrors] = useState<string[]>([]);
   const [loadingSteam, setLoadingSteam] = useState(false);
   const [queueRecords, setQueueRecords] = useState<QueueItem[]>([]);
@@ -228,21 +235,31 @@ export function ImportWorkbench({
     try {
       const allRecords: ResearchRecord[] = [];
       const allErrors: string[] = [];
+      const allSuggested: Record<string, SuggestedCategories> = {};
       for (let index = 0; index < workshopIds.length; index += 5) {
         const response = await fetch("/api/workshop-metadata", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ workshopIds: workshopIds.slice(index, index + 5) })
         });
-        const body = await response.json() as { records?: ResearchRecord[]; errors?: string[]; error?: string };
+        const body = await response.json() as {
+          records?: ResearchRecord[];
+          suggestedCategoriesByWorkshopId?: Record<string, SuggestedCategories>;
+          errors?: string[];
+          error?: string;
+        };
         if (!response.ok) {
           allErrors.push(body.error || "Steam 정보를 가져오지 못했습니다.");
           break;
         }
         allRecords.push(...(body.records ?? []));
         allErrors.push(...(body.errors ?? []));
+        if (body.suggestedCategoriesByWorkshopId) {
+          Object.assign(allSuggested, body.suggestedCategoriesByWorkshopId);
+        }
       }
       setSteamRecords(allRecords);
+      setSuggestedCategories(current => ({ ...current, ...allSuggested }));
       setSteamErrors(allErrors);
       if (queueWritable && allRecords.length > 0) {
         try {
@@ -299,6 +316,25 @@ export function ImportWorkbench({
         throw new Error(body.error || "등록 결과를 확인하지 못했습니다. 카탈로그를 확인해 주세요.");
       }
       setResults(current => ({ ...current, [id]: { state: "saved", candidate } }));
+
+      // Auto-create & apply Steam tag categories only AFTER explicit catalog approval succeeds.
+      const suggested = suggestedCategories[id];
+      if (suggested && suggested.categoryNames.length > 0 && suggested.primaryCategoryName) {
+        await fetch("/api/mod-categories/auto-classify", {
+          method: "POST",
+          credentials: "same-origin",
+          cache: "no-store",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            items: [{
+              modId: body.id,
+              categoryNames: suggested.categoryNames,
+              primaryCategoryName: suggested.primaryCategoryName
+            }]
+          })
+        }).catch(() => null);
+      }
+
       // Dismiss approved queue entries without deleting their archived database rows.
       const matchingQueueIds = queueRecords.filter(item => item.record.workshopId === id).map(item => item.id);
       if (matchingQueueIds.length) {
@@ -515,7 +551,7 @@ export function ImportWorkbench({
                 <article key={candidate.source + candidate.record.workshopId + candidateIndex} className="panel space-y-3 p-5">
                   <p className="text-xs font-semibold text-[#b9efb0]">{sourceLabels[candidate.source]}</p>
                   <h3 className="text-lg font-bold">{candidate.record.title}</h3>
-                  <RecordDetails item={candidate.record} />
+                  <RecordDetails item={candidate.record} suggested={suggestedCategories[id]} />
                   {!readOnly && (
                     <label className="flex items-center gap-2 text-sm">
                       <input type="checkbox" checked={batchChoices[id] === candidate} disabled={blocked || approvingBatch}

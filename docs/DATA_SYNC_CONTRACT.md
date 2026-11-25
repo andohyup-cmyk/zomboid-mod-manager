@@ -18,8 +18,8 @@
 |---|---|---|---|
 | `mod` (등록·상태·메모·보관/복원) | `POST /api/mods`, `PATCH /api/mods/[id]` | `/dashboard`, `/mods`, `/mods/[id]`, `/profiles`, `/profiles/editor`, `/backup` | `mods`, `researchRecords` |
 | `modId` (추가·일괄 채우기·삭제) | `POST/DELETE /api/mod-ids` | `/dashboard`, `/mods`, `/mods/[id]`, `/profiles/editor`, `/backup` | `modIds` |
-| `category` (추가·이름 변경·삭제) | `POST/PATCH/DELETE /api/categories` | `/dashboard`, `/mods`, `/mods/[id]`, `/profiles/editor`, `/backup` | `categories` |
-| `modCategory` (모드 소속·대표·미분류 해제) | `POST /api/mod-categories` | `/dashboard`, `/mods`, `/mods/[id]`, `/profiles/editor`, `/backup` | `modCategories`, `modCategoryPrimary` |
+| `category` (추가·이름 변경·삭제) | `POST/PATCH/DELETE /api/categories`, `POST /api/mod-categories/auto-classify` | `/dashboard`, `/mods`, `/mods/[id]`, `/profiles/editor`, `/backup` | `categories` |
+| `modCategory` (모드 소속·대표·미분류 해제·자동 분류) | `POST /api/mod-categories`, `POST /api/mod-categories/auto-classify` | `/dashboard`, `/mods`, `/mods/[id]`, `/profiles/editor`, `/backup` | `modCategories`, `modCategoryPrimary` |
 | `profile` (프로필 생성) | `POST /api/profiles` | `/dashboard`, `/profiles`, `/profiles/editor`, `/backup` | `profiles` |
 | `profileSnapshot` (프로필 Mod ID 조합 저장) | `POST /api/profile-snapshots` | `/profiles`, `/profiles/editor`, `/backup` | `profileRevisions`, `profileModChoices`, `profileDownloads` |
 | `selectionGroup` (선택 그룹 생성·삭제) | `POST/DELETE /api/selection-groups` | `/profiles/editor`, `/backup` | `selectionGroups`, `selectionGroupMembers` |

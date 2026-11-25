@@ -1,8 +1,13 @@
+import { extractSteamTagsFromDetail } from "./steam-category-rules";
 import { normalizeResearchRecord, type ResearchRecord } from "./workshop";
 
 const PZ_APP_ID = 108600;
 
-type ParseResult = { records: ResearchRecord[]; errors: string[] };
+type ParseResult = {
+  records: ResearchRecord[];
+  errors: string[];
+  tagsByWorkshopId: Record<string, string[]>;
+};
 
 function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -22,7 +27,8 @@ export function parseSteamWorkshopDetails(
   const details = wrapper?.publishedfiledetails;
   if (!Array.isArray(details)) return {
     records: [],
-    errors: ["Steam 응답 형식을 확인할 수 없습니다."]
+    errors: ["Steam 응답 형식을 확인할 수 없습니다."],
+    tagsByWorkshopId: {}
   };
 
   const byId = new Map<string, Record<string, unknown>>();
@@ -35,6 +41,7 @@ export function parseSteamWorkshopDetails(
 
   const records: ResearchRecord[] = [];
   const errors: string[] = [];
+  const tagsByWorkshopId: Record<string, string[]> = {};
   for (const id of requestedIds) {
     const entry = byId.get(id);
     if (!entry || entry.result !== 1) {
@@ -57,8 +64,12 @@ export function parseSteamWorkshopDetails(
       buildCompatibility: "unverified",
       multiplayerCompatibility: "unverified"
     });
-    if (normalized.record) records.push(normalized.record);
-    else errors.push(`Workshop ID ${id}: ${normalized.error ?? "정보 검증 실패"}`);
+    if (normalized.record) {
+      records.push(normalized.record);
+      tagsByWorkshopId[id] = extractSteamTagsFromDetail(entry);
+    } else {
+      errors.push(`Workshop ID ${id}: ${normalized.error ?? "정보 검증 실패"}`);
+    }
   }
-  return { records, errors };
+  return { records, errors, tagsByWorkshopId };
 }

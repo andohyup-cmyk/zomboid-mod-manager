@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { getOwnerAccess } from "@/lib/auth";
+import { PRIVATE_NO_STORE_HEADERS, revalidateDomain } from "@/lib/data-sync";
 import { isSameOriginRequest } from "@/lib/write-origin";
 import {
  isStoredCategoryPrimaryConsistent, isTestCategoryWriteAllowed, parseCategoryAssignment
@@ -7,7 +8,7 @@ import {
 export const runtime="nodejs";
 export const dynamic="force-dynamic";
 function reply(data:unknown,status=200){
- return Response.json(data,{status,headers:{"Cache-Control":"private, no-store"}});
+ return Response.json(data,{status,headers:PRIVATE_NO_STORE_HEADERS});
 }
 export async function GET(request:NextRequest){
  const access=await getOwnerAccess();
@@ -45,5 +46,6 @@ export async function POST(request:NextRequest){
   p_primary_category_id:value.primaryCategoryId
  });
  if(error)return reply({error:error.code==="42501"?"모드 또는 카테고리에 접근할 수 없습니다.":"카테고리 저장 실패"},error.code==="42501"?403:503);
+ revalidateDomain("modCategory",{modIds:[value.modId]});
  return reply({saved:true,modId:value.modId,categoryIds:value.categoryIds,primaryCategoryId:value.primaryCategoryId});
 }

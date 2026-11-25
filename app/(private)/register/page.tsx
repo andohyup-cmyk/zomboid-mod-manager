@@ -1,4 +1,4 @@
-import { ImportWorkbench } from "@/components/ImportWorkbench";
+import { RegisterClient } from "@/components/RegisterClient";
 import { isCatalogWriteAllowed } from "@/lib/catalog-write-protection";
 import { isTestCategoryWriteAllowed } from "@/lib/category-persistence-input";
 import { isPreviewQueueWriteAllowed } from "@/lib/preview-queue-write";
@@ -21,7 +21,7 @@ export default function RegisterPage() {
           조사된 자료는 검토 후 최종 승인해야 카탈로그에 저장됩니다.
         </p>
       </div>
-      <ImportWorkbench readOnly={!canWrite} queueWritable={queueWritable} />
+      <RegisterClient readOnly={!canWrite} queueWritable={queueWritable} />
     </section>
   );
 }

@@ -10,6 +10,12 @@ import { planSavedRelationTargetCoverage } from "@/lib/saved-relation-target-cov
 import { isCatalogWriteAllowed } from "@/lib/catalog-write-protection";
 import { isTestCategoryWriteAllowed } from "@/lib/category-persistence-input";
 import {
+  buildPrimaryCategoryMap,
+  PRIVATE_NO_STORE_HEADERS,
+  revalidateDomain,
+  type PrimaryCategoryInfo
+} from "@/lib/data-sync";
+import {
   isTestProfileSnapshotWriteAllowed,
   profileSnapshotErrorStatus,
   toAtomicProfileRpcPayload
@@ -19,7 +25,7 @@ import { isSameOriginRequest } from "@/lib/write-origin";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const headers = { "Cache-Control": "private, no-store, max-age=0" };
+const headers = PRIVATE_NO_STORE_HEADERS;
 const MAX_REQUEST_CHARS = 180000;
 
 function reply(data: unknown, status = 200) {
@@ -147,6 +153,7 @@ export async function POST(request: NextRequest) {
     : "프로필 저장에 실패했습니다.", code: saveError.code },
     profileSnapshotErrorStatus(saveError.code));
 
+  revalidateDomain("profileSnapshot");
   return reply({ profileId: profile.id, revision: savedRevision }, 201);
 }
 
@@ -210,9 +217,10 @@ export async function GET(request: NextRequest) {
     return reply({ error: "저장된 선택 목록을 모두 확인할 수 없습니다." }, 503);
   }
 
+  type LoadedParent = CatalogEvidenceParent & { title: string };
   const ids = choiceResult.data.map(item => item.mod_id_entry_id);
   let entries: Array<{ id: string; mod_id: string; value: string }> = [];
-  let parents: CatalogEvidenceParent[] = [];
+  let parents: LoadedParent[] = [];
   if (ids.length) {
     const { data, error } = await access.supabase.from("mod_ids")
       .select("id,mod_id,value")
@@ -224,7 +232,7 @@ export async function GET(request: NextRequest) {
     entries = data;
     const parentIds = [...new Set(entries.map(item => item.mod_id))];
     const parentResult = await access.supabase.from("mods")
-      .select("id,owner_id,workshop_id,source_url,verification_status,build_compatibility,multiplayer_compatibility,researched_at,is_archived")
+      .select("id,owner_id,title,workshop_id,source_url,verification_status,build_compatibility,multiplayer_compatibility,researched_at,is_archived")
       .eq("owner_id", access.user.id)
       .in("id", parentIds)
       .limit(501);
@@ -232,14 +240,60 @@ export async function GET(request: NextRequest) {
       || parentResult.data.length !== parentIds.length) {
       return reply({ error: "Workshop 소유권을 확인하지 못했습니다." }, 503);
     }
-    parents = parentResult.data;
+    parents = parentResult.data as LoadedParent[];
   }
 
   const restored = reconstructProfileSnapshot(
     access.user.id, choiceResult.data, downloadResult.data, entries, parents
   );
   if (!restored) return reply({ error: "프로필 저장 내용 검증에 실패했습니다." }, 503);
-  const payload = { profileId: profile.id, revision, ...restored };
+
+  const parentWorkshops = new Set(parents.map(p => p.workshop_id));
+  const extraDownloadWorkshops = restored.downloadOnlyWorkshopIds.filter(wid => !parentWorkshops.has(wid));
+  const [categoriesRes, primaryRes, downloadModsRes] = await Promise.all([
+    parents.length
+      ? access.supabase.from("categories").select("id,name").eq("owner_id", access.user.id).limit(500)
+      : Promise.resolve({ data: null, error: null }),
+    parents.length
+      ? access.supabase.from("mod_category_primary").select("mod_id,category_id")
+          .eq("owner_id", access.user.id).in("mod_id", parents.map(p => p.id)).limit(501)
+      : Promise.resolve({ data: null, error: null }),
+    extraDownloadWorkshops.length
+      ? access.supabase.from("mods").select("workshop_id,title,is_archived")
+          .eq("owner_id", access.user.id).in("workshop_id", extraDownloadWorkshops).limit(501)
+      : Promise.resolve({ data: null, error: null })
+  ]);
+
+  const primaryByMod = !categoriesRes.error && !primaryRes.error
+    ? buildPrimaryCategoryMap(
+        (categoriesRes.data ?? []) as { id: string; name: string }[],
+        (primaryRes.data ?? []) as { mod_id: string; category_id: string }[]
+      )
+    : new Map<string, PrimaryCategoryInfo>();
+
+  const byWorkshopId: Record<string, {
+    title: string;
+    isArchived: boolean;
+    primaryCategory: PrimaryCategoryInfo | null;
+  }> = {};
+  for (const parent of parents) {
+    byWorkshopId[parent.workshop_id] = {
+      title: parent.title,
+      isArchived: parent.is_archived,
+      primaryCategory: primaryByMod.get(parent.id) ?? null
+    };
+  }
+  for (const row of (downloadModsRes.data ?? []) as { workshop_id: string; title: string; is_archived: boolean }[]) {
+    if (!byWorkshopId[row.workshop_id]) {
+      byWorkshopId[row.workshop_id] = {
+        title: row.title,
+        isArchived: row.is_archived,
+        primaryCategory: null
+      };
+    }
+  }
+
+  const payload = { profileId: profile.id, revision, ...restored, catalogMeta: { byWorkshopId } };
   if (prefixChoice === null) return reply(payload);
 
   // Basic output only: the selected, owner-verified Mod ID membership is

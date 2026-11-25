@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getOwnerAccess } from "@/lib/auth";
+import { countActiveUnclassifiedMods } from "@/lib/data-sync";
 
 export const dynamic = "force-dynamic";
 
@@ -8,23 +9,30 @@ export default async function DashboardPage() {
   if (access.kind !== "authorized") return null;
 
   const owner = access.user.id;
-  const [mods, profiles, unverified, primaries] = await Promise.all([
-    access.supabase.from("mods").select("id", { count: "exact", head: true })
-      .eq("owner_id", owner).eq("is_archived", false),
-    access.supabase.from("profiles").select("id", { count: "exact", head: true }),
+  const [activeModsRes, profiles, unverified, primaries] = await Promise.all([
+    access.supabase.from("mods").select("id", { count: "exact" })
+      .eq("owner_id", owner).eq("is_archived", false).limit(1000),
+    access.supabase.from("profiles").select("id", { count: "exact", head: true })
+      .eq("owner_id", owner),
     access.supabase.from("mods").select("id", { count: "exact", head: true })
       .eq("owner_id", owner).eq("is_archived", false).eq("build_compatibility", "unverified"),
-    access.supabase.from("mod_category_primary").select("mod_id", { count: "exact", head: true })
-      .eq("owner_id", owner)
+    access.supabase.from("mod_category_primary").select("mod_id")
+      .eq("owner_id", owner).limit(1000)
   ]);
-  const total = mods.count ?? null;
-  const unclassified = total !== null && primaries.count !== null && !primaries.error
-    ? Math.max(total - primaries.count, 0) : null;
+  const total = activeModsRes.error ? null : (activeModsRes.count ?? activeModsRes.data?.length ?? null);
+  const exactActiveRows = !activeModsRes.error && activeModsRes.data
+    && (activeModsRes.count === null || activeModsRes.count <= activeModsRes.data.length);
+  const unclassified = exactActiveRows && !primaries.error && primaries.data && primaries.data.length < 1000
+    ? countActiveUnclassifiedMods(
+        activeModsRes.data.map((row) => row.id as string),
+        primaries.data.map((row) => row.mod_id as string)
+      )
+    : null;
   const stats: { label: string; value: number | null; href: string }[] = [
     { label: "등록된 모드", value: total, href: "/mods" },
-    { label: "서버 프로필", value: profiles.count ?? null, href: "/profiles" },
+    { label: "서버 프로필", value: profiles.error ? null : (profiles.count ?? null), href: "/profiles" },
     { label: "B42.22 미확인", value: unverified.error ? null : (unverified.count ?? null), href: "/mods?build=unverified" },
-    { label: "미분류 (추정)", value: unclassified, href: "/mods?category=unclassified" }
+    { label: "미분류", value: unclassified, href: "/mods?category=unclassified" }
   ];
 
   return (
@@ -41,7 +49,7 @@ export default async function DashboardPage() {
           </Link>
         ))}
       </div>
-      {(mods.error || profiles.error) && (
+      {(activeModsRes.error || profiles.error) && (
         <p className="rounded-xl border border-amber-700/50 p-4 text-sm text-amber-200">
           데이터 조회에 문제가 있습니다. Supabase 마이그레이션 및 접근 권한을 확인하세요.
         </p>

@@ -1,5 +1,5 @@
 import { checkBackupV3References } from "./backup-reference-integrity";
-import { checkBackupV4Categories } from "./backup-category-integrity";
+import { checkBackupV4Categories, checkBackupV4SelectionGroups } from "./backup-category-integrity";
 
 export const LEGACY_BACKUP_TABLES = [
   "mods", "modIds", "researchRecords", "profiles", "profileMods", "researchQueue"
@@ -101,6 +101,10 @@ export function inspectBackupSnapshot(input: unknown):
     const checked = checkBackupV4Categories(data as Parameters<typeof checkBackupV4Categories>[0]);
     if (!checked.ok) {
       return { error: "백업 카테고리 무결성 검증 실패: " + checked.reason };
+    }
+    const checkedGroups = checkBackupV4SelectionGroups(data as Parameters<typeof checkBackupV4SelectionGroups>[0]);
+    if (!checkedGroups.ok) {
+      return { error: "백업 선택 그룹 무결성 검증 실패: " + checkedGroups.reason };
     }
   }
   const warnings = [...raw.warnings] as string[];

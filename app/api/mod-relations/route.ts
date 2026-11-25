@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { getOwnerAccess } from "@/lib/auth";
+import { PRIVATE_NO_STORE_HEADERS, revalidateDomain } from "@/lib/data-sync";
 import { isSameOriginRequest } from "@/lib/write-origin";
 import {
   isTestRelationWriteAllowed, parseRelationDraft
@@ -11,7 +12,7 @@ export const runtime = "nodejs";
 
 function reply(data: unknown, status = 200) {
   return Response.json(data, {
-    status, headers: { "Cache-Control": "private, no-store, max-age=0" }
+    status, headers: PRIVATE_NO_STORE_HEADERS
   });
 }
 
@@ -81,5 +82,6 @@ export async function POST(request: NextRequest) {
   if (!data || data.approved !== false) {
     return reply({ error: "관계의 미승인 상태를 검증하지 못했습니다." }, 503);
   }
+  revalidateDomain("modRelation");
   return reply({ relationId: data.id, approved: false, createdAt: data.created_at }, 201);
 }

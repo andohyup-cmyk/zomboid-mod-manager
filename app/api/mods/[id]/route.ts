@@ -3,13 +3,14 @@ import { getOwnerAccess } from "@/lib/auth";
 import { isCatalogModUuid } from "@/lib/catalog-read";
 import { isCatalogWriteAllowed } from "@/lib/catalog-write-protection";
 import { isTestCategoryWriteAllowed } from "@/lib/category-persistence-input";
+import { PRIVATE_NO_STORE_HEADERS, revalidateDomain } from "@/lib/data-sync";
 import { parseModDetailPatchInput } from "@/lib/mod-detail-edit";
 import { isSameOriginRequest } from "@/lib/write-origin";
 
-const NO_STORE = { "Cache-Control": "private, no-store" };
+export const dynamic = "force-dynamic";
 
 function reply(body: unknown, status = 200) {
-  return NextResponse.json(body, { status, headers: NO_STORE });
+  return NextResponse.json(body, { status, headers: PRIVATE_NO_STORE_HEADERS });
 }
 
 export async function PATCH(
@@ -64,5 +65,6 @@ export async function PATCH(
     return reply({ error: "모드를 찾을 수 없습니다." }, 404);
   }
 
+  revalidateDomain("mod", { modIds: [id] });
   return reply({ mod: data }, 200);
 }

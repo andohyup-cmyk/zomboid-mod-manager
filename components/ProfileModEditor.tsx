@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent, type KeyboardEvent } from "react";
 import { createPortableProfile, parsePortableProfile } from "@/lib/profile-portable";
 import { ProfileModOrderList } from "@/components/ProfileModOrderList";
@@ -46,6 +47,12 @@ const SHOW_SERVER_OUTPUT = false;
 
 export type ProfileSummaryItem = Readonly<{ id: string; name: string }>;
 
+type SnapshotWorkshopMeta = Readonly<{
+  title: string;
+  isArchived: boolean;
+  primaryCategory: Readonly<{ id: string; label: string }> | null;
+}>;
+
 const EMPTY_PROFILES: readonly ProfileSummaryItem[] = [];
 
 export function ProfileModEditor({
@@ -63,7 +70,12 @@ export function ProfileModEditor({
   initialProfiles?: readonly ProfileSummaryItem[];
   initialProfileId?: string | null;
 }) {
-  const [profiles, setProfiles] = useState<ProfileSummaryItem[]>([...initialProfiles]);
+  const router = useRouter();
+  const [createdProfiles, setCreatedProfiles] = useState<ProfileSummaryItem[]>([]);
+  const profiles = useMemo(() => {
+    const seen = new Set(initialProfiles.map((p) => p.id));
+    return [...createdProfiles.filter((p) => !seen.has(p.id)), ...initialProfiles];
+  }, [createdProfiles, initialProfiles]);
   const [activeProfileId, setActiveProfileId] = useState<string>(initialProfileId ?? "");
   const [savedRevision, setSavedRevision] = useState<number | null>(null);
   const [loadNonce, setLoadNonce] = useState(0);
@@ -73,6 +85,7 @@ export function ProfileModEditor({
   const [newProfileName, setNewProfileName] = useState("");
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [dbFeedback, setDbFeedback] = useState<{ message: string; error?: boolean; stale?: boolean } | null>(null);
+  const [snapshotMeta, setSnapshotMeta] = useState<Record<string, SnapshotWorkshopMeta>>({});
   const skipLoadIdRef = useRef<string | null>(null);
 
   const [storedGroups, setStoredGroups] = useState<readonly StoredSelectionGroup[]>([]);
@@ -109,20 +122,28 @@ export function ProfileModEditor({
         );
         const body = (await response.json().catch(() => ({}))) as {
           revision?: number;
-          selections?: { workshopId: string; modId: string; enabled: boolean }[];
+          selections?: { workshopId: string; modId: string; modIdUuid?: string; enabled: boolean }[];
           downloadOnlyWorkshopIds?: string[];
+          catalogMeta?: { byWorkshopId?: Record<string, SnapshotWorkshopMeta> };
           error?: string;
         };
         if (!response.ok) {
           throw new Error(body.error || "저장된 프로필을 불러오지 못했습니다.");
         }
-        const loadedSelections: ProfileModSelection[] = (body.selections ?? []).map((item) => ({
-          workshopId: item.workshopId,
-          modId: item.modId,
-          enabled: item.enabled
-        }));
+        const metaByWorkshop = body.catalogMeta?.byWorkshopId ?? {};
+        const loadedSelections: ProfileModSelection[] = (body.selections ?? []).map((item) => {
+          const primaryCategoryId = metaByWorkshop[item.workshopId]?.primaryCategory?.id;
+          return {
+            workshopId: item.workshopId,
+            modId: item.modId,
+            ...(item.modIdUuid ? { modIdUuid: item.modIdUuid } : {}),
+            ...(primaryCategoryId ? { primaryCategoryId } : {}),
+            enabled: item.enabled
+          };
+        });
         const loadedDownloads = body.downloadOnlyWorkshopIds ?? [];
         const rev = typeof body.revision === "number" ? body.revision : 0;
+        setSnapshotMeta(metaByWorkshop);
         setSelections(loadedSelections);
         setConfirmed(loadedSelections);
         setDownloads(loadedDownloads);
@@ -153,14 +174,36 @@ export function ProfileModEditor({
   const catalog = useMemo(() => knownEntries.map(({ workshopId, modIds }) => ({
     workshopId, modIds: modIds.map(({ value }) => value)
   })), [knownEntries]);
-  const titles = useMemo(() => new Map(knownEntries.map((entry) => [entry.workshopId, entry.title])), [knownEntries]);
+  const titles = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const [workshopId, meta] of Object.entries(snapshotMeta)) {
+      map.set(workshopId, meta.title);
+    }
+    for (const entry of knownEntries) {
+      map.set(entry.workshopId, entry.title);
+    }
+    return map;
+  }, [knownEntries, snapshotMeta]);
   const categories = useMemo(() => {
     const labels = new Map<string, string>();
+    for (const meta of Object.values(snapshotMeta)) {
+      if (meta.primaryCategory) labels.set(meta.primaryCategory.id, meta.primaryCategory.label);
+    }
     for (const entry of knownEntries) {
       if (entry.category) labels.set(entry.category.id, entry.category.label);
     }
     return labels;
-  }, [knownEntries]);
+  }, [knownEntries, snapshotMeta]);
+  const archivedInProfileCount = useMemo(() => {
+    const archivedWorkshops = new Set<string>();
+    for (const sel of selections) {
+      if (snapshotMeta[sel.workshopId]?.isArchived) archivedWorkshops.add(sel.workshopId);
+    }
+    for (const wid of downloads) {
+      if (snapshotMeta[wid]?.isArchived) archivedWorkshops.add(wid);
+    }
+    return archivedWorkshops.size;
+  }, [selections, downloads, snapshotMeta]);
   const selectedKeys = useMemo(() => new Set(selections.map(profileModKey)), [selections]);
   const pendingKeys = useMemo(() => new Set(pending.map(profileModKey)), [pending]);
   const warnings = useMemo(() => validateProfileSelection(catalog, selections).warnings, [catalog, selections]);
@@ -309,12 +352,13 @@ export function ProfileModEditor({
       const created = { id: body.profile.id, name: body.profile.name };
       // Keep any unsaved selections the user already built in this tab.
       skipLoadIdRef.current = created.id;
-      setProfiles((current) => [created, ...current]);
+      setCreatedProfiles((current) => [created, ...current]);
       setActiveProfileId(created.id);
       setSavedRevision(0);
       setNewProfileName("");
       setShowCreateForm(false);
       setDbFeedback({ message: `'${created.name}' 프로필을 만들었습니다. 아래 'DB에 저장'을 눌러 현재 조합을 저장하세요.` });
+      router.refresh();
     } catch (err) {
       setDbFeedback({
         message: err instanceof Error ? err.message : "프로필을 만들지 못했습니다.",
@@ -364,6 +408,7 @@ export function ProfileModEditor({
       setConfirmed(selections);
       setConfirmedDownloads(downloads);
       setDbFeedback({ message: `DB에 저장 완료 (v${nextRev} · Mod ID ${selections.length}개)` });
+      router.refresh();
     } catch (err) {
       setDbFeedback({
         message: err instanceof Error ? err.message : "프로필 DB 저장에 실패했습니다.",
@@ -404,6 +449,7 @@ export function ProfileModEditor({
               if (!nextId) {
                 setSavedRevision(null);
                 setDbFeedback(null);
+                setSnapshotMeta({});
               }
             }}
             className="field min-w-0 flex-1 text-sm"
@@ -526,6 +572,15 @@ export function ProfileModEditor({
         <p role="alert" className="rounded-xl border border-[#84414a] bg-[#3d222a] p-3.5 text-sm text-[#ffd2d5]">
           {notice.message}
         </p>
+      )}
+
+      {archivedInProfileCount > 0 && (
+        <section aria-label="보관된 모드 알림" className="rounded-xl border border-[#67532e] bg-[#302717] p-3.5 text-sm text-[#f2d6a0]">
+          <p className="font-bold">보관된 모드 {archivedInProfileCount}개가 이 프로필에 포함되어 있습니다.</p>
+          <p className="mt-1 text-xs leading-5 text-[#e6cf9e]">
+            기존 프로필 구성은 자동으로 제거되지 않습니다. 카탈로그에서 모드를 복원하거나, 필요하면 선택한 모드 탭에서 직접 제거 후 DB에 저장하세요.
+          </p>
+        </section>
       )}
 
       {warnings.length > 0 && (

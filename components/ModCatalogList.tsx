@@ -76,17 +76,26 @@ export function ModCatalogList({
     setConfirming(false);
   }
 
+  const liveCategoryIds = useMemo(() => new Set(categories.map((c) => c.id)), [categories]);
+  const activeSelectedCats = useMemo(
+    () => selectedCats.filter((id) => liveCategoryIds.has(id)),
+    [selectedCats, liveCategoryIds]
+  );
+  const activePrimaryCat = primaryCat && activeSelectedCats.includes(primaryCat)
+    ? primaryCat
+    : (activeSelectedCats[0] ?? null);
+
   function toggleCategory(catId: string) {
     setConfirming(false);
     setSummary("");
     setError("");
-    if (selectedCats.includes(catId)) {
-      const next = selectedCats.filter((id) => id !== catId);
+    if (activeSelectedCats.includes(catId)) {
+      const next = activeSelectedCats.filter((id) => id !== catId);
       setSelectedCats(next);
-      setPrimaryCat(next.includes(primaryCat ?? "") ? primaryCat : (next[0] ?? null));
-    } else if (selectedCats.length < 64) {
-      setSelectedCats([...selectedCats, catId]);
-      setPrimaryCat(primaryCat ?? catId);
+      setPrimaryCat(next.includes(activePrimaryCat ?? "") ? activePrimaryCat : (next[0] ?? null));
+    } else if (activeSelectedCats.length < 64) {
+      setSelectedCats([...activeSelectedCats, catId]);
+      setPrimaryCat(activePrimaryCat ?? catId);
     }
   }
 
@@ -102,7 +111,7 @@ export function ModCatalogList({
 
   async function applyBatch() {
     if (!writeEnabled || busy) return;
-    const requests = buildBatchCategoryRequests(selectedMods, selectedCats, primaryCat);
+    const requests = buildBatchCategoryRequests(selectedMods, activeSelectedCats, activePrimaryCat);
     if (!requests) {
       setError("적용할 모드와 카테고리를 확인해 주세요.");
       return;
@@ -139,7 +148,7 @@ export function ModCatalogList({
   }
 
   const canApply = writeEnabled && !busy && selectedMods.length > 0 &&
-    buildBatchCategoryRequests(selectedMods, selectedCats, primaryCat) !== null;
+    buildBatchCategoryRequests(selectedMods, activeSelectedCats, activePrimaryCat) !== null;
 
   return (
     <div className="space-y-3">
@@ -226,7 +235,7 @@ export function ModCatalogList({
           <div className="flex items-center justify-between gap-2">
             <h2 className="text-sm font-bold">선택한 모드 일괄 분류 ({selectedMods.length}개 선택)</h2>
             <span className="muted text-xs">
-              {selectedCats.length > 0 ? `${selectedCats.length}개 카테고리` : "미분류(0개)"}
+              {activeSelectedCats.length > 0 ? `${activeSelectedCats.length}개 카테고리` : "미분류(0개)"}
             </span>
           </div>
           {!writeEnabled && (
@@ -239,7 +248,7 @@ export function ModCatalogList({
           ) : (
             <div className="space-y-1.5">
               {categories.map((cat) => {
-                const checked = selectedCats.includes(cat.id);
+                const checked = activeSelectedCats.includes(cat.id);
                 return (
                   <div
                     key={cat.id}
@@ -259,7 +268,7 @@ export function ModCatalogList({
                       <input
                         type="radio"
                         name="batch-primary-category"
-                        checked={primaryCat === cat.id}
+                        checked={activePrimaryCat === cat.id}
                         disabled={!checked || busy}
                         onChange={() => { setPrimaryCat(cat.id); setConfirming(false); }}
                         className="h-4 w-4 accent-[#8fcb85]"
@@ -280,7 +289,7 @@ export function ModCatalogList({
             >
               {busy
                 ? "적용 중..."
-                : selectedCats.length === 0
+                : activeSelectedCats.length === 0
                   ? `선택 ${selectedMods.length}개 미분류로 해제`
                   : `선택 ${selectedMods.length}개에 일괄 적용`}
             </button>
@@ -289,7 +298,7 @@ export function ModCatalogList({
             <div className="space-y-2 rounded-lg border border-[#5b704d] p-3 text-xs">
               <p>
                 선택한 {selectedMods.length}개 모드의 기존 카테고리를{" "}
-                {selectedCats.length === 0
+                {activeSelectedCats.length === 0
                   ? "모두 해제(미분류)하시겠습니까?"
                   : "위 선택과 대표 카테고리로 교체하시겠습니까?"}
               </p>

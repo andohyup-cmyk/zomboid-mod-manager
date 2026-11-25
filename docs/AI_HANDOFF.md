@@ -27,25 +27,28 @@
 - **모드 상세 편집 · 보관/복원 (#67, #74):**
   - `/mods/[id]`에서 `Mod ID` 추가·삭제(`POST`/`DELETE /api/mod-ids`), 조사·B42.22·멀티 호환성·확인일·메모 수정 및 **모드 보관/복원(`isArchived`)** (`PATCH /api/mods/[id]`).
   - `/mods/[id]` DB 조회 단일 `Promise.all` 병렬화 완료.
-  - 시험 DB 마이그레이션: `20261124000200` 적용 완료 / **`20261125000100` (`grant update (is_archived)`) 적용 및 더미 모드 3개 정리 SQL은 사용자 실행 대기**.
+  - 시험 DB 마이그레이션 `20261124000200`·`20261125000100`(`is_archived` 권한)·더미 3개 정리 및 실기기 검증 완료.
 - **카테고리 · 선택 그룹 · 목록 빠른 필터 (#45~#66, #72, #73):**
   - 다중 카테고리 + 대표 1개 + 0개(미분류) 해제, 일괄 분류, 카테고리 CRUD.
   - 선택 그룹 DB 저장/삭제(`/api/selection-groups`, 기본값 = 자유 선택).
   - `/mods` 빠른 필터 칩(`전체`·`미분류만`·`Mod ID 미확인`, 0ms 클라이언트 즉시 전환, `B42.22 미확인` 칩 제거 완료), 목록 상한 300건, DB 조회 단일 `Promise.all` 병렬화 완료(모바일 확인 완료).
 - **서버 프로필 DB 저장·불러오기 (#71):**
   - `/profiles`에서 새 서버 프로필 생성(`POST /api/profiles`) 및 카드 클릭으로 `/profiles/editor?profileId=...` 열기.
-  - `/profiles/editor`에서 프로필 선택/생성·불러오기·원자적 DB 저장(`POST /api/profile-snapshots`).
+  - `/profiles/editor`에서 프로필 선택/생성·불러오기·원자적 DB 저장(`POST /api/profile-snapshots`), 모바일 실기기 확인 완료.
   - "서버 설정 출력" 패널(`ProfileServerOutput`, 로컬 `mod.info` 검사 포함)은 `SHOW_SERVER_OUTPUT = false`로 비가시 유지(삭제 안 함).
-- **백업 & 이슈:**
-  - JSON 내보내기(`/api/data-export`)에 `selectionGroups`·`selectionGroupMembers` 선택 포함 및 `BackupInspector` 표시.
-  - 구형 완료 이슈 5건(`#1, #8, #9, #15, #35`) 모두 Close 완료(열린 이슈 0건, 열린 PR 0건).
+- **화면 간 데이터 연동 정합성 & 재발 방지 가드:**
+  - `lib/data-sync.ts` 단일 기준(`SYNC_DOMAIN_PATHS`, `PRIVATE_NO_STORE_HEADERS`, `revalidateDomain`, `buildPrimaryCategoryMap`, `countActiveUnclassifiedMods`) + `docs/DATA_SYNC_CONTRACT.md` 계약 수립.
+  - `tests/data-sync-contract.test.ts` 자동 아키텍처 가드 추가(모든 private 페이지 `force-dynamic`, 모든 API `no-store`+`revalidateDomain`, 백업 테이블 누락 자동 차단).
+  - `/profiles/editor` 대표 카테고리·저장 프로필 `modIdUuid`/제목/보관 알림 연동, `/dashboard` 보관 제외 정확 미분류 계산, `/mods` PC 스캔 보관 모드 인식, 백업 `selectionGroups` 참조 무결성 검증 보강.
+- **백업 & 저장소 정리:**
+  - JSON 내보내기(`/api/data-export`)에 `selectionGroups`·`selectionGroupMembers` 선택 포함·무결성 검증 및 `BackupInspector` 표시.
+  - 구형 원격 브랜치 52개 정리 및 `delete_branch_on_merge = true` 활성화 완료(`main`/`develop` 2개만 유지, 열린 이슈·PR 0건).
 
 ## 미검증 / 다음 작업
-1. **사용자 실행/확인 대기:**
-   - 시험 DB `grant update (is_archived)` + 더미 모드 3개(`9900000001~3`) 삭제 SQL 실행 및 테스트 카테고리 2개 앱 UI 삭제.
-   - 모바일 실기기 확인: `/mods/[id]` 보관·복원, `/profiles` DB 저장·재진입 복원.
+1. **모바일 실기기 확인 (데이터 연동 보강분):**
+   - `/profiles/editor`에서 대표 카테고리 표시·저장 프로필 불러오기 후 선택 그룹 구성원 노출 확인, `/dashboard` 미분류 건수 일치 확인.
 2. **후속 작업 후보:**
-   - 사용자가 원하는 모바일 화면/기능 추가 개선.
+   - 사용자가 원하는 모바일 화면/기능 추가 개선 (추가 시 `docs/DATA_SYNC_CONTRACT.md` 5단계 필수 준수).
    - 시험 환경 실사용 안정화 후, 사용자 별도 승인 시 `main` 운영 반영 및 운영 DB 마이그레이션 준비.
 
 ## 유지할 확정 원칙

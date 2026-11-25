@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getOwnerAccess } from "@/lib/auth";
 import { isCatalogWriteAllowed } from "@/lib/catalog-write-protection";
 import { isTestCategoryWriteAllowed } from "@/lib/category-persistence-input";
+import { PRIVATE_NO_STORE_HEADERS, revalidateDomain } from "@/lib/data-sync";
 import { isPreviewQueueWriteAllowed } from "@/lib/preview-queue-write";
 import { prepareResearchQueueBatch } from "@/lib/research-queue";
 import { normalizeResearchRecord } from "@/lib/workshop";
@@ -13,7 +14,7 @@ export const dynamic = "force-dynamic";
 function respond(body: unknown, status = 200) {
   return NextResponse.json(body, {
     status,
-    headers: { "Cache-Control": "private, no-store, max-age=0" }
+    headers: PRIVATE_NO_STORE_HEADERS
   });
 }
 
@@ -106,6 +107,7 @@ export async function POST(request: NextRequest) {
     .upsert(rows, { onConflict: "owner_id,workshop_id,source", ignoreDuplicates: true })
     .select("id");
   if (error) return respond({ error: "영구 대기함 저장에 실패했습니다." }, 500);
+  revalidateDomain("researchQueue");
   return respond({ saved: data?.length ?? 0 }, 201);
 }
 
@@ -140,5 +142,6 @@ export async function PATCH(request: NextRequest) {
     .eq("status", "pending")
     .select("id");
   if (error) return respond({ error: "대기함 항목 상태를 바꾸지 못했습니다." }, 500);
+  revalidateDomain("researchQueue");
   return respond({ dismissed: data?.length ?? 0 });
 }

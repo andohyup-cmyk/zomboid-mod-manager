@@ -2,13 +2,15 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { statusLabel, statusStyle } from "@/lib/status-display";
 import {
   buildBatchCategoryRequests,
   selectAllBatchMods,
   toggleBatchModSelection
 } from "@/lib/mod-category-batch";
+
+export type QuickFilterMode = "all" | "unclassified" | "missing_mod_id";
 
 export type CatalogListItem = {
   id: string;
@@ -18,6 +20,7 @@ export type CatalogListItem = {
   multiplayer_compatibility: string;
   is_archived: boolean;
   modIdsText: string;
+  hasModId: boolean;
   primaryCategoryName: string | null;
 };
 
@@ -26,13 +29,18 @@ export type BatchCategoryOption = { id: string; name: string };
 export function ModCatalogList({
   items,
   categories,
-  writeEnabled
+  writeEnabled,
+  initialQuickFilter = "all",
+  hasServerFilters = false
 }: {
   items: CatalogListItem[];
   categories: BatchCategoryOption[];
   writeEnabled: boolean;
+  initialQuickFilter?: QuickFilterMode;
+  hasServerFilters?: boolean;
 }) {
   const router = useRouter();
+  const [quickFilter, setQuickFilter] = useState<QuickFilterMode>(initialQuickFilter);
   const [batchMode, setBatchMode] = useState(false);
   const [selectedMods, setSelectedMods] = useState<string[]>([]);
   const [selectedCats, setSelectedCats] = useState<string[]>([]);
@@ -41,6 +49,32 @@ export function ModCatalogList({
   const [busy, setBusy] = useState(false);
   const [summary, setSummary] = useState("");
   const [error, setError] = useState("");
+
+  const counts = useMemo(() => {
+    let unclassified = 0;
+    let missingModId = 0;
+    for (const item of items) {
+      if (item.primaryCategoryName === null) unclassified += 1;
+      if (!item.hasModId) missingModId += 1;
+    }
+    return { all: items.length, unclassified, missingModId };
+  }, [items]);
+
+  const visibleItems = useMemo(() => {
+    if (quickFilter === "unclassified") {
+      return items.filter((item) => item.primaryCategoryName === null);
+    }
+    if (quickFilter === "missing_mod_id") {
+      return items.filter((item) => !item.hasModId);
+    }
+    return items;
+  }, [items, quickFilter]);
+
+  function changeQuickFilter(next: QuickFilterMode) {
+    setQuickFilter(next);
+    setSelectedMods([]);
+    setConfirming(false);
+  }
 
   function toggleCategory(catId: string) {
     setConfirming(false);
@@ -109,16 +143,52 @@ export function ModCatalogList({
 
   return (
     <div className="space-y-3">
+      <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="빠른 필터">
+        {(
+          [
+            { id: "all", label: `전체 (${counts.all})` },
+            { id: "unclassified", label: `미분류만 (${counts.unclassified})` },
+            { id: "missing_mod_id", label: `Mod ID 미확인 (${counts.missingModId})` }
+          ] as const
+        ).map((chip) => {
+          const active = quickFilter === chip.id;
+          return (
+            <button
+              key={chip.id}
+              type="button"
+              aria-pressed={active}
+              onClick={() => changeQuickFilter(chip.id)}
+              className={
+                "rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors " +
+                (active
+                  ? "border-[#8fcb85] bg-[#294535] text-[#b9efb0]"
+                  : "border-[#304154] bg-[#101824] text-[#9baebe]")
+              }
+            >
+              {chip.label}
+            </button>
+          );
+        })}
+        {hasServerFilters && (
+          <Link
+            href="/mods"
+            className="rounded-full border border-[#304154] px-3 py-1.5 text-xs text-[#9baebe] underline"
+          >
+            필터 초기화
+          </Link>
+        )}
+      </div>
+
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="muted text-xs">{items.length}개 표시</p>
+        <p className="muted text-xs">{visibleItems.length}개 표시</p>
         <div className="flex flex-wrap gap-2">
           {batchMode ? (
             <>
               <button
                 type="button"
                 className="secondary-action px-3 py-1.5 text-xs"
-                disabled={busy}
-                onClick={() => setSelectedMods(selectAllBatchMods(items.map((item) => item.id)))}
+                disabled={busy || visibleItems.length === 0}
+                onClick={() => setSelectedMods(selectAllBatchMods(visibleItems.map((item) => item.id)))}
               >
                 전체 선택
               </button>
@@ -238,8 +308,22 @@ export function ModCatalogList({
         </section>
       )}
 
-      <ul className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-2 sm:grid-cols-2">
-        {items.map((mod) => {
+      {visibleItems.length === 0 ? (
+        <div className="panel space-y-2 p-6 text-center">
+          <p className="text-sm font-semibold">해당 조건의 모드가 없습니다.</p>
+          {quickFilter !== "all" && (
+            <button
+              type="button"
+              onClick={() => changeQuickFilter("all")}
+              className="secondary-action text-xs"
+            >
+              전체 모드 보기 ({counts.all})
+            </button>
+          )}
+        </div>
+      ) : (
+        <ul className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-2 sm:grid-cols-2">
+          {visibleItems.map((mod) => {
           const checked = selectedMods.includes(mod.id);
           const cardContent = (
             <>
@@ -298,7 +382,8 @@ export function ModCatalogList({
             </li>
           );
         })}
-      </ul>
+        </ul>
+      )}
     </div>
   );
 }

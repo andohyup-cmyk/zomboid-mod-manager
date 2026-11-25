@@ -7,10 +7,12 @@ export type ManagedCategory = { id: string; name: string };
 
 export function CategoryManager({
   initialCategories,
-  writeEnabled
+  writeEnabled,
+  embedded = false
 }: {
   initialCategories: ManagedCategory[];
   writeEnabled: boolean;
+  embedded?: boolean;
 }) {
   const router = useRouter();
   const [override, setOverride] = useState<{ base: ManagedCategory[]; items: ManagedCategory[] } | null>(null);
@@ -99,14 +101,8 @@ export function CategoryManager({
     }
   }
 
-  return (
-    <details className="panel group p-4">
-      <summary className="flex cursor-pointer list-none items-center justify-between text-sm font-semibold">
-        <span>카테고리 관리 ({items.length})</span>
-        <span className="muted text-xs group-open:hidden">펼치기</span>
-        <span className="muted hidden text-xs group-open:inline">접기</span>
-      </summary>
-      <div className="mt-3 space-y-3">
+  const content = (
+    <div className={embedded ? "space-y-3" : "mt-3 space-y-3"}>
         {!writeEnabled && (
           <p className="rounded-lg border border-[#5b704d] bg-[#1a2922] p-3 text-xs" role="status">
             현재 환경은 읽기 전용입니다. 카테고리 추가·수정·삭제는 시험 쓰기 승인 후 가능합니다.
@@ -191,6 +187,18 @@ export function CategoryManager({
           </ul>
         )}
       </div>
+  );
+
+  if (embedded) return content;
+
+  return (
+    <details className="panel group p-4">
+      <summary className="flex cursor-pointer list-none items-center justify-between text-sm font-semibold">
+        <span>카테고리 ({items.length})</span>
+        <span className="muted text-xs group-open:hidden">펼치기</span>
+        <span className="muted hidden text-xs group-open:inline">접기</span>
+      </summary>
+      {content}
     </details>
   );
 }

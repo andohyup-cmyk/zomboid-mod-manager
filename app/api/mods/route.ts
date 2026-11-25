@@ -4,6 +4,7 @@ import { getOwnerAccess } from "@/lib/auth";
 import { isCatalogWriteAllowed } from "@/lib/catalog-write-protection";
 import { isTestCategoryWriteAllowed } from "@/lib/category-persistence-input";
 import { PRIVATE_NO_STORE_HEADERS, revalidateDomain } from "@/lib/data-sync";
+import { summarizeModDescription } from "@/lib/steam-description";
 import { normalizeResearchRecord } from "@/lib/workshop";
 
 export const dynamic = "force-dynamic";
@@ -36,7 +37,7 @@ export async function POST(request: NextRequest) {
   }
 
   const parsed = normalizeResearchRecord(raw);
-  if (parsed.error) return reply({ error: parsed.error }, 400);
+  if (parsed.error || !parsed.record) return reply({ error: parsed.error ?? "입력 형식이 올바르지 않습니다." }, 400);
 
   // The SQL function performs one atomic transaction, with ownership and RLS checks.
   const { data, error } = await access.supabase.rpc("approve_research_record", {
@@ -49,6 +50,32 @@ export async function POST(request: NextRequest) {
     }
     return reply({ error: "데이터 저장에 실패했습니다. 데이터베이스 설정을 확인하세요." }, 500);
   }
+
+  if (typeof data === "string") {
+    const rawObj = (raw && typeof raw === "object" && !Array.isArray(raw))
+      ? (raw as Record<string, unknown>)
+      : {};
+    const rawShort = typeof rawObj.shortDescription === "string"
+      ? rawObj.shortDescription.trim().slice(0, 300)
+      : "";
+    const shortDescription = rawShort || summarizeModDescription(parsed.record.description);
+    const rawUpdated = typeof rawObj.steamUpdatedAt === "string" && Number.isFinite(Date.parse(rawObj.steamUpdatedAt))
+      ? new Date(rawObj.steamUpdatedAt).toISOString()
+      : null;
+
+    const patch: Record<string, string | null> = {};
+    if (shortDescription) patch.short_description = shortDescription;
+    if (rawUpdated) patch.steam_updated_at = rawUpdated;
+    if (Object.keys(patch).length > 0) {
+      // Best-effort metadata update: never fail an already-approved mod if migration is pending.
+      await access.supabase
+        .from("mods")
+        .update(patch)
+        .eq("id", data)
+        .eq("owner_id", access.user.id);
+    }
+  }
+
   revalidateDomain("mod", typeof data === "string" ? { modIds: [data] } : undefined);
   return reply({ id: data }, 201);
 }

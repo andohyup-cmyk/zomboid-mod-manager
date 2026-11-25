@@ -16,7 +16,7 @@
 
 | 변경 도메인 (`SyncDomain`) | 쓰는 API | 자동 갱신 대상 화면 (`revalidateDomain`) | 백업 검증 대상 |
 |---|---|---|---|
-| `mod` (등록·상태·메모·보관/복원) | `POST /api/mods`, `PATCH /api/mods/[id]` | `/dashboard`, `/mods`, `/mods/[id]`, `/profiles`, `/profiles/editor`, `/backup` | `mods`, `researchRecords` |
+| `mod` (등록·메모·보관/복원·삭제·업데이트 갱신) | `POST /api/mods`, `PATCH/DELETE /api/mods/[id]`, `POST /api/mods/refresh-updates` | `/dashboard`, `/mods`, `/mods/[id]`, `/profiles`, `/profiles/editor`, `/backup` | `mods`, `researchRecords` |
 | `modId` (추가·일괄 채우기·삭제) | `POST/DELETE /api/mod-ids` | `/dashboard`, `/mods`, `/mods/[id]`, `/profiles/editor`, `/backup` | `modIds` |
 | `category` (추가·이름 변경·삭제) | `POST/PATCH/DELETE /api/categories`, `POST /api/mod-categories/auto-classify` | `/dashboard`, `/mods`, `/mods/[id]`, `/profiles/editor`, `/backup` | `categories` |
 | `modCategory` (모드 소속·대표·미분류 해제·자동 분류) | `POST /api/mod-categories`, `POST /api/mod-categories/auto-classify` | `/dashboard`, `/mods`, `/mods/[id]`, `/profiles/editor`, `/backup` | `modCategories`, `modCategoryPrimary` |

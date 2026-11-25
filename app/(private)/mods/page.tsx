@@ -11,6 +11,7 @@ import {
 } from "@/lib/catalog-read";
 import { isCatalogWriteAllowed } from "@/lib/catalog-write-protection";
 import { isTestCategoryWriteAllowed } from "@/lib/category-persistence-input";
+import { buildPrimaryCategoryMap } from "@/lib/data-sync";
 import { CategoryManager } from "@/components/CategoryManager";
 import { ModCatalogList, type QuickFilterMode } from "@/components/ModCatalogList";
 import { PcModIdBackfillPanel } from "@/components/PcModIdBackfillPanel";
@@ -63,13 +64,14 @@ export default async function ModsPage({
     { data: primaryRows },
     { data, error },
     categoryLinksRes,
-    allModsRes
+    allModsRes,
+    archivedModsRes
   ] = await Promise.all([
     access.supabase.from("categories")
       .select("id,name,sort_order").eq("owner_id", access.user.id)
       .order("sort_order", { ascending: true }).order("name", { ascending: true }).limit(200),
     access.supabase.from("mod_category_primary")
-      .select("mod_id,category_id").eq("owner_id", access.user.id).limit(500),
+      .select("mod_id,category_id").eq("owner_id", access.user.id).limit(1000),
     req,
     specificCategoryUuid
       ? access.supabase.from("mod_categories")
@@ -80,6 +82,13 @@ export default async function ModsPage({
       ? access.supabase.from("mods")
           .select("id,title,workshop_id,mod_ids(value)")
           .eq("owner_id", access.user.id)
+          .limit(500)
+      : Promise.resolve({ data: null }),
+    !hasServerFilters
+      ? access.supabase.from("mods")
+          .select("id,title,workshop_id,mod_ids(value)")
+          .eq("owner_id", access.user.id)
+          .eq("is_archived", true)
           .limit(500)
       : Promise.resolve({ data: null })
   ]);
@@ -99,21 +108,20 @@ export default async function ModsPage({
     return true;
   });
 
-  const allOwnerMods = (allModsRes.data ?? rawItems) as {
+  type BackfillModRow = {
     id: string;
     title: string;
     workshop_id: string;
     mod_ids: { value: string }[] | null;
-  }[];
+  };
+  const allOwnerMods: BackfillModRow[] = hasServerFilters
+    ? ((allModsRes.data ?? rawItems) as BackfillModRow[])
+    : [...rawItems, ...((archivedModsRes.data ?? []) as BackfillModRow[])];
 
-  const primaryByMod = new Map<string, string>();
-  if (categories.length > 0 && primaryRows?.length) {
-    const names = new Map(categories.map((item) => [item.id, item.name]));
-    for (const row of primaryRows) {
-      const name = names.get(row.category_id as string);
-      if (name) primaryByMod.set(row.mod_id as string, name);
-    }
-  }
+  const primaryByMod = buildPrimaryCategoryMap(
+    categories,
+    (primaryRows ?? []) as { mod_id: string; category_id: string }[]
+  );
 
   const initialQuickFilter: QuickFilterMode =
     category === UNCLASSIFIED_CATEGORY_FILTER
@@ -230,7 +238,7 @@ export default async function ModsPage({
             is_archived: mod.is_archived,
             modIdsText: mod.mod_ids?.length ? mod.mod_ids.map((x) => x.value).join(", ") : "미확인",
             hasModId: Boolean(mod.mod_ids?.length),
-            primaryCategoryName: primaryByMod.get(mod.id) ?? null
+            primaryCategoryName: primaryByMod.get(mod.id)?.label ?? null
           }))}
           categories={categories}
           writeEnabled={isTestCategoryWriteAllowed(process.env)}

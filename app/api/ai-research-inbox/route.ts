@@ -45,6 +45,7 @@ export async function GET() {
   const { data, error } = await access.supabase
     .from("mods")
     .select("workshop_id")
+    .eq("owner_id", access.user.id)
     .in("workshop_id", records.map((record) => record.workshopId));
   if (error) return respond({ error: "기존 카탈로그를 확인하지 못했습니다." }, 500);
 

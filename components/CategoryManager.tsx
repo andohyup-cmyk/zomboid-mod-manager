@@ -13,7 +13,8 @@ export function CategoryManager({
   writeEnabled: boolean;
 }) {
   const router = useRouter();
-  const [items, setItems] = useState<ManagedCategory[]>(initialCategories);
+  const [override, setOverride] = useState<{ base: ManagedCategory[]; items: ManagedCategory[] } | null>(null);
+  const items = override?.base === initialCategories ? override.items : initialCategories;
   const [newName, setNewName] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
@@ -26,7 +27,9 @@ export function CategoryManager({
     const res = await fetch("/api/categories", { credentials: "same-origin", cache: "no-store" });
     if (res.ok) {
       const data = (await res.json()) as { categories?: ManagedCategory[] };
-      if (Array.isArray(data.categories)) setItems(data.categories);
+      if (Array.isArray(data.categories)) {
+        setOverride({ base: initialCategories, items: data.categories });
+      }
     }
     router.refresh();
   }

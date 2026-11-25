@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { getOwnerAccess } from "@/lib/auth";
+import { PRIVATE_NO_STORE_HEADERS, revalidateDomain } from "@/lib/data-sync";
 import { isSameOriginRequest } from "@/lib/write-origin";
 import {
   isTestCategoryWriteAllowed,
@@ -10,7 +11,7 @@ import {
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 function reply(data: unknown, status = 200) {
-  return Response.json(data, { status, headers: { "Cache-Control": "private, no-store" } });
+  return Response.json(data, { status, headers: PRIVATE_NO_STORE_HEADERS });
 }
 export async function GET() {
   const access = await getOwnerAccess();
@@ -37,6 +38,7 @@ export async function POST(request: NextRequest) {
   const { data, error } = await access.supabase.from("categories")
     .insert({ owner_id: access.user.id, name: value.name }).select("id,name,sort_order").single();
   if (error) return reply({ error: error.code === "23505" ? "이미 존재하는 카테고리입니다." : "카테고리를 저장할 수 없습니다." }, error.code === "23505" ? 409 : 503);
+  revalidateDomain("category");
   return reply({ category: data }, 201);
 }
 export async function PATCH(request: NextRequest) {
@@ -57,6 +59,7 @@ export async function PATCH(request: NextRequest) {
     .select("id,name,sort_order").maybeSingle();
   if (error) return reply({ error: error.code === "23505" ? "이미 존재하는 카테고리 이름입니다." : "카테고리를 수정할 수 없습니다." }, error.code === "23505" ? 409 : 503);
   if (!data) return reply({ error: "본인 소유 카테고리가 없습니다." }, 404);
+  revalidateDomain("category");
   return reply({ category: data });
 }
 export async function DELETE(request: NextRequest) {
@@ -78,5 +81,6 @@ export async function DELETE(request: NextRequest) {
     if (error.code === "P0002") return reply({ error: "본인 소유 카테고리가 없습니다." }, 404);
     return reply({ error: "카테고리를 삭제할 수 없습니다." }, 503);
   }
+  revalidateDomain("category");
   return reply({ deleted: true, id: value.id });
 }

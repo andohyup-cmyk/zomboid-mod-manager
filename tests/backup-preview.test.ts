@@ -158,13 +158,22 @@ test("structure checks do not mutate the supplied source object", () => {
   assert.equal(JSON.stringify(snapshot), before);
 });
 
-test("optional selection group tables are counted when present and validated", () => {
+test("optional selection group tables are counted when present and validated for referential integrity", () => {
+  const owner = "owner-fixture";
   const withGroups = {
     ...sample,
     data: {
       ...sample.data,
-      selectionGroups: [{ id: "g1", name: "체형" }],
-      selectionGroupMembers: [{ group_id: "g1", mod_id_ref: "m1" }, { group_id: "g1", mod_id_ref: "m2" }]
+      mods: [{ id: "mod-a", owner_id: owner, workshop_id: "3552615247" }],
+      modIds: [
+        { id: "m1", mod_id: "mod-a", value: "BodyA" },
+        { id: "m2", mod_id: "mod-a", value: "BodyB" }
+      ],
+      selectionGroups: [{ id: "g1", owner_id: owner, label: "체형", min_selected: null, max_selected: 1 }],
+      selectionGroupMembers: [
+        { owner_id: owner, group_id: "g1", mod_id_ref: "m1" },
+        { owner_id: owner, group_id: "g1", mod_id_ref: "m2" }
+      ]
     }
   };
   const ok = inspectBackupSnapshot(withGroups);
@@ -177,4 +186,23 @@ test("optional selection group tables are counted when present and validated", (
     data: { ...sample.data, selectionGroups: "not-an-array" }
   };
   assert.ok(inspectBackupSnapshot(malformed).error);
+
+  const orphanMember = {
+    ...withGroups,
+    data: {
+      ...withGroups.data,
+      selectionGroupMembers: [{ owner_id: owner, group_id: "g1", mod_id_ref: "missing-mod-id" }]
+    }
+  };
+  assert.match(inspectBackupSnapshot(orphanMember).error ?? "", /선택 그룹 무결성/);
+
+  const halfMissing = {
+    ...withGroups,
+    data: {
+      ...sample.data,
+      selectionGroups: [{ id: "g1", owner_id: owner, label: "체형" }]
+    }
+  };
+  assert.match(inspectBackupSnapshot(halfMissing).error ?? "", /함께 포함/);
 });
+

@@ -2,16 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { getOwnerAccess } from "@/lib/auth";
 import { isCatalogWriteAllowed } from "@/lib/catalog-write-protection";
 import { isTestCategoryWriteAllowed } from "@/lib/category-persistence-input";
+import { PRIVATE_NO_STORE_HEADERS, revalidateDomain } from "@/lib/data-sync";
 import { parseProfileCreateInput } from "@/lib/profile-name";
 import { isTestProfileSnapshotWriteAllowed } from "@/lib/profile-snapshot-write";
 import { isSameOriginRequest } from "@/lib/write-origin";
 
 export const dynamic = "force-dynamic";
 
-const NO_STORE = { "Cache-Control": "private, no-store, max-age=0" };
-
 function reply(data: unknown, status = 200) {
-  return NextResponse.json(data, { status, headers: NO_STORE });
+  return NextResponse.json(data, { status, headers: PRIVATE_NO_STORE_HEADERS });
 }
 
 function isProfileWriteAllowed() {
@@ -71,5 +70,6 @@ export async function POST(request: NextRequest) {
     return reply({ error: "프로필 생성에 실패했습니다." }, 500);
   }
 
+  revalidateDomain("profile");
   return reply({ profile: data }, 201);
 }

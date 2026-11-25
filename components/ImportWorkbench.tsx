@@ -115,7 +115,15 @@ function DismissDialog({ title, onCancel, onConfirm }: {
   );
 }
 
-export function ImportWorkbench({ readOnly, queueWritable = !readOnly }: { readOnly: boolean; queueWritable?: boolean }) {
+export function ImportWorkbench({
+  readOnly,
+  queueWritable = !readOnly,
+  onCatalogSaved
+}: {
+  readOnly: boolean;
+  queueWritable?: boolean;
+  onCatalogSaved?: () => void;
+}) {
   const [workshopInput, setWorkshopInput] = useState("");
   const [inbox, setInbox] = useState<InboxResponse | null>(null);
   const [loadingInbox, setLoadingInbox] = useState(false);
@@ -319,7 +327,8 @@ export function ImportWorkbench({ readOnly, queueWritable = !readOnly }: { readO
     const { id } = selection;
     const candidate = selected;
     setSelection(null);
-    await registerCandidate(id, candidate);
+    const outcome = await registerCandidate(id, candidate);
+    if (outcome === "saved") onCatalogSaved?.();
   }
 
   const activeBatch = eligibleBatchApprovals(matched.groups, batchChoices, results);
@@ -354,6 +363,7 @@ export function ImportWorkbench({ readOnly, queueWritable = !readOnly }: { readO
       setBatchSummary(summary);
       setApprovingBatch(false);
       setBatchChoices({});
+      if (summary.saved > 0) onCatalogSaved?.();
     }
   }
 

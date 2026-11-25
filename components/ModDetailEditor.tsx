@@ -78,7 +78,8 @@ export function ModDetailEditor({
   writeEnabled
 }: Props) {
   const router = useRouter();
-  const [modIds, setModIds] = useState<ModIdRow[]>([...initialModIds]);
+  const [modIdsOverride, setModIdsOverride] = useState<{ base: readonly ModIdRow[]; value: ModIdRow[] } | null>(null);
+  const modIds = modIdsOverride?.base === initialModIds ? modIdsOverride.value : initialModIds;
   const [newModIdText, setNewModIdText] = useState("");
   const [addingId, setAddingId] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
@@ -86,17 +87,37 @@ export function ModDetailEditor({
   const [modIdMessage, setModIdMessage] = useState<string | null>(null);
   const [modIdError, setModIdError] = useState<string | null>(null);
 
+  const serverStatusKey = `${initialVerificationStatus}|${initialBuildCompatibility}|${initialMultiplayerCompatibility}|${initialResearchedAt ?? ""}|${initialDescription}`;
+  const [statusOverride, setStatusOverride] = useState<{
+    base: string;
+    verificationStatus: CompatibilityStatus;
+    buildCompatibility: CompatibilityStatus;
+    multiplayerCompatibility: CompatibilityStatus;
+    researchedAt: string;
+    description: string;
+  } | null>(null);
+  const activeStatus = statusOverride?.base === serverStatusKey
+    ? statusOverride
+    : {
+        verificationStatus: toStatus(initialVerificationStatus),
+        buildCompatibility: toStatus(initialBuildCompatibility),
+        multiplayerCompatibility: toStatus(initialMultiplayerCompatibility),
+        researchedAt: initialResearchedAt ?? "",
+        description: initialDescription
+      };
+
   const [editingStatus, setEditingStatus] = useState(false);
-  const [verificationStatus, setVerificationStatus] = useState<CompatibilityStatus>(toStatus(initialVerificationStatus));
-  const [buildCompatibility, setBuildCompatibility] = useState<CompatibilityStatus>(toStatus(initialBuildCompatibility));
-  const [multiplayerCompatibility, setMultiplayerCompatibility] = useState<CompatibilityStatus>(toStatus(initialMultiplayerCompatibility));
-  const [researchedAt, setResearchedAt] = useState(initialResearchedAt ?? "");
-  const [description, setDescription] = useState(initialDescription);
+  const [verificationStatus, setVerificationStatus] = useState<CompatibilityStatus>(activeStatus.verificationStatus);
+  const [buildCompatibility, setBuildCompatibility] = useState<CompatibilityStatus>(activeStatus.buildCompatibility);
+  const [multiplayerCompatibility, setMultiplayerCompatibility] = useState<CompatibilityStatus>(activeStatus.multiplayerCompatibility);
+  const [researchedAt, setResearchedAt] = useState(activeStatus.researchedAt);
+  const [description, setDescription] = useState(activeStatus.description);
   const [savingStatus, setSavingStatus] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [statusError, setStatusError] = useState<string | null>(null);
 
-  const [isArchived, setIsArchived] = useState(initialIsArchived);
+  const [archiveOverride, setArchiveOverride] = useState<{ base: boolean; value: boolean } | null>(null);
+  const isArchived = archiveOverride?.base === initialIsArchived ? archiveOverride.value : initialIsArchived;
   const [confirmArchive, setConfirmArchive] = useState(false);
   const [togglingArchive, setTogglingArchive] = useState(false);
   const [archiveError, setArchiveError] = useState<string | null>(null);
@@ -116,7 +137,7 @@ export function ModDetailEditor({
       if (!response.ok) {
         throw new Error(body.error || "보관 상태 변경에 실패했습니다.");
       }
-      setIsArchived(nextArchived);
+      setArchiveOverride({ base: initialIsArchived, value: nextArchived });
       setConfirmArchive(false);
       setStatusMessage(nextArchived ? "모드를 보관함으로 옮겼습니다." : "모드를 사용 중 목록으로 복원했습니다.");
       router.refresh();
@@ -158,9 +179,10 @@ export function ModDetailEditor({
         throw new Error(body.error || "Mod ID 추가에 실패했습니다.");
       }
       if (body.added?.length) {
-        setModIds(current =>
-          [...current, ...body.added!].sort((a, b) => a.value.localeCompare(b.value))
-        );
+        setModIdsOverride({
+          base: initialModIds,
+          value: [...modIds, ...body.added].sort((a, b) => a.value.localeCompare(b.value))
+        });
       }
       setNewModIdText("");
       setModIdMessage(
@@ -192,7 +214,10 @@ export function ModDetailEditor({
       if (!response.ok) {
         throw new Error(body.error || "Mod ID 삭제에 실패했습니다.");
       }
-      setModIds(current => current.filter(item => item.id !== entryId));
+      setModIdsOverride({
+        base: initialModIds,
+        value: modIds.filter(item => item.id !== entryId)
+      });
       setConfirmDeleteId(null);
       setModIdMessage("Mod ID를 삭제했습니다.");
       router.refresh();
@@ -225,6 +250,14 @@ export function ModDetailEditor({
       if (!response.ok) {
         throw new Error(body.error || "상태 저장에 실패했습니다.");
       }
+      setStatusOverride({
+        base: serverStatusKey,
+        verificationStatus,
+        buildCompatibility,
+        multiplayerCompatibility,
+        researchedAt,
+        description
+      });
       setStatusMessage("호환성·메모를 저장했습니다.");
       setEditingStatus(false);
       router.refresh();
@@ -307,21 +340,30 @@ export function ModDetailEditor({
       <div className="space-y-3 border-t border-[#304154] pt-4">
         <div className="flex items-center justify-between gap-2">
           <div className="flex flex-wrap gap-1.5 text-xs">
-            <span className={"rounded-md px-2 py-1 " + statusStyle(verificationStatus)}>
-              조사 {statusLabel(verificationStatus)}
+            <span className={"rounded-md px-2 py-1 " + statusStyle(activeStatus.verificationStatus)}>
+              조사 {statusLabel(activeStatus.verificationStatus)}
             </span>
-            <span className={"rounded-md px-2 py-1 " + statusStyle(buildCompatibility)}>
-              B42.22 {statusLabel(buildCompatibility)}
+            <span className={"rounded-md px-2 py-1 " + statusStyle(activeStatus.buildCompatibility)}>
+              B42.22 {statusLabel(activeStatus.buildCompatibility)}
             </span>
-            <span className={"rounded-md px-2 py-1 " + statusStyle(multiplayerCompatibility)}>
-              멀티 {statusLabel(multiplayerCompatibility)}
+            <span className={"rounded-md px-2 py-1 " + statusStyle(activeStatus.multiplayerCompatibility)}>
+              멀티 {statusLabel(activeStatus.multiplayerCompatibility)}
             </span>
           </div>
           {writeEnabled && (
             <button
               type="button"
               onClick={() => {
-                setEditingStatus(open => !open);
+                setEditingStatus(open => {
+                  if (!open) {
+                    setVerificationStatus(activeStatus.verificationStatus);
+                    setBuildCompatibility(activeStatus.buildCompatibility);
+                    setMultiplayerCompatibility(activeStatus.multiplayerCompatibility);
+                    setResearchedAt(activeStatus.researchedAt);
+                    setDescription(activeStatus.description);
+                  }
+                  return !open;
+                });
                 setStatusError(null);
               }}
               className="secondary-action shrink-0 px-3 py-1.5 text-xs"
@@ -330,7 +372,7 @@ export function ModDetailEditor({
             </button>
           )}
         </div>
-        <p className="muted text-xs">확인일: {researchedAt || "미확인"}</p>
+        <p className="muted text-xs">확인일: {activeStatus.researchedAt || "미확인"}</p>
         {statusMessage && <p role="status" className="text-xs text-[#b9efb0]">{statusMessage}</p>}
         {statusError && <p role="alert" className="text-xs text-red-300">{statusError}</p>}
 

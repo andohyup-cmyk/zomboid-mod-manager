@@ -1,4 +1,5 @@
 import { getOwnerAccess } from "@/lib/auth";
+import { buildPrimaryCategoryMap, PRIVATE_NO_STORE_HEADERS } from "@/lib/data-sync";
 import {
   catalogSearchFilters,
   PROFILE_CATALOG_PAGE_SIZE,
@@ -7,7 +8,9 @@ import {
   type CatalogRow
 } from "@/lib/profile-editor-catalog";
 
-const headers = { "Cache-Control": "private, no-store" };
+export const dynamic = "force-dynamic";
+
+const headers = PRIVATE_NO_STORE_HEADERS;
 
 export async function GET(request: Request) {
   const access = await getOwnerAccess();
@@ -23,7 +26,7 @@ export async function GET(request: Request) {
   }
 
   let catalog = access.supabase.from("mods")
-    .select(query ? "title,workshop_id,mod_ids(id,value),matching:mod_ids()" : "title,workshop_id,mod_ids(id,value)", {
+    .select(query ? "id,title,workshop_id,mod_ids(id,value),matching:mod_ids()" : "id,title,workshop_id,mod_ids(id,value)", {
       count: "exact"
     })
     .eq("owner_id", access.user.id)
@@ -38,11 +41,35 @@ export async function GET(request: Request) {
   }
   if (after !== null) catalog = catalog.gt("workshop_id", after);
 
-  const { data, error, count, status } = await catalog;
+  const [catalogRes, categoriesRes, primaryRes] = await Promise.all([
+    catalog,
+    access.supabase.from("categories")
+      .select("id,name")
+      .eq("owner_id", access.user.id)
+      .limit(500),
+    access.supabase.from("mod_category_primary")
+      .select("mod_id,category_id")
+      .eq("owner_id", access.user.id)
+      .limit(1000)
+  ]);
+
+  const { data, error, count, status } = catalogRes;
   if (status === 401 || status === 403) return Response.json({ error: "denied" }, { status, headers });
   if (error || !data || (data.length === 0 && count !== null && count > 0)) {
     return Response.json({ error: "unavailable" }, { status: 502, headers });
   }
 
-  return Response.json(toEditorCatalogPage(data as unknown as CatalogRow[], count), { headers });
+  const primaryByMod = !categoriesRes.error && !primaryRes.error
+    ? buildPrimaryCategoryMap(
+        (categoriesRes.data ?? []) as { id: string; name: string }[],
+        (primaryRes.data ?? []) as { mod_id: string; category_id: string }[]
+      )
+    : new Map<string, { id: string; label: string }>();
+
+  const rows = (data as unknown as (CatalogRow & { id: string })[]).map((row) => ({
+    ...row,
+    primaryCategory: primaryByMod.get(row.id) ?? null
+  }));
+
+  return Response.json(toEditorCatalogPage(rows, count), { headers });
 }

@@ -51,6 +51,7 @@ export default async function ModDetailPage({ params }: { params: Promise<{ id: 
           className="inline-block break-all text-sm text-[#b9efb0] underline">Steam Workshop 원문 열기</a>
       </div>
       <ModDetailEditor
+        key={id}
         modId={id}
         initialModIds={(ids ?? []) as { id: string; value: string }[]}
         idsError={Boolean(idsError)}
@@ -62,7 +63,7 @@ export default async function ModDetailPage({ params }: { params: Promise<{ id: 
         initialIsArchived={mod.is_archived}
         writeEnabled={writeEnabled}
       />
-      <ModCategoryPanel modId={id} writeEnabled={isTestCategoryWriteAllowed(process.env)} />
+      <ModCategoryPanel key={id} modId={id} writeEnabled={isTestCategoryWriteAllowed(process.env)} />
       <details className="panel space-y-3 p-5" open={sources.length > 0 && sources.length <= 2}>
         <summary className="cursor-pointer text-lg font-bold">조사 기록과 출처 ({sources.length})</summary>
         {recordsError && <p role="alert" className="text-sm text-red-300">조사 기록 조회에 실패했습니다.</p>}

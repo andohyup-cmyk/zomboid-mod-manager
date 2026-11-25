@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { getOwnerAccess } from "@/lib/auth";
 import { isCatalogWriteAllowed } from "@/lib/catalog-write-protection";
 import { isTestCategoryWriteAllowed } from "@/lib/category-persistence-input";
+import { PRIVATE_NO_STORE_HEADERS, revalidateDomain } from "@/lib/data-sync";
 import {
   parseBulkModIdBackfillInput,
   parseModIdAddInput,
@@ -9,10 +10,10 @@ import {
 } from "@/lib/mod-detail-edit";
 import { isSameOriginRequest } from "@/lib/write-origin";
 
-const NO_STORE = { "Cache-Control": "private, no-store" };
+export const dynamic = "force-dynamic";
 
 function reply(body: unknown, status = 200) {
-  return NextResponse.json(body, { status, headers: NO_STORE });
+  return NextResponse.json(body, { status, headers: PRIVATE_NO_STORE_HEADERS });
 }
 
 function isWriteEnabled() {
@@ -104,6 +105,7 @@ export async function POST(request: NextRequest) {
     return reply({ error: "Mod ID 저장에 실패했습니다." }, 500);
   }
 
+  revalidateDomain("modId", { modIds: targetModIds });
   return reply({
     addedCount: inserted?.length ?? rowsToInsert.length,
     skippedCount,
@@ -168,5 +170,6 @@ export async function DELETE(request: NextRequest) {
     return reply({ error: "삭제할 Mod ID를 찾지 못했습니다." }, 404);
   }
 
+  revalidateDomain("modId", { modIds: [parsed.modId] });
   return reply({ deletedId: parsed.modIdEntryId }, 200);
 }

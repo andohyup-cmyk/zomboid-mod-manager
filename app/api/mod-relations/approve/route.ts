@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { getOwnerAccess } from "@/lib/auth";
+import { PRIVATE_NO_STORE_HEADERS, revalidateDomain } from "@/lib/data-sync";
 import { isSameOriginRequest } from "@/lib/write-origin";
 import { isTestRelationWriteAllowed, parseRelationApproval } from "@/lib/mod-relation-review-input";
 import { verifyOwnerRelationEvidence } from "@/lib/mod-relation-review-server";
@@ -10,7 +11,7 @@ export const runtime = "nodejs";
 
 function reply(data: unknown, status = 200) {
   return Response.json(data, {
-    status, headers: { "Cache-Control": "private, no-store, max-age=0" }
+    status, headers: PRIVATE_NO_STORE_HEADERS
   });
 }
 
@@ -78,5 +79,6 @@ export async function POST(request: NextRequest) {
   if (!approved || !approved.approved) {
     return reply({ error: "다른 요청에서 승인 상태가 먼저 변경되었습니다." }, 409);
   }
+  revalidateDomain("modRelation");
   return reply({ relationId: approved.id, approved: true, approvedAt: approved.approved_at });
 }

@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { getOwnerAccess } from "@/lib/auth";
+import { PRIVATE_NO_STORE_HEADERS, revalidateDomain } from "@/lib/data-sync";
 import { isSameOriginRequest } from "@/lib/write-origin";
 import { isTestCategoryWriteAllowed } from "@/lib/category-persistence-input";
 import {
@@ -8,7 +9,7 @@ import {
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 function reply(data: unknown, status = 200) {
-  return Response.json(data, { status, headers: { "Cache-Control": "private, no-store" } });
+  return Response.json(data, { status, headers: PRIVATE_NO_STORE_HEADERS });
 }
 type GroupRow = { id: string; label: string; min_selected: number | null; max_selected: number | null; verified: boolean; evidence_url: string | null };
 type MemberRow = { group_id: string; mod_id_ref: string };
@@ -75,6 +76,7 @@ export async function POST(request: NextRequest) {
     if (error.code === "PZ002" || error.code === "23514") return reply({ error: "선택 그룹 규칙이 올바르지 않습니다." }, 400);
     return reply({ error: "선택 그룹을 저장할 수 없습니다." }, 503);
   }
+  revalidateDomain("selectionGroup");
   return reply({ id: data }, value.id ? 200 : 201);
 }
 
@@ -91,5 +93,6 @@ export async function DELETE(request: NextRequest) {
     .delete().eq("id", value.id).eq("owner_id", access.user.id).select("id");
   if (error) return reply({ error: "선택 그룹을 삭제할 수 없습니다." }, 503);
   if (!data?.length) return reply({ error: "본인 소유 그룹이 없습니다." }, 404);
+  revalidateDomain("selectionGroup");
   return reply({ deleted: true, id: value.id });
 }

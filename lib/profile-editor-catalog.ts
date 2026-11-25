@@ -14,9 +14,11 @@ export type EditorCatalogPage = {
 };
 
 export type CatalogRow = {
+  id?: string;
   title: string;
   workshop_id: string;
   mod_ids: { id: string | null; value: string }[] | null;
+  primaryCategory?: { readonly id: string; readonly label: string } | null;
 };
 
 /** Builds a literal, case-insensitive DB search and quotes it for the PostgREST OR grammar. */
@@ -38,7 +40,8 @@ export function toEditorCatalogPage(rows: readonly CatalogRow[], remainingCount:
     return {
       title: row.title,
       workshopId: row.workshop_id,
-      modIds: [...ids].map(([value, uuid]) => uuid ? { value, uuid } : { value })
+      modIds: [...ids].map(([value, uuid]) => uuid ? { value, uuid } : { value }),
+      ...(row.primaryCategory ? { category: row.primaryCategory } : {})
     };
   });
 

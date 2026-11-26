@@ -132,8 +132,7 @@ export default async function ModDetailPage({ params }: { params: Promise<{ id: 
       </div>
 
       {/* Detailed description card right below */}
-      <section className="panel space-y-2.5 p-5">
-        <h2 className="text-base font-bold">자세한 설명</h2>
+      <section className="panel p-5" aria-label="모드 설명">
         <p className="muted whitespace-pre-wrap text-sm leading-6">
           {detailedDescription || "상세 설명이 없습니다."}
         </p>
@@ -149,7 +148,12 @@ export default async function ModDetailPage({ params }: { params: Promise<{ id: 
         writeEnabled={writeEnabled}
       />
 
-      <ModCategoryPanel key={id} modId={id} writeEnabled={isTestCategoryWriteAllowed(process.env)} />
+      <ModCategoryPanel
+        key={id}
+        modId={id}
+        writeEnabled={isTestCategoryWriteAllowed(process.env)}
+        initialAssignedNames={assignedCategories.map((cat) => cat.name)}
+      />
     </section>
   );
 }

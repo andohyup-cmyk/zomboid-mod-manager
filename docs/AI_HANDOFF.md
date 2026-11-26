@@ -7,17 +7,18 @@
 - 개발 통합 브랜치: **`develop`** (`59129db` 이후 최신). 운영 브랜치: **`main`** (`c39642c`, 당분간 운영 배포 제외).
 - 시험 Preview 자동 배포: `develop`에 push 시 `.github/workflows/vercel-diagnose.yml`이 GitHub Secret `VERCEL_TOKEN` + Vercel REST API로 직접 배포(`READY`까지 확인). **수동 배포 불필요.** Preview 기본 URL: `https://zomboid-mod-manager-git-develop-andohyup-cmyk.vercel.app`.
 - 시험 Supabase: `Zomboid Mod Manager Test` (`smofdbjgcgdmscamknpw`). 시험 쓰기 가드(`isTestCategoryWriteAllowed`) 만료 시각: **2027-01-01 00:00 KST**.
+- 시험 DB SQL 자동 적용: `.github/workflows/apply-test-db-sql.yml` + GitHub Secret `SUPABASE_TEST_DB_URL` (`develop` 전용 + `smofdbjgcgdmscamknpw` 강제 검증). `supabase/test-apply/*.sql`을 추가/수정해 `develop`에 병합하면 자동 실행되며, 미한국어 설명 Workshop ID 요약도 로그로 확인 가능. (**운영 DB는 절대 연결 금지.**)
 
 ## 진행 방침 및 사용자 선호 (새 세션 필수 준수)
-1. **자율 진행 범위:** 코드·테스트·PR·`develop` 병합은 승인 요청 없이 자율 진행. `main`·운영 DB·운영 배포·실데이터 삭제만 별도 승인.
+1. **자율 진행 · 최대 자동화 우선:** 코드·테스트·PR·`develop` 병합·시험 DB SQL 자동 적용(`supabase/test-apply/`) 등 **사용자가 직접 하지 않고 Antigravity가 안전하게 자동 처리할 수 있는 작업은 최대한 자동화**해서 진행한다. `main`·운영 DB·운영 배포·실데이터 삭제만 별도 승인 유지.
 2. **결과 보고 방식:**
    - `[상태]` / `[요약]`은 **매우 짧게** (확인된 원인 + 바뀐 동작 정도만, 과도한 세부 나열 금지).
-   - 반대로 **사용자가 직접 해야 할 일**(Supabase SQL 실행, 모바일 확인 등)은 버튼명·링크 포함 **단계별로 자세히** 안내.
+   - 반대로 **사용자가 직접 해야 할 일**(Secret 등록, 모바일 확인 등)은 버튼명·링크 포함 **단계별로 자세히** 안내.
    - 복사할 SQL·프롬프트는 파일 링크 대신 **코드 블록**으로 제공.
-   - **모바일 Supabase SQL 주의:** 여러 줄 괄호 SQL은 모바일 Monaco 에디터가 끝에 `)`를 중복 붙여 구문 에러를 유발하므로 **한 문장 = 한 줄** 형식으로 제공(크롬 번역 끄기 안내).
+   - **모바일 Supabase SQL 주의:** 직접 SQL을 제공해야 할 경우 여러 줄 괄호 SQL은 모바일 Monaco 에디터가 끝에 `)`를 중복 붙여 구문 에러를 유발하므로 **한 문장 = 한 줄** 형식으로 제공(크롬 번역 끄기 안내).
    - `[추천 모델]` 표기 시 성능 등급 괄호 표기 + Claude 추천 시 사용량 제한 대체 모델 병기 (예: `` `Claude Sonnet 5.5` (medium) / 제한 시 `Gemini 4 Neon` (medium) ``).
    - **매 턴 텔레그램 알림 발송** (`telegram-notify` 스킬 필수 실행).
-3. **로컬/테스트 팁:** `npm install --no-package-lock` 사용(lockfile 없음), 커밋 전 `git checkout next-env.d.ts`, `npm run build` = `verify` + `next build` (현재 단위 테스트 416/416 통과, 브라우저 테스트 `npm run test:browser` 정비 완료).
+3. **로컬/테스트 팁:** `npm install --no-package-lock` 사용(lockfile 없음), 커밋 전 `git checkout next-env.d.ts`, `npm run build` = `verify` + `next build` (현재 단위 테스트 417/417 통과, 브라우저 테스트 `npm run test:browser` 정비 완료).
 
 ## 구현·병합 완료 요약 (`develop`)
 - **모드 등록 · PC 스캔 연동 (#67, #68, #69, #70):**

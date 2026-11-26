@@ -1,0 +1,126 @@
+name: Apply test DB SQL (develop only)
+
+on:
+  push:
+    branches: [develop]
+    paths:
+      - "supabase/test-apply/*.sql"
+  workflow_dispatch:
+    inputs:
+      sql_file:
+        description: "실행할 SQL 파일 경로 (예: supabase/test-apply/20261125000200_example.sql)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+concurrency:
+  group: test-db-sql-apply
+  cancel-in-progress: false
+
+jobs:
+  apply-test-sql:
+    if: github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_TEST_DB_URL: ${{ secrets.SUPABASE_TEST_DB_URL }}
+      EXPECTED_TEST_PROJECT_REF: smofdbjgcgdmscamknpw
+      PGSSLMODE: require
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate secret and test project guard
+        id: guard
+        run: |
+          set +x
+          if [ -z "${SUPABASE_TEST_DB_URL:-}" ]; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::SUPABASE_TEST_DB_URL 시크릿이 아직 등록되지 않아 시험 DB SQL 실행을 건너뜁니다."
+            exit 0
+          fi
+          case "$SUPABASE_TEST_DB_URL" in
+            *"${EXPECTED_TEST_PROJECT_REF}"*)
+              echo "ready=true" >> "$GITHUB_OUTPUT"
+              echo "Verified target is test project (${EXPECTED_TEST_PROJECT_REF})."
+              ;;
+            *)
+              echo "::error::보안 차단: SUPABASE_TEST_DB_URL에 시험 프로젝트 ID(${EXPECTED_TEST_PROJECT_REF})가 포함되어 있지 않습니다. 운영 DB 연결을 방지하기 위해 중단합니다."
+              exit 1
+              ;;
+          esac
+
+      - name: Ensure PostgreSQL client is available
+        if: steps.guard.outputs.ready == 'true'
+        run: |
+          if ! command -v psql >/dev/null 2>&1; then
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq postgresql-client
+          fi
+          psql --version
+
+      - name: Collect and apply SQL files atomically
+        if: steps.guard.outputs.ready == 'true'
+        env:
+          INPUT_SQL_FILE: ${{ github.event.inputs.sql_file }}
+          BEFORE_SHA: ${{ github.event.before }}
+          CURRENT_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          set +x
+          FILES=()
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${INPUT_SQL_FILE}" ]; then
+            FILES+=("${INPUT_SQL_FILE}")
+          else
+            while IFS= read -r line; do
+              [ -n "$line" ] && FILES+=("$line")
+            done < <(git diff --name-only --diff-filter=AM "${BEFORE_SHA}" "${CURRENT_SHA}" -- 'supabase/test-apply/*.sql' | sort)
+          fi
+
+          if [ "${#FILES[@]}" -eq 0 ]; then
+            echo "실행할 supabase/test-apply/*.sql 변경 파일이 없습니다."
+            exit 0
+          fi
+
+          for f in "${FILES[@]}"; do
+            case "$f" in
+              supabase/test-apply/*.sql) ;;
+              *)
+                echo "::error::허용되지 않은 파일 경로입니다: $f"
+                exit 1
+                ;;
+            esac
+            if [[ "$f" == *".."* ]] || [ ! -f "$f" ]; then
+              echo "::error::유효하지 않은 SQL 파일입니다: $f"
+              exit 1
+            fi
+            echo "== Applying $f =="
+            psql "$SUPABASE_TEST_DB_URL" -v ON_ERROR_STOP=1 --single-transaction -f "$f"
+            echo "== Done: $f =="
+          done
+
+      - name: Verify non-sensitive test DB status summary
+        if: steps.guard.outputs.ready == 'true'
+        run: |
+          set -euo pipefail
+          set +x
+          psql "$SUPABASE_TEST_DB_URL" -v ON_ERROR_STOP=1 -c "
+            select
+              count(*) as total_mods,
+              count(*) filter (where is_archived = false) as active_mods,
+              count(*) filter (where coalesce(short_description, '') <> '') as with_short_desc,
+              count(*) filter (where steam_updated_at is not null) as with_steam_updated_at
+            from public.mods;
+          "
+          psql "$SUPABASE_TEST_DB_URL" -v ON_ERROR_STOP=1 -t -A -c "
+            select coalesce(string_agg(workshop_id, ',' order by workshop_id), '')
+            from public.mods
+            where is_archived = false
+              and (
+                coalesce(short_description, '') = ''
+                or short_description !~ '[가-힣]'
+              );
+          " | awk '{print "missing_or_non_korean_workshop_ids=" $0}'

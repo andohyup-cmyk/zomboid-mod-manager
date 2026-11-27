@@ -48,18 +48,17 @@
   - `/profiles/editor` 기존 `추천 정렬` 버튼에 사용자의 1~9번 로드 순서 카테고리 우선순위(`categoryPriority`) 연동 완료.
 - **전 화면 UI 대개편 · 모드 설명/업데이트 날짜/안전 삭제:**
   - 전역 `42.22` 배지 제거(`AppShell`, `dashboard`, `loading`, `login`), 홈 통계 카드 2개(`등록된 모드`·`미분류`)로 단순화, `/profiles` 하단 `JSON 내보내기` 버튼 제거(`/backup` 기능은 유지).
-  - `/mods`: `+ 등록` → **`갱신`** 버튼(`POST /api/mods/refresh-updates`, `steam_updated_at`만 갱신·설명 보호), 상단 3개 1줄 탭(`필터`·`카테고리`·`자동 카테고리 설정`) 적용, PC 스캔·일괄 분류 패널 제거, 카테고리 빠른 선택 단일 드롭다운, 목록 카드(이름·간단 설명·할당 카테고리만 표시).
-  - `/mods/[id]`: 상단 요약 카드 + `자세한 설명` + 최근 스팀 업데이트 날짜 + `모드 영구 삭제`(`DELETE /api/mods/[id]` → `delete_mod` RPC, 서버 프로필 사용 중 차단), `상태·메모 편집`·`조사 기록과 출처` 제거.
+  - `/mods`: 상단 우측 버튼 제거, 상단 3개 1줄 탭(`필터`·`카테고리 생성`·`카테고리/자동설정` 2줄) 적용, PC 스캔·일괄 분류 패널 제거, 카테고리 빠른 선택 단일 드롭다운, 목록 카드(이름·간단 설명·할당 카테고리만 표시).
+  - `/mods/[id]`: 상단 요약 카드 + 설명 본문(`자세한 설명` 제목 제거) + 최근 스팀 업데이트 날짜 + `모드 영구 삭제`(`DELETE /api/mods/[id]` → `delete_mod` RPC, 서버 프로필 사용 중 차단) + 접이식 `카테고리` 목록, `상태·메모 편집`·`조사 기록과 출처` 제거.
   - `/register`: URL 입력+Steam 조회 통합 카드, 컴팩트 카드(이름·Workshop ID·추천 카테고리·간단/자세히 설명·업데이트 날짜), `기존 AI 조사 결과` 제거, `영구 대기함 새로고침` 하단 이동, 카드 클릭 체크 선택 + 선택 삭제.
-  - 시험 DB 마이그레이션 SQL 초안: `supabase/migrations/20261125000200_test_mod_summary_updated_and_delete.sql` (`short_description`, `steam_updated_at`, `delete_mod` RPC — 사용자 실행 대기).
+  - 시험 DB 자동 적용 완료: `short_description`, `steam_updated_at`, `delete_mod` RPC, 81개 모드 한국어 간단/자세히 설명·업데이트 날짜·제목 정리 모두 `smofdbjgcgdmscamknpw` 반영 완료.
 - **백업 & 저장소 정리:**
   - JSON 내보내기(`/api/data-export`)에 `selectionGroups`·`selectionGroupMembers` 선택 포함·무결성 검증 및 `BackupInspector` 표시.
   - 구형 원격 브랜치 52개 정리 및 `delete_branch_on_merge = true` 활성화 완료(`main`/`develop` 2개만 유지, 열린 이슈·PR 0건).
 
 ## 미검증 / 다음 작업
-1. **사용자 실행·확인 대기:**
-   - 시험 DB SQL(`20261125000200`: `short_description`, `steam_updated_at`, `delete_mod` RPC) 실행 + 기존 81개 모드 한국어 간단/자세히 설명 일괄 반영(사용자 요청 시 제공).
-   - 모바일 실기기에서 개편된 홈·모드·상세·등록·서버 화면 확인 및 `/mods` **`갱신`** 버튼 테스트.
+1. **사용자 확인 대기:**
+   - 모바일 실기기에서 개편된 홈·모드·상세·등록·서버 화면 최종 확인.
 2. **필수 후속 단계 (`main` 전환 전 반드시 사용자에게 안내):**
    - 모든 UI/기능 수정이 끝나고 모바일 확인이 완료되면, **`main` 운영 전환 전에 전체 화면 전환·성능 최적화(렉/느린 화면 개선)** 를 먼저 제안하고 진행.
    - 이후 사용자 별도 승인 시 `main` 운영 반영 및 운영 DB 마이그레이션 준비.

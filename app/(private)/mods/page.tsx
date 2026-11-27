@@ -14,7 +14,6 @@ import { buildPrimaryCategoryMap } from "@/lib/data-sync";
 import { sortCategoriesForLoadOrder } from "@/lib/steam-category-rules";
 import { stripWorkshopSuffixFromTitle, summarizeModDescription } from "@/lib/steam-description";
 import { ModCatalogList, type CatalogCategoryBadge } from "@/components/ModCatalogList";
-import { ModRefreshButton } from "@/components/ModRefreshButton";
 import { ModsToolbar } from "@/components/ModsToolbar";
 
 export const dynamic = "force-dynamic";
@@ -127,9 +126,8 @@ export default async function ModsPage({
 
   return (
     <section className="space-y-4">
-      <div className="flex items-start justify-between gap-3">
+      <div>
         <h1 className="text-2xl font-bold">모드 카탈로그</h1>
-        <ModRefreshButton writeEnabled={catalogWriteEnabled} />
       </div>
 
       <ModsToolbar

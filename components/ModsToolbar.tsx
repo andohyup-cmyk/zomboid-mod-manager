@@ -56,7 +56,7 @@ export function ModsToolbar({
         {(
           [
             { id: "filter", label: activeFilterCount > 0 ? `필터 (${activeFilterCount})` : "필터" },
-            { id: "category", label: "카테고리" },
+            { id: "category", label: "카테고리 생성" },
             { id: "auto", label: <>카테고리<br />자동설정</> }
           ] as const
         ).map((item) => {

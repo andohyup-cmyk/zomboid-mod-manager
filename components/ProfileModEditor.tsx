@@ -9,7 +9,11 @@ import type { ServerConfigInput } from "@/lib/server-config";
 import { ProfileServerOutput } from "@/components/ProfileServerOutput";
 import { ProfileOrderPreview } from "@/components/ProfileOrderPreview";
 import { useProfileEditorCatalog } from "@/components/useProfileEditorCatalog";
-import { PROFILE_CATALOG_PAGE_SIZE, PROFILE_CATALOG_SEARCH_LIMIT } from "@/lib/profile-editor-catalog";
+import {
+  PROFILE_CATALOG_PAGE_SIZE,
+  PROFILE_CATALOG_SEARCH_LIMIT,
+  type EditorCatalogPage
+} from "@/lib/profile-editor-catalog";
 import { addProfileModSelections, type ProfileModAddition } from "@/lib/profile-mod-id-integration";
 import {
   getEnabledProfileMods,
@@ -62,7 +66,9 @@ export function ProfileModEditor({
   groupWriteEnabled = false,
   profileWriteEnabled = false,
   initialProfiles = EMPTY_PROFILES,
-  initialProfileId = null
+  initialProfileId = null,
+  initialCatalogPage = null,
+  initialGroups
 }: {
   recommendationOptions: ProfileOrderPreviewOptions;
   relationships?: ServerConfigInput["relationships"];
@@ -70,6 +76,8 @@ export function ProfileModEditor({
   profileWriteEnabled?: boolean;
   initialProfiles?: readonly ProfileSummaryItem[];
   initialProfileId?: string | null;
+  initialCatalogPage?: EditorCatalogPage | null;
+  initialGroups?: readonly StoredSelectionGroup[];
 }) {
   const router = useRouter();
   const [createdProfiles, setCreatedProfiles] = useState<ProfileSummaryItem[]>([]);
@@ -89,9 +97,9 @@ export function ProfileModEditor({
   const [snapshotMeta, setSnapshotMeta] = useState<Record<string, SnapshotWorkshopMeta>>({});
   const skipLoadIdRef = useRef<string | null>(null);
 
-  const [storedGroups, setStoredGroups] = useState<readonly StoredSelectionGroup[]>([]);
+  const [storedGroups, setStoredGroups] = useState<readonly StoredSelectionGroup[]>(() => initialGroups ?? []);
   const groupRules = useMemo(() => toSelectionGroupRules(storedGroups), [storedGroups]);
-  const { catalog: catalogPage, loadCatalog } = useProfileEditorCatalog();
+  const { catalog: catalogPage, loadCatalog } = useProfileEditorCatalog(initialCatalogPage);
   const { knownEntries, request: catalogRequest, status: catalogStatus, nextCursor } = catalogPage;
   const [tab, setTab] = useState<EditorTab>("add");
   const [query, setQuery] = useState("");
@@ -788,7 +796,12 @@ export function ProfileModEditor({
           </section>
         )}
         {catalogStatus !== "denied" && (
-          <SelectionGroupPanel selections={selections} writeEnabled={groupWriteEnabled} onGroupsChange={setStoredGroups} />
+          <SelectionGroupPanel
+            selections={selections}
+            writeEnabled={groupWriteEnabled}
+            initialGroups={initialGroups}
+            onGroupsChange={setStoredGroups}
+          />
         )}
         {catalogStatus !== "denied" && (
           // Kept mounted but hidden (SHOW_SERVER_OUTPUT=false): reserved for later use, not deleted.

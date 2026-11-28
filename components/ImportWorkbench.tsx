@@ -19,7 +19,7 @@ type Result = {
   candidate: ResearchCandidate;
   message?: string;
 };
-type QueueItem = { id: string; source: "steam" | "manual" | "inbox"; record: ResearchRecord };
+export type QueueItem = { id: string; source: "steam" | "manual" | "inbox"; record: ResearchRecord };
 
 function CompactRecordCardBody({
   item,
@@ -179,10 +179,14 @@ function DismissDialog({ count, label, onCancel, onConfirm }: {
 export function ImportWorkbench({
   readOnly,
   queueWritable = !readOnly,
+  initialQueueRecords,
+  initialQueueLoaded = false,
   onCatalogSaved
 }: {
   readOnly: boolean;
   queueWritable?: boolean;
+  initialQueueRecords?: QueueItem[];
+  initialQueueLoaded?: boolean;
   onCatalogSaved?: () => void;
 }) {
   const [workshopInput, setWorkshopInput] = useState("");
@@ -192,7 +196,7 @@ export function ImportWorkbench({
   const [updatedAtByWorkshop, setUpdatedAtByWorkshop] = useState<Record<string, string | null>>({});
   const [steamErrors, setSteamErrors] = useState<string[]>([]);
   const [loadingSteam, setLoadingSteam] = useState(false);
-  const [queueRecords, setQueueRecords] = useState<QueueItem[]>([]);
+  const [queueRecords, setQueueRecords] = useState<QueueItem[]>(() => initialQueueRecords ?? []);
   const [loadingQueue, setLoadingQueue] = useState(false);
   const [queueError, setQueueError] = useState("");
   const [batchChoices, setBatchChoices] = useState<Record<string, ResearchCandidate>>({});
@@ -242,11 +246,11 @@ export function ImportWorkbench({
   }, []);
 
   useEffect(() => {
-    if (!queueWritable) return;
+    if (!queueWritable || initialQueueLoaded) return;
     let active = true;
     void Promise.resolve().then(() => { if (active) void loadQueue(); });
     return () => { active = false; };
-  }, [queueWritable, loadQueue]);
+  }, [queueWritable, initialQueueLoaded, loadQueue]);
 
   async function saveQueue(items: { source: "steam" | "manual" | "inbox"; record: ResearchRecord }[]) {
     if (!queueWritable) return;

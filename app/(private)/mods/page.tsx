@@ -21,12 +21,12 @@ export const dynamic = "force-dynamic";
 type CatalogMod = {
   id: string;
   title: string;
-  description: string;
+  description?: string | null;
   short_description?: string | null;
   workshop_id: string;
   is_archived: boolean;
   created_at: string;
-  mod_ids: { value: string }[] | null;
+  mod_ids?: { value: string }[] | null;
 };
 
 export default async function ModsPage({
@@ -51,8 +51,12 @@ export default async function ModsPage({
   );
 
   // Run all owner-scoped reads in a single parallel round-trip.
+  // Skip heavy description text and mod_ids join unless modIdFilter explicitly requires mod_ids.
+  const selectCols = modIdFilter !== ""
+    ? "id,title,short_description,workshop_id,is_archived,created_at,mod_ids(value)"
+    : "id,title,short_description,workshop_id,is_archived,created_at";
   const baseWithSummary = access.supabase.from("mods")
-    .select("id,title,description,short_description,workshop_id,is_archived,created_at,mod_ids(value)")
+    .select(selectCols)
     .eq("owner_id", access.user.id)
     .limit(CATALOG_LIST_LIMIT);
   const req = applyCatalogListFilters(baseWithSummary, { query, archive, sort, build, multiplayer });
@@ -76,8 +80,11 @@ export default async function ModsPage({
   let data = modsRes.data as CatalogMod[] | null;
   let error = modsRes.error;
   if (error?.code === "42703") {
+    const fallbackCols = modIdFilter !== ""
+      ? "id,title,description,workshop_id,is_archived,created_at,mod_ids(value)"
+      : "id,title,description,workshop_id,is_archived,created_at";
     const fallbackBase = access.supabase.from("mods")
-      .select("id,title,description,workshop_id,is_archived,created_at,mod_ids(value)")
+      .select(fallbackCols)
       .eq("owner_id", access.user.id)
       .limit(CATALOG_LIST_LIMIT);
     const fallbackRes = await applyCatalogListFilters(fallbackBase, { query, archive, sort, build, multiplayer });

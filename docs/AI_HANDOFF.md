@@ -8,6 +8,7 @@
 - 시험 Preview 자동 배포: `develop`에 push 시 `.github/workflows/vercel-diagnose.yml`이 GitHub Secret `VERCEL_TOKEN` + Vercel REST API로 직접 배포(`READY`까지 확인). **수동 배포 불필요.** Preview 기본 URL: `https://zomboid-mod-manager-git-develop-andohyup-cmyk.vercel.app`.
 - 시험 Supabase: `Zomboid Mod Manager Test` (`smofdbjgcgdmscamknpw`). 시험 쓰기 가드(`isTestCategoryWriteAllowed`) 만료 시각: **2027-01-01 00:00 KST**.
 - 시험 DB SQL 자동 적용: `.github/workflows/apply-test-db-sql.yml` + GitHub Secret `SUPABASE_TEST_DB_URL` (`develop` 전용 + `smofdbjgcgdmscamknpw` 강제 검증). `supabase/test-apply/*.sql`을 추가/수정해 `develop`에 병합하면 자동 실행되며, 미한국어 설명 Workshop ID 요약도 로그로 확인 가능. (**운영 DB는 절대 연결 금지.**)
+- 운영 DB 적용(초안): `.github/workflows/apply-prod-db-sql.yml`(수동·`main` 전용·Environment `production` 승인·dry_run 기본 true). 절차는 `supabase/production-draft/README.md`. 시크릿 `SUPABASE_PROD_DB_URL` 등록 전에는 실행 불가.
 
 ## 진행 방침 및 사용자 선호 (새 세션 필수 준수)
 1. **자율 진행 · 최대 자동화 우선:** 코드·테스트·PR·`develop` 병합·시험 DB SQL 자동 적용(`supabase/test-apply/`) 등 **사용자가 직접 하지 않고 Antigravity가 안전하게 자동 처리할 수 있는 작업은 최대한 자동화**해서 진행한다. `main`·운영 DB·운영 배포·실데이터 삭제만 별도 승인 유지.

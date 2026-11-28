@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link, { useLinkStatus } from "next/link";
 import { useMemo, useState } from "react";
 
 export type CatalogCategoryBadge = {
@@ -20,6 +20,48 @@ export type CatalogListItem = {
 };
 
 export type CategoryFilterOption = { id: string; name: string };
+
+function ModCardBody({ mod }: { mod: CatalogListItem }) {
+  const { pending } = useLinkStatus();
+  return (
+    <div
+      className={
+        "panel space-y-2 p-4 transition-colors active:border-[#6ca67b] hover:border-[#6ca67b] " +
+        (pending ? "border-[#8fcb85] bg-[#162822]" : "")
+      }
+    >
+      <div className="flex items-start justify-between gap-2">
+        <h2 className="min-w-0 break-words text-base font-bold">{mod.title}</h2>
+        {pending ? (
+          <span className="shrink-0 text-[11px] font-semibold text-[#b9efb0]">여는 중…</span>
+        ) : mod.is_archived ? (
+          <span className="shrink-0 rounded-md bg-[#2a3441] px-2 py-0.5 text-[11px]">보관</span>
+        ) : null}
+      </div>
+      {mod.shortDescription && (
+        <p className="muted line-clamp-2 text-xs leading-5">{mod.shortDescription}</p>
+      )}
+      <div className="flex flex-wrap gap-1.5 text-[11px]">
+        {mod.categories.length > 0 ? (
+          mod.categories.map((cat) => (
+            <span
+              key={cat.id}
+              className={
+                cat.isPrimary
+                  ? "rounded-md bg-[#234332] px-2 py-0.5 font-semibold text-[#b9efb0]"
+                  : "rounded-md bg-[#1f3a4d] px-2 py-0.5 text-[#bfe3ff]"
+              }
+            >
+              {cat.isPrimary ? `★ ${cat.name}` : cat.name}
+            </span>
+          ))
+        ) : (
+          <span className="rounded-md bg-[#1f3a4d] px-2 py-0.5 text-[#bfe3ff]">미분류</span>
+        )}
+      </div>
+    </div>
+  );
+}
 
 export function ModCatalogList({
   items,
@@ -112,37 +154,8 @@ export function ModCatalogList({
         <ul className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-2 sm:grid-cols-2">
           {visibleItems.map((mod) => (
             <li key={mod.id}>
-              <Link
-                href={`/mods/${mod.id}`}
-                className="panel block space-y-2 p-4 transition-colors active:border-[#6ca67b] hover:border-[#6ca67b]"
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <h2 className="min-w-0 break-words text-base font-bold">{mod.title}</h2>
-                  {mod.is_archived && (
-                    <span className="shrink-0 rounded-md bg-[#2a3441] px-2 py-0.5 text-[11px]">보관</span>
-                  )}
-                </div>
-                {mod.shortDescription && (
-                  <p className="muted line-clamp-2 text-xs leading-5">{mod.shortDescription}</p>
-                )}
-                <div className="flex flex-wrap gap-1.5 text-[11px]">
-                  {mod.categories.length > 0 ? (
-                    mod.categories.map((cat) => (
-                      <span
-                        key={cat.id}
-                        className={
-                          cat.isPrimary
-                            ? "rounded-md bg-[#234332] px-2 py-0.5 font-semibold text-[#b9efb0]"
-                            : "rounded-md bg-[#1f3a4d] px-2 py-0.5 text-[#bfe3ff]"
-                        }
-                      >
-                        {cat.isPrimary ? `★ ${cat.name}` : cat.name}
-                      </span>
-                    ))
-                  ) : (
-                    <span className="rounded-md bg-[#1f3a4d] px-2 py-0.5 text-[#bfe3ff]">미분류</span>
-                  )}
-                </div>
+              <Link href={`/mods/${mod.id}`} className="block rounded-2xl">
+                <ModCardBody mod={mod} />
               </Link>
             </li>
           ))}

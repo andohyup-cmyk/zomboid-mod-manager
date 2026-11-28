@@ -26,13 +26,15 @@ async function fetchGroups(): Promise<StoredSelectionGroup[] | null> {
   } catch { return null; }
 }
 
-export function SelectionGroupPanel({ selections, writeEnabled, onGroupsChange }: {
+export function SelectionGroupPanel({ selections, writeEnabled, initialGroups, onGroupsChange }: {
   selections: readonly ProfileModSelection[];
   writeEnabled: boolean;
+  initialGroups?: readonly StoredSelectionGroup[];
   onGroupsChange: (groups: readonly StoredSelectionGroup[]) => void;
 }) {
-  const [groups, setGroups] = useState<StoredSelectionGroup[]>([]);
-  const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
+  const preloaded = initialGroups !== undefined;
+  const [groups, setGroups] = useState<StoredSelectionGroup[]>(() => (initialGroups ? [...initialGroups] : []));
+  const [status, setStatus] = useState<"loading" | "ready" | "error">(() => (preloaded ? "ready" : "loading"));
   const [open, setOpen] = useState(false);
   const [label, setLabel] = useState("");
   const [rule, setRule] = useState<RuleChoice>("free");
@@ -43,13 +45,14 @@ export function SelectionGroupPanel({ selections, writeEnabled, onGroupsChange }
 
   const [reloadKey, setReloadKey] = useState(0);
   useEffect(() => {
+    if (preloaded && reloadKey === 0) return;
     let alive = true;
     fetchGroups().then((loaded) => {
       if (!alive) return;
       if (loaded) { setGroups(loaded); onGroupsChange(loaded); setStatus("ready"); } else setStatus("error");
     });
     return () => { alive = false; };
-  }, [reloadKey, onGroupsChange]);
+  }, [preloaded, reloadKey, onGroupsChange]);
   const load = () => setReloadKey((key) => key + 1);
 
   const candidates = selections.filter((s) => typeof s.modIdUuid === "string");

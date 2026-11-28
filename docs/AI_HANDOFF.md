@@ -56,12 +56,17 @@
   - JSON 내보내기(`/api/data-export`)에 `selectionGroups`·`selectionGroupMembers` 선택 포함·무결성 검증 및 `BackupInspector` 표시.
   - 구형 원격 브랜치 52개 정리 및 `delete_branch_on_merge = true` 활성화 완료(`main`/`develop` 2개만 유지, 열린 이슈·PR 0건).
 
+- **화면 전환·속도 최적화:**
+  - `vercel.json` 서버리스 리전을 서울(`icn1`)로 고정(기존 미국 동부 `iad1` 대비 한국↔서버↔아시아 DB 왕복 지연 대폭 단축).
+  - `/profiles/editor`·`/register` 클라이언트 마운트 추가 API 왕복 제거(SSR 단일 병렬 조회로 초기 카탈로그 24건·선택 그룹·영구 대기함 선로딩).
+  - `/mods` 목록 조회 경량화(불필요한 긴 `description` 본문·미사용 `mod_ids` 조인 생략).
+  - 하단 탭(`AppShell`) 및 모드 카드(`ModCatalogList`)에 `useLinkStatus()` 0ms 즉시 터치 반응 + 라우트별 `loading.tsx` 스켈레톤(`/mods`, `/mods/[id]`, `/profiles/editor`, `/register`) 추가.
+  - 시험 DB 복합 인덱스 6종 추가(`supabase/test-apply/20261127000300_perf_indexes.sql`).
+
 ## 미검증 / 다음 작업
-1. **사용자 확인 대기:**
-   - 모바일 실기기에서 개편된 홈·모드·상세·등록·서버 화면 최종 확인.
-2. **필수 후속 단계 (`main` 전환 전 반드시 사용자에게 안내):**
-   - 모든 UI/기능 수정이 끝나고 모바일 확인이 완료되면, **`main` 운영 전환 전에 전체 화면 전환·성능 최적화(렉/느린 화면 개선)** 를 먼저 제안하고 진행.
-   - 이후 사용자 별도 승인 시 `main` 운영 반영 및 운영 DB 마이그레이션 준비.
+1. **사용자 최종 확인 대기:**
+   - 모바일 실기기에서 Preview 앱(`develop`)의 화면 전환 속도 및 개편 UI 최종 확인.
+   - 확인 완료 후 사용자 별도 승인 시 `main` 운영 전환 및 운영 DB 마이그레이션 준비.
 
 ## 유지할 확정 원칙
 - Project Zomboid Build 42(현재 기준 B42.22), 모바일 우선 PWA, Next.js/TypeScript/Tailwind, Supabase Google OAuth + RLS, GitHub/Vercel.

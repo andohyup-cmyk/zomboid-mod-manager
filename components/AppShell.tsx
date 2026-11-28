@@ -11,42 +11,58 @@ const navigation = [
   { href: "/profiles", label: "서버 프로필", short: "서버" }
 ];
 
-function PendingDot() {
+function NavLinkContent({
+  text,
+  active,
+  compact
+}: {
+  text: string;
+  active: boolean;
+  compact?: boolean;
+}) {
   const { pending } = useLinkStatus();
-  if (!pending) return null;
+  const highlighted = active || pending;
   return (
     <span
-      aria-hidden="true"
-      className="ml-1.5 inline-block h-1.5 w-1.5 animate-ping rounded-full bg-[#8fcb85]"
-    />
+      className={
+        "flex w-full items-center justify-center rounded-xl text-sm font-semibold transition-colors md:justify-start " +
+        (compact ? "min-h-12 flex-col gap-1 px-2 py-1.5 text-xs " : "px-3 py-3 text-left ") +
+        (highlighted
+          ? "bg-[#294535] text-[#b9efb0]"
+          : "text-[#9baebe] active:bg-[#1b2a39] hover:bg-[#1b2a39] hover:text-white")
+      }
+    >
+      <span className="inline-flex items-center">
+        {text}
+        {pending && (
+          <span
+            aria-hidden="true"
+            className="ml-1.5 inline-block h-1.5 w-1.5 animate-ping rounded-full bg-[#8fcb85]"
+          />
+        )}
+      </span>
+      {compact && (
+        <span
+          aria-hidden="true"
+          className={`h-1 w-4 rounded-full ${highlighted ? "bg-[#8fcb85]" : "bg-transparent"} ${pending ? "animate-pulse" : ""}`}
+        />
+      )}
+    </span>
   );
 }
 
 function NavLink({ href, label, compact }: { href: string; label: string; compact?: boolean }) {
   const pathname = usePathname();
   const active = pathname === href || (href !== "/dashboard" && pathname.startsWith(href + "/"));
+  const text = compact ? (navigation.find((item) => item.href === href)?.short ?? label) : label;
   return (
     <Link
       href={href}
+      prefetch
       aria-current={active ? "page" : undefined}
-      className={
-        "flex items-center justify-center rounded-xl text-sm font-semibold transition-colors md:justify-start " +
-        (compact ? "min-h-12 flex-col gap-1 px-2 py-1.5 text-xs " : "px-3 py-3 text-left ") +
-        (active
-          ? "bg-[#294535] text-[#b9efb0]"
-          : "text-[#9baebe] active:bg-[#1b2a39] hover:bg-[#1b2a39] hover:text-white")
-      }
+      className="block rounded-xl"
     >
-      <span className="inline-flex items-center">
-        {compact ? navigation.find((item) => item.href === href)?.short : label}
-        <PendingDot />
-      </span>
-      {compact && (
-        <span
-          aria-hidden="true"
-          className={`h-1 w-4 rounded-full ${active ? "bg-[#8fcb85]" : "bg-transparent"}`}
-        />
-      )}
+      <NavLinkContent text={text} active={active} compact={compact} />
     </Link>
   );
 }

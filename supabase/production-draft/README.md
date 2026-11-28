@@ -20,3 +20,9 @@
 
 적용 전 확인: 운영 DB 백업, 비-`create or replace` 문(테이블·정책 create)이 이미 존재하지 않는지, `is_authorized_user()`·`approve_research_record` 존재 여부.
 Vercel Production 환경변수: `CATALOG_WRITE_PRODUCTION_VERCEL_PROJECT_ID`, `CATALOG_WRITE_PRODUCTION_SUPABASE_ORIGIN`, 운영 `NEXT_PUBLIC_SUPABASE_URL`이 운영 DB를 가리켜야 한다. `vercel.json`의 `icn1` 리전은 운영 DB 리전과 맞는지 확인한다.
+
+## 운영 적용 방법 (워크플로)
+`.github/workflows/apply-prod-db-sql.yml` (수동 실행·`main` 전용·Environment `production` 승인 필수). 순서는 `APPLY_ORDER.txt`.
+최초 1회 준비(사용자): ① GitHub Secret `SUPABASE_PROD_DB_URL`(운영 세션 풀러 URI) ② Repository variable `PROD_SUPABASE_PROJECT_REF`(운영 프로젝트 ref) ③ Settings > Environments > `production`에 Required reviewers 지정 ④ Supabase 자체 백업(데이터)은 대시보드에서 확인 — 워크플로는 데이터를 artifact로 올리지 않는다(공개 저장소).
+실행: Actions > Apply production DB SQL > `confirm=APPLY-PRODUCTION`, 먼저 `dry_run=true`(ROLLBACK 검증) → 이상 없으면 `dry_run=false`.
+적용 이력은 `public.applied_prod_sql`에 기록되어 재실행 시 건너뛴다.

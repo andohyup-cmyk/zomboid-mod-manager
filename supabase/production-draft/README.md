@@ -26,3 +26,6 @@ Vercel Production 환경변수: `CATALOG_WRITE_PRODUCTION_VERCEL_PROJECT_ID`, `C
 최초 1회 준비(사용자): ① GitHub Secret `SUPABASE_PROD_DB_URL`(운영 세션 풀러 URI) ② Repository variable `PROD_SUPABASE_PROJECT_REF`(운영 프로젝트 ref) ③ Settings > Environments > `production`에 Required reviewers 지정 ④ Supabase 자체 백업(데이터)은 대시보드에서 확인 — 워크플로는 데이터를 artifact로 올리지 않는다(공개 저장소).
 실행: Actions > Apply production DB SQL > `confirm=APPLY-PRODUCTION`, 먼저 `dry_run=true`(ROLLBACK 검증) → 이상 없으면 `dry_run=false`.
 적용 이력은 `public.applied_prod_sql`에 기록되어 재실행 시 건너뛴다.
+
+## 변경 이력
+- 2026-11-28: dry_run에서 `public.mod_relations` 미존재로 실패(롤백됨, DB 무변경) → 기본 테이블 생성 SQL `20261121143000_prod_mod_relations_base.sql`을 6번 앞에 추가.

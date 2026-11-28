@@ -4,11 +4,15 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "dev:profile-preview": "node scripts/dev-profile-preview.mjs",
+    "build": "npm run verify && next build",
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "node --import tsx --test tests/*.test.ts"
+    "test": "node --import tsx --test tests/*.test.ts",
+    "test:browser": "node scripts/test-browser.mjs",
+    "verify": "npm run test && npm run typecheck && npm run lint",
+    "preflight:category-preview": "node scripts/category-preview-target-guard.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
@@ -24,6 +28,7 @@
     "@types/react-dom": "^19.0.0",
     "eslint": "^9.0.0",
     "eslint-config-next": "^16.0.0",
+    "playwright": "^1.62.1",
     "postcss": "^8.0.0",
     "tailwindcss": "^4.0.0",
     "tsx": "^4.0.0",

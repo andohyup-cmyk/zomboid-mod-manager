@@ -1,0 +1,27 @@
+name: Trigger develop Preview deploy
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - develop
+
+permissions:
+  contents: read
+
+jobs:
+  trigger-preview:
+    runs-on: ubuntu-latest
+    if: github.repository == 'andohyup-cmyk/zomboid-mod-manager'
+    steps:
+      - name: Trigger Vercel develop Deploy Hook
+        env:
+          HOOK_URL: ${{ secrets.VERCEL_DEVELOP_DEPLOY_HOOK }}
+        run: |
+          if [ -z "$HOOK_URL" ]; then
+            echo "VERCEL_DEVELOP_DEPLOY_HOOK is not set yet; skipping."
+            exit 0
+          fi
+          status=$(curl -sS -o /dev/null -w "%{http_code}" -X POST "$HOOK_URL")
+          echo "Vercel deploy hook HTTP status: $status"
+          test "$status" -ge 200 -a "$status" -lt 300

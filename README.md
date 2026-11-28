@@ -1,28 +1,33 @@
 # Zomboid Mod Manager
 
-Project Zomboid **Build 42.22**용 개인 모드 관리 웹앱의 초기 코드입니다. 모바일과 PC에서 같은 데이터베이스를 사용하도록 설계합니다.
+Project Zomboid **Build 42.22**를 대상으로 하는 개인 모드 관리 웹앱입니다. 모바일과 PC에서 소유자 카탈로그를 조회하고 프로필의 설정 문자열을 검토할 수 있습니다.
 
-**현재 상태: GitHub에 코드 작성 완료, 실제 계정 연결·실행·배포 검증 전.** 아직 접속 가능한 서비스는 아닙니다.
+현재 개발 브랜치에는 카탈로그 상세·검색 필터, Steam 공개 메타데이터 검증, 출처별 일괄 승인 UI 및 PC 검증 스크립트가 있습니다. **코드 구현과 시험 DB 적용은 다른 단계입니다.** 실제 Google OAuth 로그인, 영구 대기함 DB, RLS 쓰기 및 B42.22 게임 호환성은 검증 대기입니다. [작업 현황](docs/TASKS.md)
 
 ## 기술 구성
 
-Next.js 16 App Router, TypeScript, Tailwind CSS 4, Supabase Google Auth + PostgreSQL(RLS), GitHub. Vercel에 배포할 계획이며 아직 배포하지 않았습니다.
+Next.js 16 App Router, TypeScript, Tailwind CSS 4, Supabase Google Auth와 PostgreSQL(RLS), Vercel 배포 구성, GitHub 소스 관리.
 
 ## 작성한 기능
 
 - Google 로그인/콜백/로그아웃과 허용된 사용자만 접근하는 보호 화면
 - 모바일 하단 메뉴, PC 사이드 메뉴, 대시보드
-- 모드 카탈로그 조회/이름 검색
-- Workshop 링크 여러 개 입력·ID 추출
-- 구조화된 AI 조사 JSON 미리보기·모드별 승인 저장(B 예비 방식)
+- 모드 카탈로그 이름·Workshop ID 검색, 보관/호환 상태 필터·정렬, 상세·Mod ID·조사 출처
+- Workshop URL·숫자 ID 단독·복수·혼합 입력과 잘못된 항목 위치 표시
+- GitHub 조사함, 수동 JSON과 Steam 공개 정보 조회, 영구 대기함 코드 초안
+- 등록 후보 비교, 중복 없는 항목 전체 선택, 확인창 후 일괄 승인(시험 환경은 쓰기 차단)
+- 등록 UI와 API의 공통 배포 쓰기 정책
+- 모바일 프로필 임시 편집, 추천 순서·활성 Mod ID 출력, 오프라인 프로필 JSON 보관
+- 확인된 근거의 명시적 선택 그룹 규칙 검사(그룹 영구 저장은 미구현)
 - Workshop ID와 게임 Mod ID 구분, RLS와 일괄 DB 저장 함수
-- 검증 유틸리티 단위 테스트 소스
+- 로그인 소유자 JSON 내보내기와 브라우저 내부 백업 파일 검사(복구 없음)
+- 검증 유틸리티 자동 테스트, 보안 검사, PC용 읽기 전용 Workshop 조사 스크립트
 
-**아직 미구현:** ChatGPT에서 앱으로 직접 전송하는 A 방식, 앱 안 AI 자동 조사(C 방식), 서버 프로필 생성/편집, Mods= 및 WorkshopItems= 출력, 그룹/카테고리, 친구 공유, 데이터 백업. 프로필 화면은 초기 틀만 있습니다.
+후속 작업에는 **시험 DB의 영구 대기함 마이그레이션과 RLS 실검증**, 서버 프로필 영구 저장, 카테고리·태그 편집/저장, 선택 그룹 관리, 친구 공유 및 DB 복원이 있습니다. JSON 내보내기만으로 DB 백업·복구가 완성된 것은 아닙니다. 조사함은 저장소에 포함된 조사 결과를 조회합니다. 앱 내부 자동 AI 조사와 추가 유료 API는 도입 범위 밖입니다.
 
 ## Supabase 연결 시 필요한 설정
 
-이 단계는 사용자가 서비스 연결을 승인하고 프로젝트를 생성한 다음 실행합니다. 아래 절차는 아직 실행하지 않았습니다.
+아래 절차는 새 Supabase 프로젝트의 최초 설정용입니다. 로컬 통합 검증에는 모의 데이터와 테스트를 사용합니다.
 
 1. Supabase 프로젝트를 만들고, Google Auth 공급자 활성화 준비
 2. Supabase SQL Editor에서 `supabase/migrations/202611180001_init.sql` 실행
@@ -41,7 +46,7 @@ on conflict do nothing;
 
 ## 개발 명령어
 
-Node.js 20.9 이상:
+Node.js 20.9 이상. 현재 저장소에 npm lockfile이 없어 새 개발 환경은 `npm install`을 사용합니다. 정확한 의존성 버전 고정은 후속 검토 대상입니다.
 
 ```bash
 npm install
@@ -52,11 +57,11 @@ npm test
 npm run build
 ```
 
-패키지를 실제 설치해 테스트한 상태는 아닙니다. 잠금 파일은 아직 생성되지 않았습니다.
+검증 대상과 결과는 [작업 현황](docs/TASKS.md)에 기록합니다.
 
 ## 모드 조사 결과 입력 형식
 
-모드 등록 화면에서는 Workshop 링크와 아래 형태의 JSON 목록을 받습니다. 링크만 붙여넣는다고 자동으로 조사되거나 등록되지 않습니다. 사용자 개별 승인 후 저장합니다.
+모드 등록 화면은 Workshop URL·숫자 ID와 아래 형태의 JSON 목록을 받습니다. Workshop 입력은 ID를 인식하고, JSON 입력은 승인 후보를 만듭니다. 카탈로그 저장은 쓰기가 허용된 환경에서 한 항목의 최종 승인을 선택할 때 실행됩니다.
 
 ```json
 [
@@ -69,6 +74,8 @@ npm run build
     "verificationStatus": "unverified",
     "buildCompatibility": "unverified",
     "multiplayerCompatibility": "unverified",
+    "singleplayerCompatibility": "unverified",
+    "midServerAdditionCompatibility": "unverified",
     "sources": []
   }
 ]
@@ -83,7 +90,9 @@ npm run build
 - `docs/ARCHITECTURE.md`: 앱 구조와 보안 경계
 - `docs/DATA_MODEL.md`: 초기 스키마와 미결정 사항
 - `docs/TASKS.md`: 작업 현황
+- `docs/PC_VERIFICATION.md`: PC 복귀 후 게임·모드 검증 절차
+- `docs/proposals/DB_SECURITY_AND_PERSISTENCE.md`: DB/RLS 승인 전 설계 검토
 
 ## 실제 로그인 연결 안내
 
-[Supabase + Google OAuth 단계별 설정](docs/SETUP_GOOGLE_SUPABASE.md)을 참고합니다. 아직 실서비스 연결 및 배포는 완료되지 않았습니다.
+[Supabase + Google OAuth 단계별 설정](docs/SETUP_GOOGLE_SUPABASE.md)을 참고합니다. 이 통합본의 실제 Preview 로그인 결과는 미확인입니다.

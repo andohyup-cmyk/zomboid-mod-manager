@@ -1,0 +1,39 @@
+name: Local mod.info browser verification
+
+on:
+  push:
+    branches:
+      - feature/local-modinfo-audit-20261121
+    paths:
+      - 'lib/local-workshop-inventory.ts'
+      - 'components/ProfileServerOutput.tsx'
+      - 'tests/local-workshop-inventory.test.ts'
+      - 'tests/browser/integration.spec.ts'
+      - '.github/workflows/local-browser-verification.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  local-fixture-browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+      CI: "true"
+    steps:
+      - name: Checkout tested branch
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Node.js 22
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+      - name: Install dependencies (repository has no package lock)
+        run: npm install --no-audit --no-fund
+      - name: Install Chromium for Playwright
+        run: npx playwright install --with-deps chromium
+      - name: Test new local mod.info upload flow in fixture browser (no live DB)
+        run: npm run test:browser -- --grep "mobile local mod.info scan"

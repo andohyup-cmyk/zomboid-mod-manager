@@ -10,28 +10,58 @@ export type ResearchRecord = {
   verificationStatus: VerificationStatus;
   buildCompatibility: VerificationStatus;
   multiplayerCompatibility: VerificationStatus;
+  singleplayerCompatibility: VerificationStatus;
+  midServerAdditionCompatibility: VerificationStatus;
 };
 
 const WORKSHOP_ID = /^\d{5,20}$/;
+const MAX_WORKSHOP_ID = "18446744073709551615";
 const STATUS: VerificationStatus[] = ["unverified", "confirmed", "reported_issue"];
 
-export function workshopIdFromUrl(input: string): string | null {
+export function canonicalWorkshopId(workshopId: unknown): string | null {
+  if (typeof workshopId !== "string" || !WORKSHOP_ID.test(workshopId)) return null;
+  const id = workshopId.replace(/^0+/, "");
+  if (id.length < 5 || (id.length === MAX_WORKSHOP_ID.length && id > MAX_WORKSHOP_ID)) return null;
+  return id;
+}
+
+function parseWorkshopUrl(input: string): URL | null {
   try {
     const url = new URL(input.trim());
     if (url.protocol !== "https:" && url.protocol !== "http:") return null;
     if (!["steamcommunity.com", "www.steamcommunity.com"].includes(url.hostname.toLowerCase())) return null;
     if (!/^\/(?:sharedfiles|workshop)\/filedetails\/?$/.test(url.pathname)) return null;
-    const id = url.searchParams.get("id");
-    return id && WORKSHOP_ID.test(id) ? id : null;
+    return url;
   } catch {
     return null;
   }
 }
 
-export function extractWorkshopLinks(input: string): string[] {
-  return [...new Set(
-    input.split(/[\s,]+/).map(workshopIdFromUrl).filter((id): id is string => id !== null)
-  )];
+export function workshopIdFromUrl(input: string): string | null {
+  const id = parseWorkshopUrl(input)?.searchParams.get("id");
+  return id && WORKSHOP_ID.test(id) ? id : null;
+}
+
+function workshopIdFromInputUrl(input: string): string | null {
+  if (!/^https?:\/\/[^/]/i.test(input) || input.includes("\\")) return null;
+  const url = parseWorkshopUrl(input);
+  if (!url || url.username || url.password || url.port) return null;
+  const ids = url.searchParams.getAll("id");
+  return ids.length === 1 ? ids[0] : null;
+}
+
+export function parseWorkshopInput(input: string): { workshopIds: string[]; invalidPositions: number[] } {
+  const workshopIds = new Set<string>();
+  const invalidPositions: number[] = [];
+  const entries = input.split(/[\s,]+/).filter(Boolean);
+
+  entries.forEach((entry, index) => {
+    const id = canonicalWorkshopId(workshopIdFromInputUrl(entry) ?? entry);
+    if (id === null) invalidPositions.push(index + 1);
+    else workshopIds.add(id);
+  });
+
+  return { workshopIds: [...workshopIds], invalidPositions };
 }
 
 function validSource(value: unknown): value is string {
@@ -93,7 +123,9 @@ export function normalizeResearchRecord(input: unknown):
       checkedAt: date as string | null,
       verificationStatus: statusOf(raw.verificationStatus),
       buildCompatibility: statusOf(raw.buildCompatibility),
-      multiplayerCompatibility: statusOf(raw.multiplayerCompatibility)
+      multiplayerCompatibility: statusOf(raw.multiplayerCompatibility),
+      singleplayerCompatibility: statusOf(raw.singleplayerCompatibility),
+      midServerAdditionCompatibility: statusOf(raw.midServerAdditionCompatibility)
     }
   };
 }

@@ -11,7 +11,7 @@ export default async function LoginPage({
   return (
     <main className="flex min-h-dvh items-center justify-center px-4 py-10">
       <section className="panel w-full max-w-md p-7 sm:p-10">
-        <p className="kicker">PROJECT ZOMBOID · B42.22</p>
+        <p className="kicker">PROJECT ZOMBOID</p>
         <h1 className="mt-3 text-3xl font-black">Zomboid Mod Manager</h1>
         <p className="muted mt-3 mb-7 text-sm leading-6">
           Steam Workshop 모드를 정리하고, 서버 프로필을 구성하는 개인용 관리 앱입니다.

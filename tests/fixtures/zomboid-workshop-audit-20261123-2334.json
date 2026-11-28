@@ -1,0 +1,2741 @@
+{
+    "format":  "pzmod-workshop-readonly-audit-v1",
+    "scannedAtUtc":  "2026-11-23T14:34:20.5267432Z",
+    "targetBuild":  "42.22",
+    "workshopCount":  81,
+    "modInfoCount":  209,
+    "missingModInfoWorkshopIds":  [
+
+                                  ],
+    "mods":  [
+                 {
+                     "workshopId":  "2142622992",
+                     "modId":  "RepairAnyClothes",
+                     "displayName":  "Repair Any Clothes",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "2142622992\\mods\\RepairAnyClothes\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "2142622992",
+                     "modId":  "RepairAnyClothes",
+                     "displayName":  "Repair Any Clothes",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "2142622992\\mods\\RepairAnyClothes\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "2313387159",
+                     "modId":  "BetterSortCC",
+                     "displayName":  "Better Sorting",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "2313387159\\mods\\BetterSorting\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "2313387159",
+                     "modId":  "BetterSortCC",
+                     "displayName":  "Better Sorting",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "2313387159\\mods\\BetterSorting\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "2335368829",
+                     "modId":  "AuthenticZBackpacks+",
+                     "displayName":  "Authentic Z - Backpacks+",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "2335368829\\mods\\Authentic Z - Backpacks+\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "2335368829",
+                     "modId":  "AuthenticZBackpacks+",
+                     "displayName":  "Authentic Z - Backpacks+",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "2335368829\\mods\\Authentic Z - Backpacks+\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "2335368829",
+                     "modId":  "Authentic Z - Current",
+                     "displayName":  "Authentic Z",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "2335368829\\mods\\Authentic Z - Current\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "2335368829",
+                     "modId":  "Authentic Z - Current",
+                     "displayName":  "Authentic Z",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "2335368829\\mods\\Authentic Z - Current\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "2335368829",
+                     "modId":  "AuthenticZLite",
+                     "displayName":  "Authentic Z - Lite",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "2335368829\\mods\\Authentic Z - Lite\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "2335368829",
+                     "modId":  "AuthenticZLite",
+                     "displayName":  "Authentic Z - Lite",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "2335368829\\mods\\Authentic Z - Lite\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "2366717227",
+                     "modId":  "SwapIt",
+                     "displayName":  "SwapIt",
+                     "requires":  [
+                                      "EasyConfigChucked"
+                                  ],
+                     "relativePath":  "2366717227\\mods\\SwapIt\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "2366717227",
+                     "modId":  "SwapIt",
+                     "displayName":  "SwapIt",
+                     "requires":  [
+                                      "\\ChuckleberryFinnAlertSystem",
+                                      "\\errorMagnifier"
+                                  ],
+                     "relativePath":  "2366717227\\mods\\SwapIt\\42.0\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "2423266708",
+                     "modId":  "GlassHats",
+                     "displayName":  "Hats and Glasses Don\u0027t Fall",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "2423266708\\mods\\Hats and Glasses Don\u0027t Fall\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "2423266708",
+                     "modId":  "GlassHats",
+                     "displayName":  "Hats and Glasses Don\u0027t Fall",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "2423266708\\mods\\Hats and Glasses Don\u0027t Fall\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "2553809727",
+                     "modId":  "KillCount",
+                     "displayName":  "KillCount",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "2553809727\\mods\\KillCount\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "2553809727",
+                     "modId":  "KillCount",
+                     "displayName":  "KillCount",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "2553809727\\mods\\KillCount\\42.0\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "2553809727",
+                     "modId":  "KillCount",
+                     "displayName":  "Kill Count",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "2553809727\\mods\\KillCount\\common\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "2629074154",
+                     "modId":  "stack_all_41",
+                     "displayName":  "Stack All",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "2629074154\\mods\\StackAll\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "2629074154",
+                     "modId":  "stack_all_41",
+                     "displayName":  "Stack All",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "2629074154\\mods\\StackAll\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "2732294885",
+                     "modId":  "NamedSkillVHSTapes",
+                     "displayName":  "Named Skill VHS Tapes",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "2732294885\\mods\\Named skill VHS tapes\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "2732294885",
+                     "modId":  "NamedSkillVHSTapes",
+                     "displayName":  "Named Skill VHS Tapes",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "2732294885\\mods\\Named skill VHS tapes\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "2756434288",
+                     "modId":  "ClientModsToServer",
+                     "displayName":  "Better Server Settings",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "2756434288\\mods\\ClientModsToServer\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "2756434288",
+                     "modId":  "ClientModsToServer",
+                     "displayName":  "Better Server Settings",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "2756434288\\mods\\ClientModsToServer\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "2835852387",
+                     "modId":  "Disassemble Container With Items",
+                     "displayName":  "Disassemble Container With Items",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "2835852387\\mods\\Disassemble Container With Items\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "2835852387",
+                     "modId":  "Disassemble Container With Items",
+                     "displayName":  "Disassemble Container With Items",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "2835852387\\mods\\Disassemble Container With Items\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "2835852387",
+                     "modId":  "Disassemble Container With Items",
+                     "displayName":  "Disassemble Container With Items",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "2835852387\\mods\\Disassemble Container With Items\\common\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "2867431511",
+                     "modId":  "simpleStatus",
+                     "displayName":  "Simple Status",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "2867431511\\mods\\SimpleStatus\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "2867431511",
+                     "modId":  "simpleStatus",
+                     "displayName":  "Simple Status",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "2867431511\\mods\\SimpleStatus\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "2867431511",
+                     "modId":  "simpleStatus",
+                     "displayName":  "Simple Status",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "2867431511\\mods\\SimpleStatus\\42.14\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "2867431511",
+                     "modId":  "simpleStatus",
+                     "displayName":  "Simple Status",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "2867431511\\mods\\SimpleStatus\\42.15\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "2867431511",
+                     "modId":  "simpleStatus",
+                     "displayName":  "Simple Status",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "2867431511\\mods\\SimpleStatus\\42.16\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "2867431511",
+                     "modId":  "simpleStatus",
+                     "displayName":  "Simple Status",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "2867431511\\mods\\SimpleStatus\\42.20\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "2883755057",
+                     "modId":  "UBPropFix",
+                     "displayName":  "41.78+ Propane Torch Fix",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "2883755057\\mods\\41.78+ BlowTorch Fix\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "2883755057",
+                     "modId":  "UBPropFix",
+                     "displayName":  "41.78+ Propane Torch Fix",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "2883755057\\mods\\41.78+ BlowTorch Fix\\common\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "2896041179",
+                     "modId":  "errorMagnifier",
+                     "displayName":  "errorMagnifier",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "2896041179\\mods\\errorMagnifier\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "2896041179",
+                     "modId":  "errorMagnifier",
+                     "displayName":  "errorMagnifier",
+                     "requires":  [
+                                      "\\ChuckleberryFinnAlertSystem"
+                                  ],
+                     "relativePath":  "2896041179\\mods\\errorMagnifier\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "2903771337",
+                     "modId":  "REORDER_THE_HOTBAR",
+                     "displayName":  "Reorder The Hotbar",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "2903771337\\mods\\ReorderTheHotbar\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "2903771337",
+                     "modId":  "REORDER_THE_HOTBAR",
+                     "displayName":  "Reorder The Hotbar",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "2903771337\\mods\\ReorderTheHotbar\\42.0\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "2914075159",
+                     "modId":  "EvolvingTraitsWorld",
+                     "displayName":  "Evolving Traits World (ETW)",
+                     "requires":  [
+                                      "\\MoodleFramework",
+                                      "\\KillCount",
+                                      "UnifiedCarryWeightFramework"
+                                  ],
+                     "relativePath":  "2914075159\\mods\\Evolving Traits World\\42.19\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "2914075159",
+                     "modId":  "EvolvingTraitsWorldTraitSandbox",
+                     "displayName":  "Evolving Traits World (ETW) - Trait Sandbox",
+                     "requires":  [
+                                      "\\StarlitLibrary",
+                                      "\\EvolvingTraitsWorld"
+                                  ],
+                     "relativePath":  "2914075159\\mods\\Evolving Traits World - Trait Sandbox\\42.19\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "2966916265",
+                     "modId":  "Hide_Weapon_Slot_V2",
+                     "displayName":  "[COS] Hide_Weapon_Slot_V2",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "2966916265\\mods\\Hide_Weapon_Slot_V2\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "2966916265",
+                     "modId":  "Hide_Weapon_Slot_V2",
+                     "displayName":  "[COS] Hide_Weapon_Slot_V2",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "2966916265\\mods\\Hide_Weapon_Slot_V2\\42.0\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3040632900",
+                     "modId":  "Hx_KR_Vanilla",
+                     "displayName":  "[Hx] 諛붾땺???쒓???",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3040632900\\mods\\01___Vanilla\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3040632900",
+                     "modId":  "Hx_KR_Mod",
+                     "displayName":  "[Hx] 紐⑤뱶 ?쒓???- ?듯빀 踰덉뿭",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3040632900\\mods\\02___ModKoreanTranslation\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3040632900",
+                     "modId":  "Hx_KR_Map",
+                     "displayName":  "[Hx] 紐⑤뱶 ?쒓???- 留??좏깮 踰덉뿭",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3040632900\\mods\\03___MapTranslation\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3040632900",
+                     "modId":  "Hx_KR_BanditsWeekOne",
+                     "displayName":  "[Hx] 紐⑤뱶 ?쒓???- Bandits Week One 踰덉뿭",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3040632900\\mods\\Translation___BanditsWeekOne\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3040632900",
+                     "modId":  "Hx_KR_riskydaytrading",
+                     "displayName":  "[Hx] 紐⑤뱶 ?쒓???- Day Trading",
+                     "requires":  [
+                                      "\\riskydaytrading"
+                                  ],
+                     "relativePath":  "3040632900\\mods\\Translation___DayTrading\\42.0\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3040632900",
+                     "modId":  "Hx_KR_DynamicTraits",
+                     "displayName":  "[Hx/B41] 紐⑤뱶 ?쒓???- ?붾??곗씠??",
+                     "requires":  [
+                                      "\\NOT"
+                                  ],
+                     "relativePath":  "3040632900\\mods\\Translation___Dynamic Traits\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3040632900",
+                     "modId":  "Hx_KR_EscapeFromKentucky42",
+                     "displayName":  "[Hx] 紐⑤뱶 ?쒓???- EscapeFromKentucky42 珥앷린 紐⑤뱶 踰덉뿭",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3040632900\\mods\\Translation___EscapeFromKentucky42\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3040632900",
+                     "modId":  "Hx_KR_Firearms",
+                     "displayName":  "[Hx] 紐⑤뱶 ?쒓???- Firearms 珥앷린 紐⑤뱶 踰덉뿭",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3040632900\\mods\\Translation___Firearmas\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3040632900",
+                     "modId":  "Hx_KR_FRUsedCars",
+                     "displayName":  "[Hx] 紐⑤뱶 ?쒓???- Filibuster Rhymes\u0027 Used Cars! - Animation Alpha 踰덉뿭",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3040632900\\mods\\Translation___FRUsedCars\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3040632900",
+                     "modId":  "Hx_KR_GaelGunStore",
+                     "displayName":  "[Hx] 紐⑤뱶 ?쒓???- GaelGunStore 珥앷린 紐⑤뱶 踰덉뿭",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3040632900\\mods\\Translation___GaelGunStore\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3040632900",
+                     "modId":  "Hx_KR_GoM",
+                     "displayName":  "[Hx] 紐⑤뱶 ?쒓???- GoM - Guns of Marz 珥앷린 紐⑤뱶 踰덉뿭",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3040632900\\mods\\Translation___GoM\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3040632900",
+                     "modId":  "Hx_KR_HarderHotwire",
+                     "displayName":  "[Hx] 紐⑤뱶 ?쒓???- Harder Hotwire [?ㅻ챸 ?뺤씤 ?꾩닔!]",
+                     "requires":  [
+                                      "\\harder_hotwire"
+                                  ],
+                     "relativePath":  "3040632900\\mods\\Translation___Harder Hotwire\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3040632900",
+                     "modId":  "Improved_Projectile_B42_KO",
+                     "displayName":  "[Hx] 紐⑤뱶 ?쒓???- Improved Projectile B42",
+                     "requires":  [
+                                      "\\ImprovedProjectileB42"
+                                  ],
+                     "relativePath":  "3040632900\\mods\\Translation___ImprovedProjectile\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3040632900",
+                     "modId":  "Hx_KR_ItsMyStory",
+                     "displayName":  "[Hx] 紐⑤뱶 ?쒓???- It\u0027s My Story 踰덉뿭",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3040632900\\mods\\Translation___ItsMyStory\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3040632900",
+                     "modId":  "Hx_KR_KnoxEventExpandedNpc",
+                     "displayName":  "[Hx] 紐⑤뱶 ?쒓???- Knox Event Expanded Npc",
+                     "requires":  [
+                                      "\\KnoxEventExpandedNpc"
+                                  ],
+                     "relativePath":  "3040632900\\mods\\Translation___KnoxEventExpanded\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3040632900",
+                     "modId":  "Hx_KR_PZKHTH",
+                     "displayName":  "[Hx] 紐⑤뱶 ?쒓???- PZK Highway to Hell - Megamod DLC 踰덉뿭",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3040632900\\mods\\Translation___PZK HTH\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3040632900",
+                     "modId":  "Hx_KR_PZKVLC",
+                     "displayName":  "[Hx] 紐⑤뱶 ?쒓???- PZK VLC - Vanilla Plus Car Pack 踰덉뿭",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3040632900\\mods\\Translation___PZK VLC\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3040632900",
+                     "modId":  "Hx_KR_RainFirearms",
+                     "displayName":  "[Hx] 紐⑤뱶 ?쒓???- Rain\u0027s Firearms \u0026 Gun Parts 珥앷린 紐⑤뱶 踰덉뿭",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3040632900\\mods\\Translation___Rain\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3040632900",
+                     "modId":  "Hx_KR_SOTO",
+                     "displayName":  "[Hx] 紐⑤뱶 ?쒓???- SOTO, Hephas Occupations",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3040632900\\mods\\Translation___SOTO\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3040632900",
+                     "modId":  "Hx_KR_TheArk",
+                     "displayName":  "[Hx] 紐⑤뱶 ?쒓???- The Ark 踰덉뿭",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3040632900\\mods\\Translation___TheArk\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3040632900",
+                     "modId":  "Hx_KR_MoreDescriptionForTraits",
+                     "displayName":  "[Hx] 紐⑤뱶 ?쒓???- Detailed Descriptions for Occupations and Traits",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3040632900\\mods\\Translation___Traits\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3040632900",
+                     "modId":  "Hx_KR_VanillaOverride",
+                     "displayName":  "[Hx] 紐⑤뱶 ?쒓???- (?좏깮?? 諛붾땺??臾멸뎄 蹂寃?紐⑤뱶??",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3040632900\\mods\\Translation___Vanilla Override\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3040632900",
+                     "modId":  "Hx_KR_VanillaFoodsExpanded",
+                     "displayName":  "[Hx] 紐⑤뱶 ?쒓???- Vanilla Foods Expanded 踰덉뿭",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3040632900\\mods\\Translation___VanillaFoodsExpanded\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3044705007",
+                     "modId":  "FixBlowTorchPropaneTank",
+                     "displayName":  "Fix BlowTorch \u0026 PropaneTank",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3044705007\\mods\\FixBlowTorchPropaneTank\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3044705007",
+                     "modId":  "FixBlowTorchPropaneTank",
+                     "displayName":  "Fix BlowTorch \u0026 PropaneTank",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3044705007\\mods\\FixBlowTorchPropaneTank\\42.0\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3077900375",
+                     "modId":  "ChuckleberryFinnAlertSystem",
+                     "displayName":  "[Optional] Mod Update and Alert System",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3077900375\\mods\\chuckleberryModdingAlertSystem\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3077900375",
+                     "modId":  "ChuckleberryFinnAlertSystem",
+                     "displayName":  "Mod Update and Alert System",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3077900375\\mods\\chuckleberryModdingAlertSystem\\42.0\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3114330064",
+                     "modId":  "InventoryFastMove",
+                     "displayName":  "Inventory Fast Move",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3114330064\\mods\\Inventory Fast Move\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3114330064",
+                     "modId":  "InventoryFastMove",
+                     "displayName":  "Inventory Fast Move",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3114330064\\mods\\Inventory Fast Move\\42.0\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3119788162",
+                     "modId":  "ETO_B",
+                     "displayName":  "Every Texture Optimized: Well Balanced",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3119788162\\mods\\Every Texture Optimized\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3119788162",
+                     "modId":  "ETO_P",
+                     "displayName":  "Every Texture Optimized: Maximum Performance",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3119788162\\mods\\Every Texture Optimized Maximum Performance\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3217685049",
+                     "modId":  "PZKCarzoneWorkshop",
+                     "displayName":  "PZK Carzone DIY Workshop [B42]",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3217685049\\mods\\PZKCarzoneWorkshop\\42.0\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3217685049",
+                     "modId":  "PzkVanillaPlusCarPack",
+                     "displayName":  "PZK Vanilla Plus Car Pack",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3217685049\\mods\\PZKVanillaPlusCarPack\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3217685049",
+                     "modId":  "PzkVanillaPlusCarPack",
+                     "displayName":  "PZK VLC - Vanilla Plus Car Pack (read Steam mod description, PZK VLC WIKI FAQ for proper supported mods load order)",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3217685049\\mods\\PZKVanillaPlusCarPack\\42.0\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3233459645",
+                     "modId":  "forageRunning",
+                     "displayName":  "Forage Running [b41+b42]",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3233459645\\mods\\ForageRunning\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3233459645",
+                     "modId":  "forageRunning",
+                     "displayName":  "Forage Running [b41+b42]",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3233459645\\mods\\ForageRunning\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3294592194",
+                     "modId":  "PickupAdvancedForge",
+                     "displayName":  "Pickup Advanced Forge",
+                     "requires":  [
+                                      "PickupATMNFirePlace"
+                                  ],
+                     "relativePath":  "3294592194\\mods\\Pickup Advanced Forge\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3294592194",
+                     "modId":  "PickupATMNFirePlace",
+                     "displayName":  "Pickup ATM N FirePlace",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3294592194\\mods\\Pickup ATM N FirePlace\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3294592194",
+                     "modId":  "PickupATMNFirePlace",
+                     "displayName":  "Pickup ATM N FirePlace",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3294592194\\mods\\Pickup ATM N FirePlace\\42.0\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3304582091",
+                     "modId":  "StandardizedVehicleUpgrades3V",
+                     "displayName":  "Standardized Vehicle Upgrades 3 - Vanilla",
+                     "requires":  [
+                                      "tsarslib",
+                                      "StandardizedVehicleUpgrades3Core"
+                                  ],
+                     "relativePath":  "3304582091\\mods\\StandardizedVehicleUpgrades3Vanilla\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3304582091",
+                     "modId":  "StandardizedVehicleUpgrades3V",
+                     "displayName":  "Standardized Vehicle Upgrades 3 - Vanilla",
+                     "requires":  [
+                                      "\\tsarslib",
+                                      "\\StandardizedVehicleUpgrades3Core"
+                                  ],
+                     "relativePath":  "3304582091\\mods\\StandardizedVehicleUpgrades3Vanilla\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3304582091",
+                     "modId":  "StandardizedVehicleUpgrades3V",
+                     "displayName":  "Standardized Vehicle Upgrades 3 - Vanilla",
+                     "requires":  [
+                                      "\\tsarslib",
+                                      "\\StandardizedVehicleUpgrades3Core"
+                                  ],
+                     "relativePath":  "3304582091\\mods\\StandardizedVehicleUpgrades3Vanilla\\42.13\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3306168142",
+                     "modId":  "ConditionOnDash",
+                     "displayName":  "Condition On Dash",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3306168142\\mods\\ConditionOnDash\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3306168142",
+                     "modId":  "ConditionOnDash",
+                     "displayName":  "Condition On Dash",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3306168142\\mods\\ConditionOnDash\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3342110208",
+                     "modId":  "WorldMapNameSymbols",
+                     "displayName":  "WorldMap Name Symbols",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3342110208\\mods\\WorldMap Name Symbols\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3342110208",
+                     "modId":  "WorldMapNameSymbols",
+                     "displayName":  "WorldMap Name Symbols",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3342110208\\mods\\WorldMap Name Symbols\\42.0\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3387539308",
+                     "modId":  "AutoMechanics",
+                     "displayName":  "Auto Mechanics",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3387539308\\mods\\AutoMechanics\\42.14\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3387539308",
+                     "modId":  "AutoMechanics",
+                     "displayName":  "Auto Mechanics",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3387539308\\mods\\AutoMechanics\\common\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3387824513",
+                     "modId":  "AmmunitionWeightReducer",
+                     "displayName":  "Ammunition Weight Reducer",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3387824513\\mods\\AmmunitionWeightReducer\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3387824513",
+                     "modId":  "AmmunitionWeightReducer",
+                     "displayName":  "Ammunition Weight Reducer",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3387824513\\mods\\AmmunitionWeightReducer\\common\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3387824513",
+                     "modId":  "MaterialWeightReducer",
+                     "displayName":  "Material Weight Reducer",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3387824513\\mods\\MaterialWeightReducer\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3387824513",
+                     "modId":  "MaterialWeightReducer",
+                     "displayName":  "Material Weight Reducer",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3387824513\\mods\\MaterialWeightReducer\\common\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3388183573",
+                     "modId":  "AutoTailoring",
+                     "displayName":  "Auto Tailoring",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3388183573\\mods\\AutoTailoring\\common\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3389448389",
+                     "modId":  "AutoReload",
+                     "displayName":  "Auto Reload",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3389448389\\mods\\AutoReload\\common\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3390453390",
+                     "modId":  "kitsunelib",
+                     "displayName":  "Kitsune Library Mod",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3390453390\\mods\\KitsuneLib\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3392259028",
+                     "modId":  "eris_food_expiry",
+                     "displayName":  "eris_food_expiry",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3392259028\\mods\\eris_food_expiry\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3396010813",
+                     "modId":  "pzhotbar42",
+                     "displayName":  "BZQuickSlots",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3396010813\\mods\\pzhotbar42\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3396446795",
+                     "modId":  "MoodleFramework",
+                     "displayName":  "MoodleFramework",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3396446795\\mods\\MoodleFramework\\42.0\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3396446795",
+                     "modId":  "MoodleFramework",
+                     "displayName":  "Moodle Framework",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3396446795\\mods\\MoodleFramework\\common\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3402491515",
+                     "modId":  "tsarslib",
+                     "displayName":  "Tsar\u0027s Common Library",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3402491515\\mods\\tsarslib\\common\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3403490889",
+                     "modId":  "StandardizedVehicleUpgrades3Core",
+                     "displayName":  "Standardized Vehicle Upgrades 3 - Core",
+                     "requires":  [
+                                      "\\tsarslib"
+                                  ],
+                     "relativePath":  "3403490889\\mods\\StandardizedVehicleUpgrades3Core\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3407686437",
+                     "modId":  "WaffleMapKo",
+                     "displayName":  "吏???쒓???(?쒖꽦??湲덉?)",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3407686437\\mods\\MapKo\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3423660713",
+                     "modId":  "ModLoadOrderSorter_b42",
+                     "displayName":  "Mod Load Order Sorter [b42]",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3423660713\\mods\\ModLoadOrderSorter_b42\\42.0\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3437629766",
+                     "modId":  "CleanUI",
+                     "displayName":  "CleanUI [B42.12]",
+                     "requires":  [
+                                      "\\NeatUI_Framework"
+                                  ],
+                     "relativePath":  "3437629766\\mods\\CleanUI\\42.12\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3437629766",
+                     "modId":  "CleanUI",
+                     "displayName":  "CleanUI [B42.13]",
+                     "requires":  [
+                                      "\\NeatUI_Framework"
+                                  ],
+                     "relativePath":  "3437629766\\mods\\CleanUI\\42.13\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3437629766",
+                     "modId":  "CleanUI",
+                     "displayName":  "CleanUI [B42.14]",
+                     "requires":  [
+                                      "\\NeatUI_Framework"
+                                  ],
+                     "relativePath":  "3437629766\\mods\\CleanUI\\42.14\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3437629766",
+                     "modId":  "CleanUI",
+                     "displayName":  "CleanUI [B42.15]",
+                     "requires":  [
+                                      "\\NeatUI_Framework"
+                                  ],
+                     "relativePath":  "3437629766\\mods\\CleanUI\\42.15\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3437629766",
+                     "modId":  "CleanUI",
+                     "displayName":  "CleanUI [B42.16-42.18]",
+                     "requires":  [
+                                      "\\NeatUI_Framework"
+                                  ],
+                     "relativePath":  "3437629766\\mods\\CleanUI\\42.16\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3437629766",
+                     "modId":  "CleanUI",
+                     "displayName":  "CleanUI",
+                     "requires":  [
+                                      "\\NeatUI_Framework"
+                                  ],
+                     "relativePath":  "3437629766\\mods\\CleanUI\\42.19\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3437629766",
+                     "modId":  "CleanUI",
+                     "displayName":  "CleanUI",
+                     "requires":  [
+                                      "\\NeatUI_Framework"
+                                  ],
+                     "relativePath":  "3437629766\\mods\\CleanUI\\42.22\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3461263912",
+                     "modId":  "CleanHotBar",
+                     "displayName":  "CleanHotBar",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3461263912\\mods\\CleanHotBar\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3461263912",
+                     "modId":  "CleanHotBar",
+                     "displayName":  "CleanHotBar",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3461263912\\mods\\CleanHotBar\\42.15\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3490188370",
+                     "modId":  "Project_Cook",
+                     "displayName":  "Project Cook [Legacy]",
+                     "requires":  [
+                                      "NeatUI_Framework"
+                                  ],
+                     "relativePath":  "3490188370\\mods\\Project_Cook\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3490188370",
+                     "modId":  "Project_Cook",
+                     "displayName":  "Project Cook [Legacy]",
+                     "requires":  [
+                                      "NeatUI_Framework"
+                                  ],
+                     "relativePath":  "3490188370\\mods\\Project_Cook\\42.13\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3490188370",
+                     "modId":  "Project_Cook",
+                     "displayName":  "Project Cook",
+                     "requires":  [
+                                      "NeatUI_Framework"
+                                  ],
+                     "relativePath":  "3490188370\\mods\\Project_Cook\\42.15\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3490188370",
+                     "modId":  "Project_Cook_Pixel_Icon_Pack",
+                     "displayName":  "Project Cook Pixel Icon Pack [Legacy]",
+                     "requires":  [
+                                      "\\NeatUI_Framework",
+                                      "\\Project_Cook"
+                                  ],
+                     "relativePath":  "3490188370\\mods\\Project_Cook_Pixel_Icon\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3490188370",
+                     "modId":  "Project_Cook_Pixel_Icon_Pack",
+                     "displayName":  "Project Cook Pixel Icon Pack",
+                     "requires":  [
+                                      "NeatUI_Framework",
+                                      "Project_Cook"
+                                  ],
+                     "relativePath":  "3490188370\\mods\\Project_Cook_Pixel_Icon\\42.15\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3497748766",
+                     "modId":  "4123567854998",
+                     "displayName":  "[b42]雅뚨뺨烏ｆ㈀",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3497748766\\mods\\2DimensionWardrobe\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3497748766",
+                     "modId":  "4123567854998",
+                     "displayName":  "[b42]雅뚨뺨烏ｆ㈀",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3497748766\\mods\\2DimensionWardrobe\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3498294068",
+                     "modId":  "twistonfireblacklist",
+                     "displayName":  "TwisTonFire - Blacklist",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3498294068\\mods\\TwisTonFire - Blacklist\\42.12\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3498294068",
+                     "modId":  "twistonfireblacklist",
+                     "displayName":  "TwisTonFire - Blacklist",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3498294068\\mods\\TwisTonFire - Blacklist\\42.13\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3498294068",
+                     "modId":  "twistonfireblacklist",
+                     "displayName":  "TwisTonFire - Blacklist",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3498294068\\mods\\TwisTonFire - Blacklist\\42.15\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3498294068",
+                     "modId":  "twistonfireblacklist",
+                     "displayName":  "TwisTonFire - Blacklist",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3498294068\\mods\\TwisTonFire - Blacklist\\42.18\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3498294068",
+                     "modId":  "twistonfireblacklist",
+                     "displayName":  "TwisTonFire - Blacklist",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3498294068\\mods\\TwisTonFire - Blacklist\\42.19\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3498294068",
+                     "modId":  "twistonfireblacklist",
+                     "displayName":  "TwisTonFire - Blacklist",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3498294068\\mods\\TwisTonFire - Blacklist\\42.20\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3498294068",
+                     "modId":  "twistonfireblacklist",
+                     "displayName":  "TwisTonFire - Blacklist",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3498294068\\mods\\TwisTonFire - Blacklist\\common\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3498294068",
+                     "modId":  "twistonfireinventory",
+                     "displayName":  "TwisTonFire - Proximity Inventory (Optional)",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3498294068\\mods\\TwisTonFire - Inventory\\42.12\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3498294068",
+                     "modId":  "twistonfireinventory",
+                     "displayName":  "TwisTonFire - Proximity Inventory (Optional)",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3498294068\\mods\\TwisTonFire - Inventory\\42.13\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3498294068",
+                     "modId":  "twistonfireinventory",
+                     "displayName":  "TwisTonFire - Proximity Inventory",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3498294068\\mods\\TwisTonFire - Inventory\\42.15\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3498294068",
+                     "modId":  "twistonfireinventory",
+                     "displayName":  "TwisTonFire - Proximity Inventory",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3498294068\\mods\\TwisTonFire - Inventory\\42.16\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3498294068",
+                     "modId":  "twistonfireinventory",
+                     "displayName":  "TwisTonFire - Proximity Inventory",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3498294068\\mods\\TwisTonFire - Inventory\\42.18\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3498294068",
+                     "modId":  "twistonfireinventory",
+                     "displayName":  "TwisTonFire - Proximity Inventory",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3498294068\\mods\\TwisTonFire - Inventory\\42.19\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3498294068",
+                     "modId":  "twistonfireinventory",
+                     "displayName":  "TwisTonFire - Proximity Inventory",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3498294068\\mods\\TwisTonFire - Inventory\\42.20\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3498294068",
+                     "modId":  "twistonfireinventory",
+                     "displayName":  "TwisTonFire - Proximity Inventory",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3498294068\\mods\\TwisTonFire - Inventory\\common\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3508537032",
+                     "modId":  "NeatUI_Framework",
+                     "displayName":  "NeatUI_Framework",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3508537032\\mods\\NeatUI_Framework\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3532909971",
+                     "modId":  "MapKoAddon",
+                     "displayName":  "吏???쒓???Addon",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3532909971\\mods\\MapKo Addon\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3532909971",
+                     "modId":  "MapKoAddon",
+                     "displayName":  "吏???쒓???Addon",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3532909971\\mods\\MapKo Addon\\42.22\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3539960761",
+                     "modId":  "NoMoreFoodScraps",
+                     "displayName":  "No More Food Scraps",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3539960761\\mods\\NoMoreFoodScraps\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3543229299",
+                     "modId":  "PROJECTRVInterior42",
+                     "displayName":  "[B42]PROJECT RV Interior",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3543229299\\mods\\modPROJECTRVInterior\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3552615247",
+                     "modId":  "QoLMiscItemWeights",
+                     "displayName":  "QoL \u0026 Misc: Item Weights and Tweaks",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3552615247\\mods\\QoLMiscItemWeights\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3552615247",
+                     "modId":  "QoLMiscLessCarJunkLoot",
+                     "displayName":  "QoL \u0026 Misc: Less Car Junk Loot",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3552615247\\mods\\QoLMiscLessCarJunkLoot\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3552615247",
+                     "modId":  "QoLMiscQoL",
+                     "displayName":  "QoL \u0026 Misc: Quality of Life",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3552615247\\mods\\QoLMiscQoL\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3552615247",
+                     "modId":  "QoLMiscQoLSandboxSettings",
+                     "displayName":  "QoL \u0026 Misc: Sandbox Settings",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3552615247\\mods\\QoLMiscSandboxSettings\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3552615247",
+                     "modId":  "QoLMiscTrunkCapacity",
+                     "displayName":  "QoL \u0026 Misc: Trunk Capacity Independent Of Condition",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3552615247\\mods\\QoLMiscTrunkCapacity\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3567084868",
+                     "modId":  "ModManager",
+                     "displayName":  "[B42] Mod Manager",
+                     "requires":  [
+                                      "ModLoadOrderSorter_b42"
+                                  ],
+                     "relativePath":  "3567084868\\mods\\[B42] Mod Manager\\42.20\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3570250507",
+                     "modId":  "TwisTonFireFasterActions",
+                     "displayName":  "TwisTonFire - FasterActions",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3570250507\\mods\\TwisTonFire - FasterActions\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3570250507",
+                     "modId":  "TwisTonFireFasterActions",
+                     "displayName":  "TwisTonFire - FasterActions",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3570250507\\mods\\TwisTonFire - FasterActions\\42.13\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3570250507",
+                     "modId":  "TwisTonFireFasterActions",
+                     "displayName":  "TwisTonFire - FasterActions",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3570250507\\mods\\TwisTonFire - FasterActions\\42.15\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3570250507",
+                     "modId":  "TwisTonFireFasterActions",
+                     "displayName":  "TwisTonFire - FasterActions",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3570250507\\mods\\TwisTonFire - FasterActions\\42.16\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3570250507",
+                     "modId":  "TwisTonFireFasterActions",
+                     "displayName":  "TwisTonFire - FasterActions",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3570250507\\mods\\TwisTonFire - FasterActions\\42.20\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3570250507",
+                     "modId":  "TwisTonFireFasterActions",
+                     "displayName":  "TwisTonFire - FasterActions",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3570250507\\mods\\TwisTonFire - FasterActions\\common\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3597954004",
+                     "modId":  "Disassemble Container With Items 42 Fix",
+                     "displayName":  "Disassemble Container With Items 42 Fix",
+                     "requires":  [
+                                      "Disassemble Container With Items"
+                                  ],
+                     "relativePath":  "3597954004\\mods\\[B42] Disassemble Container With Items Fix\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3597954004",
+                     "modId":  "Disassemble Container With Items 42 Fix",
+                     "displayName":  "Disassemble Container With Items 42 Fix",
+                     "requires":  [
+                                      "Disassemble Container With Items"
+                                  ],
+                     "relativePath":  "3597954004\\mods\\[B42] Disassemble Container With Items Fix\\42.17\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3597954004",
+                     "modId":  "Disassemble Container With Items 42 Fix",
+                     "displayName":  "Disassemble Container With Items 42 Fix",
+                     "requires":  [
+                                      "Disassemble Container With Items"
+                                  ],
+                     "relativePath":  "3597954004\\mods\\[B42] Disassemble Container With Items Fix\\42.18\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3597954004",
+                     "modId":  "Disassemble Container With Items 42 Fix",
+                     "displayName":  "Disassemble Container With Items 42 Fix",
+                     "requires":  [
+                                      "Disassemble Container With Items"
+                                  ],
+                     "relativePath":  "3597954004\\mods\\[B42] Disassemble Container With Items Fix\\42.20\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3597954004",
+                     "modId":  "Disassemble Container With Items 42 Fix",
+                     "displayName":  "Disassemble Container With Items 42 Fix",
+                     "requires":  [
+                                      "Disassemble Container With Items"
+                                  ],
+                     "relativePath":  "3597954004\\mods\\[B42] Disassemble Container With Items Fix\\42.21\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3599514194",
+                     "modId":  "TransmogDE",
+                     "displayName":  "Better Dressed - Transmog",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3599514194\\mods\\Better Dressed\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3599514194",
+                     "modId":  "EURY_TRANSMOG",
+                     "displayName":  "Better Dressed - Transmog",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3599514194\\mods\\Better Dressed\\42.13\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3599514194",
+                     "modId":  "EURY_TRANSMOG",
+                     "displayName":  "Better Dressed - Transmog",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3599514194\\mods\\Better Dressed\\42.15\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3599514194",
+                     "modId":  "EURY_TRANSMOG",
+                     "displayName":  "Better Dressed - Transmog",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3599514194\\mods\\Better Dressed\\42.19\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3599514194",
+                     "modId":  "EURY_TRANSMOG",
+                     "displayName":  "Better Dressed - Transmog",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3599514194\\mods\\Better Dressed\\42.20\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3640496116",
+                     "modId":  "42_VSGirlBodyAdultsToys",
+                     "displayName":  "VSGirlBodyAdultsToys",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3640496116\\mods\\VariableSkinAdultsToys\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3640496116",
+                     "modId":  "VariableSkinBoobBounce",
+                     "displayName":  "VSGirlBodyBoobBounce(Requires ZombieBuddy)",
+                     "requires":  [
+                                      "\\ZombieBuddy"
+                                  ],
+                     "relativePath":  "3640496116\\mods\\VariableSkinBoobBounce\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3640496116",
+                     "modId":  "VariableSkinBoobBounceViewpoint(Requires ZombieBuddy)",
+                     "displayName":  "VSGirlBodyBoobBounceViewpoint",
+                     "requires":  [
+                                      "\\ZombieBuddy",
+                                      "\\VariableSkinBoobBounce",
+                                      "\\Viewpoint"
+                                  ],
+                     "relativePath":  "3640496116\\mods\\VariableSkinBoobBounceViewpoint\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3640496116",
+                     "modId":  "42_VSGirlBody_Fix",
+                     "displayName":  "VSGirlBody_Fix",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3640496116\\mods\\VariableSkinFix\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3640496116",
+                     "modId":  "42_VSGirlBodyL",
+                     "displayName":  "VSGirlBody_L_NSFW",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3640496116\\mods\\VariableSkinNSFW_L\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3640496116",
+                     "modId":  "42_VSGirlBodyL_M",
+                     "displayName":  "VSGirlBody_M_NSFW",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3640496116\\mods\\VariableSkinNSFW_M\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3640496116",
+                     "modId":  "42_VSGirlBodyPNSFW",
+                     "displayName":  "VSGirlBody_P_NSFW",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3640496116\\mods\\VariableSkinNSFW_P\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3640496116",
+                     "modId":  "42_VSGirlBodyNSFW",
+                     "displayName":  "VSGirlBody_S_NSFW",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3640496116\\mods\\VariableSkinNSFW_S\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3640496116",
+                     "modId":  "42_VSGirlBodyAll_female",
+                     "displayName":  "VSGirlBodyAll-female_NSFW",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3640496116\\mods\\VariableSkinNSFW_Z\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3640496116",
+                     "modId":  "42_VSGirlBodySFW",
+                     "displayName":  "VSGirlBody_S_SFW",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3640496116\\mods\\VariableSkinSFW\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3641027178",
+                     "modId":  "UnclearRipAllButton",
+                     "displayName":  "Rip All Button In context Menu",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3641027178\\mods\\Rip All Button\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3641027178",
+                     "modId":  "UnclearRipAllButton",
+                     "displayName":  "Rip All Button In context Menu",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3641027178\\mods\\Rip All Button\\42.0\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3682045254",
+                     "modId":  "UnifiedCarryWeightFramework",
+                     "displayName":  "Unified Carry Weight Framework",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3682045254\\mods\\Unified Carry Weight Framework\\42.19\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3717576490",
+                     "modId":  "FantasyWorkshopVS42_4.0",
+                     "displayName":  "FantasyWorkshopVS42_4.0",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3717576490\\mods\\oldcat\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3727387302",
+                     "modId":  "BarrelsExpanded42",
+                     "displayName":  "Barrels Expanded [MP + SP]",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3727387302\\mods\\BarrelsExpanded\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3755993986",
+                     "modId":  "GasPumpIndicator",
+                     "displayName":  "Gas Pump Indicator",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3755993986\\mods\\GasPumpIndicator\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3755993986",
+                     "modId":  "GasPumpIndicator",
+                     "displayName":  "Gas Pump Indicator",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3755993986\\mods\\GasPumpIndicator\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3775396697",
+                     "modId":  "PinyosShelfAware",
+                     "displayName":  "Shelf Aware!",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3775396697\\mods\\shelf-aware\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3775396697",
+                     "modId":  "PinyosShelfAware",
+                     "displayName":  "Shelf Aware!",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3775396697\\mods\\shelf-aware\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3775549570",
+                     "modId":  "alicesWeaponSling",
+                     "displayName":  "Alice\u0027s Weapon Sling",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3775549570\\mods\\alicesWeaponSling\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3775549570",
+                     "modId":  "alicesWeaponSlingRadialMenu",
+                     "displayName":  "Alice\u0027s Weapon Sling - Radial Menu [ADDON]",
+                     "requires":  [
+                                      "alicesWeaponSling"
+                                  ],
+                     "relativePath":  "3775549570\\mods\\alicesWeaponSlingRadialMenu\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3779201168",
+                     "modId":  "ModFolders",
+                     "displayName":  "ModFolders",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3779201168\\mods\\ModFolders\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3779561845",
+                     "modId":  "LGExtendedPlumbing",
+                     "displayName":  "LG Extended Plumbing",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3779561845\\mods\\LGExtendedPlumbing\\42.20\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3779562002",
+                     "modId":  "LGExtendedElectricity",
+                     "displayName":  "LG Extended Electricity",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3779562002\\mods\\LGExtendedElectricity\\42.20\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3779562002",
+                     "modId":  "LGRealisticPowerUsage",
+                     "displayName":  "LG Realistic Power Usage",
+                     "requires":  [
+                                      "LGExtendedElectricity"
+                                  ],
+                     "relativePath":  "3779562002\\mods\\LGRealisticPowerUsage\\42.20\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3782920935",
+                     "modId":  "NicksInventorySelectionFix",
+                     "displayName":  "Nick\u0027s Inventory Selection Fix",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3782920935\\mods\\NicksInventorySelectionFix\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3782920935",
+                     "modId":  "NicksInventorySelectionFix",
+                     "displayName":  "Nick\u0027s Inventory Selection Fix",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3782920935\\mods\\NicksInventorySelectionFix\\common\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3783998596",
+                     "modId":  "Fox_Butcher_Fix",
+                     "displayName":  "Fox\u0027s Fixed \u0026 Rebalanced Butchering",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3783998596\\mods\\RebalancedButchering\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3784847437",
+                     "modId":  "traitsAsSkills",
+                     "displayName":  "Traits As Skills",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3784847437\\mods\\traitsAsSkills\\42.0\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3786236842",
+                     "modId":  "ArmorySpawnTableFix",
+                     "displayName":  "[42.20] Armory Spawn Table Fix",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3786236842\\mods\\Armory Spawn Table Fix\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3786236842",
+                     "modId":  "ArmystorageSpawnTableFix",
+                     "displayName":  "[42.20] Armystorage Spawn Table Fix",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3786236842\\mods\\Armystorage Spawn Table Fix\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3786236842",
+                     "modId":  "VanillaSpawnTableFix",
+                     "displayName":  "[42.20] Vanilla Spawn Table Fix",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3786236842\\mods\\Vanilla Spawn Table Fix\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3792805942",
+                     "modId":  "FantasyWorkshop_BugFix_42",
+                     "displayName":  "[B42.20.4] FantasyWorkshop 4.0 bug fix",
+                     "requires":  [
+                                      "FantasyWorkshopVS42_4.0"
+                                  ],
+                     "relativePath":  "3792805942\\mods\\FantasyWorkshop_Fix\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3794207681",
+                     "modId":  "FittedSheets",
+                     "displayName":  "Fitted Sheets",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3794207681\\mods\\FittedSheets\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3803059176",
+                     "modId":  "2DWTranslationKR_Updated",
+                     "displayName":  "[B42.20] 2DimensionWardrobe Korean Translation - Updated (?쒓? ?⑥튂)",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3803059176\\mods\\2DW_KOR\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3803059176",
+                     "modId":  "2DWTranslationKR_Updated",
+                     "displayName":  "[B42.20] 2DimensionWardrobe Korean Translation - Updated (?쒓? ?⑥튂)",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3803059176\\mods\\2DW_KOR\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3804234552",
+                     "modId":  "RecipeUnlockGuide",
+                     "displayName":  "Recipe Unlock Guide [B42]",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3804234552\\mods\\RecipeUnlockGuide\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3807119354",
+                     "modId":  "PZOptKorean",
+                     "displayName":  "PZ_Optimization ?쒓??⑥튂 [B42]",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3807119354\\mods\\PZOptKorean\\42.0\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3808944882",
+                     "modId":  "SurvivorBriefing",
+                     "displayName":  "Survivor Briefing",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3808944882\\mods\\SurvivorBriefing\\common\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3810830980",
+                     "modId":  "Sheep2",
+                     "displayName":  "?녶뮝?꾣А?껆㈉??",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3810830980\\mods\\呆咩的次元空间\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3813773958",
+                     "modId":  "RainWashLKC",
+                     "displayName":  "Rain Wash",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3813773958\\mods\\RainWashLKC\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3814073243",
+                     "modId":  "ZombieVisibilityFix",
+                     "displayName":  "Zombie Visibility Fix",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3814073243\\mods\\ZombieVisibilityFix\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3817970320",
+                     "modId":  "ProjectTranslate",
+                     "displayName":  "Project Translate",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3817970320\\mods\\Project Translate\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3822594517",
+                     "modId":  "modPerformanceProfiler42",
+                     "displayName":  "PeePee - The Performance Profiler",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3822594517\\mods\\PerformanceProfiler\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3825218472",
+                     "modId":  "VS_S_Stockings_Collection",
+                     "displayName":  "VS-Stockings_Collection",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3825218472\\mods\\VS_S_Stockings_Collection\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 },
+                 {
+                     "workshopId":  "3832274571",
+                     "modId":  "FloorAttackHighlightFix",
+                     "displayName":  "Floor Attack Highlight Fix",
+                     "requires":  [
+
+                                  ],
+                     "relativePath":  "3832274571\\mods\\FloorAttackHighlightFix\\42\\mod.info",
+                     "modIdConfirmedFromFile":  true,
+                     "b4222Compatible":  "unverified",
+                     "multiplayerCompatible":  "unverified",
+                     "middleServerAddition":  "unverified"
+                 }
+             ],
+    "note":  "mod.info existence does not prove B42.22, multiplayer or hot-add compatibility."
+}

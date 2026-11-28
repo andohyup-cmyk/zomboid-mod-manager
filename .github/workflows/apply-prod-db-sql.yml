@@ -56,8 +56,17 @@ jobs:
       - name: Pre-apply schema-only snapshot (no data)
         run: |
           set +x
-          command -v pg_dump >/dev/null
-          pg_dump "$SUPABASE_PROD_DB_URL" --schema-only --schema=public --no-owner --no-privileges -f prod-schema-before.sql
+          if command -v pg_dump >/dev/null 2>&1 && pg_dump "$SUPABASE_PROD_DB_URL" --schema-only --schema=public --no-owner --no-privileges -f prod-schema-before.sql 2>pg_dump.err; then
+            echo "pg_dump schema snapshot captured."
+          else
+            echo "pg_dump unavailable or version mismatch; falling back to psql schema catalog dump:"
+            cat pg_dump.err || true
+            psql "$SUPABASE_PROD_DB_URL" -v ON_ERROR_STOP=1 -c "
+              select table_name, column_name, data_type from information_schema.columns where table_schema='public' order by table_name, ordinal_position;
+              select tablename, policyname, cmd from pg_catalog.pg_policies where schemaname='public' order by tablename, policyname;
+              select proname from pg_catalog.pg_proc p join pg_catalog.pg_namespace n on n.oid=p.pronamespace where n.nspname='public' order by proname;
+            " > prod-schema-before.sql
+          fi
           wc -l prod-schema-before.sql
       - uses: actions/upload-artifact@v4
         with:
@@ -70,25 +79,32 @@ jobs:
           set -euo pipefail
           set +x
           ORDER=supabase/production-draft/APPLY_ORDER.txt
+          has_log=$(psql "$SUPABASE_PROD_DB_URL" -v ON_ERROR_STOP=1 -t -A -c "select to_regclass('public.applied_prod_sql') is not null")
           {
             echo "begin;"
             echo "create table if not exists public.applied_prod_sql (file text primary key, applied_at timestamptz not null default now());"
             echo "alter table public.applied_prod_sql enable row level security;"
             echo "revoke all on public.applied_prod_sql from anon, authenticated;"
           } > run.sql
+          queued=0
           while IFS= read -r f; do
             [ -z "$f" ] && continue
             case "$f" in supabase/migrations/*.sql|supabase/production-draft/*.sql) ;; *) echo "::error::허용되지 않은 경로: $f"; exit 1 ;; esac
             if [[ "$f" == *..* ]] || [ ! -f "$f" ]; then echo "::error::유효하지 않은 파일: $f"; exit 1; fi
-            done_already=$(psql "$SUPABASE_PROD_DB_URL" -t -A -c "select to_regclass('public.applied_prod_sql') is not null and exists(select 1 from public.applied_prod_sql where file='$f')")
-            if [ "$done_already" = "t" ]; then echo "skip (already applied): $f"; continue; fi
+            if [ "$has_log" = "t" ]; then
+              done_already=$(psql "$SUPABASE_PROD_DB_URL" -v ON_ERROR_STOP=1 -t -A -c "select exists(select 1 from public.applied_prod_sql where file='$f')")
+              if [ "$done_already" = "t" ]; then echo "skip (already applied): $f"; continue; fi
+            fi
             echo "queue: $f"
+            queued=$((queued + 1))
             { echo "\\echo == $f"; cat "$f"; echo; echo "insert into public.applied_prod_sql(file) values ('$f');"; } >> run.sql
           done < "$ORDER"
+          echo "queued_files=$queued dry_run=$DRY_RUN"
           if [ "$DRY_RUN" = "false" ]; then echo "commit;" >> run.sql; else echo "rollback;" >> run.sql; echo "DRY RUN: will rollback"; fi
           psql "$SUPABASE_PROD_DB_URL" -v ON_ERROR_STOP=1 -f run.sql
 
       - name: Post-check (counts only)
+        if: github.event.inputs.dry_run == 'false'
         run: |
           set +x
-          psql "$SUPABASE_PROD_DB_URL" -v ON_ERROR_STOP=1 -c "select (select count(*) from public.mods) as mods, (select count(*) from public.categories) as categories;" || true
+          psql "$SUPABASE_PROD_DB_URL" -v ON_ERROR_STOP=1 -c "select (select count(*) from public.mods) as mods, (select count(*) from public.categories) as categories, (select count(*) from public.applied_prod_sql) as applied_files;"

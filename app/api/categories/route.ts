@@ -3,11 +3,11 @@ import { getOwnerAccess } from "@/lib/auth";
 import { PRIVATE_NO_STORE_HEADERS, revalidateDomain } from "@/lib/data-sync";
 import { isSameOriginRequest } from "@/lib/write-origin";
 import {
-  isTestCategoryWriteAllowed,
   parseCategoryCreate,
   parseCategoryDelete,
   parseCategoryUpdate
 } from "@/lib/category-persistence-input";
+import { isCategoryWriteAllowed } from "@/lib/catalog-write-protection";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 function reply(data: unknown, status = 200) {
@@ -24,7 +24,7 @@ export async function GET() {
 }
 export async function POST(request: NextRequest) {
   if (!isSameOriginRequest(request.url, request.headers.get("origin"))
-    || !isTestCategoryWriteAllowed(process.env)) return reply({ error: "이 배포에서 등록할 수 없습니다." }, 403);
+    || !isCategoryWriteAllowed(process.env)) return reply({ error: "이 배포에서 등록할 수 없습니다." }, 403);
   const access = await getOwnerAccess();
   if (access.kind !== "authorized") return reply({ error: "등록 권한이 없습니다." }, 403);
   let body: unknown;
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
 }
 export async function PATCH(request: NextRequest) {
   if (!isSameOriginRequest(request.url, request.headers.get("origin"))
-    || !isTestCategoryWriteAllowed(process.env)) return reply({ error: "이 배포에서 수정할 수 없습니다." }, 403);
+    || !isCategoryWriteAllowed(process.env)) return reply({ error: "이 배포에서 수정할 수 없습니다." }, 403);
   const access = await getOwnerAccess();
   if (access.kind !== "authorized") return reply({ error: "수정 권한이 없습니다." }, 403);
   let body: unknown;
@@ -64,7 +64,7 @@ export async function PATCH(request: NextRequest) {
 }
 export async function DELETE(request: NextRequest) {
   if (!isSameOriginRequest(request.url, request.headers.get("origin"))
-    || !isTestCategoryWriteAllowed(process.env)) return reply({ error: "이 배포에서 삭제할 수 없습니다." }, 403);
+    || !isCategoryWriteAllowed(process.env)) return reply({ error: "이 배포에서 삭제할 수 없습니다." }, 403);
   const access = await getOwnerAccess();
   if (access.kind !== "authorized") return reply({ error: "삭제 권한이 없습니다." }, 403);
   let body: unknown;

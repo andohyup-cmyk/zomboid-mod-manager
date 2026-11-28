@@ -2,8 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getOwnerAccess } from "@/lib/auth";
 import { isCatalogModUuid } from "@/lib/catalog-read";
-import { isCatalogWriteAllowed } from "@/lib/catalog-write-protection";
-import { isTestCategoryWriteAllowed } from "@/lib/category-persistence-input";
+import { isCatalogWriteAllowed, isCategoryWriteAllowed } from "@/lib/catalog-write-protection";
 import { sortCategoriesForLoadOrder } from "@/lib/steam-category-rules";
 import { cleanSteamDescription, formatSteamDate, stripWorkshopSuffixFromTitle, summarizeModDescription } from "@/lib/steam-description";
 import { ModCategoryPanel } from "@/components/ModCategoryPanel";
@@ -59,7 +58,7 @@ export default async function ModDetailPage({ params }: { params: Promise<{ id: 
   const mod = data;
   const steamLink = `https://steamcommunity.com/sharedfiles/filedetails/?id=${mod.workshop_id}`;
   const writeEnabled = isCatalogWriteAllowed(process.env, process.env.NEXT_PUBLIC_SUPABASE_URL)
-    || isTestCategoryWriteAllowed(process.env);
+    || isCategoryWriteAllowed(process.env);
 
   const orderedCategories = sortCategoriesForLoadOrder(
     (allCategories ?? []) as { id: string; name: string; sort_order: number }[]
@@ -151,7 +150,7 @@ export default async function ModDetailPage({ params }: { params: Promise<{ id: 
       <ModCategoryPanel
         key={id}
         modId={id}
-        writeEnabled={isTestCategoryWriteAllowed(process.env)}
+        writeEnabled={isCategoryWriteAllowed(process.env)}
         initialAssignedNames={assignedCategories.map((cat) => cat.name)}
       />
     </section>

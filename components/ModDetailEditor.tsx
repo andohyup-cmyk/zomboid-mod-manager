@@ -86,7 +86,6 @@ export function ModDetailEditor({
         throw new Error(body.error || "모드 삭제에 실패했습니다.");
       }
       router.push("/mods");
-      router.refresh();
     } catch (err) {
       setDeleteModError(err instanceof Error ? err.message : "모드 삭제에 실패했습니다.");
       setConfirmDeleteMod(false);
@@ -315,7 +314,7 @@ export function ModDetailEditor({
 
           {confirmDeleteMod && (
             <p className="rounded-lg border border-[#84414a] bg-[#2c191f] p-2.5 text-xs text-[#ffd2d5]">
-              &ldquo;{modTitle}&rdquo; 모드를 카탈로그에서 영구 삭제할까요? 서버 프로필에 포함된 모드는 삭제가 차단됩니다.
+              &ldquo;{modTitle}&rdquo; 모드를 카탈로그에서 영구 삭제할까요? 삭제하면 조사 근거 기록도 함께 사라져 복구할 수 없으니, 보관을 권장합니다. 서버 프로필에 포함된 모드는 삭제가 차단됩니다.
             </p>
           )}
           {archiveMessage && <p role="status" className="text-xs text-[#b9efb0]">{archiveMessage}</p>}

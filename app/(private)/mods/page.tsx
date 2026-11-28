@@ -8,8 +8,7 @@ import {
   UNCLASSIFIED_CATEGORY_FILTER,
   type CatalogListInput
 } from "@/lib/catalog-read";
-import { isCatalogWriteAllowed } from "@/lib/catalog-write-protection";
-import { isTestCategoryWriteAllowed } from "@/lib/category-persistence-input";
+import { isCatalogWriteAllowed, isCategoryWriteAllowed } from "@/lib/catalog-write-protection";
 import { buildPrimaryCategoryMap } from "@/lib/data-sync";
 import { sortCategoriesForLoadOrder } from "@/lib/steam-category-rules";
 import { stripWorkshopSuffixFromTitle, summarizeModDescription } from "@/lib/steam-description";
@@ -126,7 +125,7 @@ export default async function ModsPage({
         ? specificCategoryUuid
         : "all";
 
-  const categoryWriteEnabled = isTestCategoryWriteAllowed(process.env);
+  const categoryWriteEnabled = isCategoryWriteAllowed(process.env);
   const catalogWriteEnabled =
     isCatalogWriteAllowed(process.env, process.env.NEXT_PUBLIC_SUPABASE_URL)
     || categoryWriteEnabled;

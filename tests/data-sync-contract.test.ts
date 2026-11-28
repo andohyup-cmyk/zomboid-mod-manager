@@ -185,3 +185,28 @@ test("GUARD: every synced domain table is covered by backup export and backup-pr
     }
   }
 });
+
+test("GUARD: every mutating API route checks same-origin and owner access", () => {
+  for (const file of walkFiles(path.join(REPO_ROOT, "app/api"), "route.ts")) {
+    const content = fs.readFileSync(file, "utf8");
+    if (!/export\s+async\s+function\s+(POST|PATCH|PUT|DELETE)\b/.test(content)) continue;
+    assert.match(content, /\bisSameOriginRequest\s*\(/, `${rel(file)} must call isSameOriginRequest`);
+    assert.match(content, /\bgetOwnerAccess\s*\(/, `${rel(file)} must call getOwnerAccess`);
+  }
+});
+
+test("GUARD: pages and routes never rely on the test-only write guard without a production guard", () => {
+  const files = [
+    ...walkFiles(path.join(REPO_ROOT, "app/api"), "route.ts"),
+    ...walkFiles(path.join(REPO_ROOT, "app/(private)"), "page.tsx")
+  ];
+  for (const file of files) {
+    const content = fs.readFileSync(file, "utf8");
+    if (!/\bisTestCategoryWriteAllowed\s*\(/.test(content)) continue;
+    assert.match(
+      content,
+      /\bisCatalogWriteAllowed\s*\(/,
+      `${rel(file)} uses isTestCategoryWriteAllowed; production (main) would block it. Use isCategoryWriteAllowed or add isCatalogWriteAllowed.`
+    );
+  }
+});

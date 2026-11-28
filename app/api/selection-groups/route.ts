@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { getOwnerAccess } from "@/lib/auth";
 import { PRIVATE_NO_STORE_HEADERS, revalidateDomain } from "@/lib/data-sync";
 import { isSameOriginRequest } from "@/lib/write-origin";
-import { isTestCategoryWriteAllowed } from "@/lib/category-persistence-input";
+import { isCategoryWriteAllowed } from "@/lib/catalog-write-protection";
 import {
   parseSelectionGroupDelete, parseSelectionGroupSave, type StoredSelectionGroup
 } from "@/lib/selection-group-input";
@@ -59,7 +59,7 @@ async function readBody(request: NextRequest, limit: number): Promise<{ body: un
 
 export async function POST(request: NextRequest) {
   if (!isSameOriginRequest(request.url, request.headers.get("origin"))
-    || !isTestCategoryWriteAllowed(process.env)) return reply({ error: "이 배포에서 저장할 수 없습니다." }, 403);
+    || !isCategoryWriteAllowed(process.env)) return reply({ error: "이 배포에서 저장할 수 없습니다." }, 403);
   const access = await getOwnerAccess();
   if (access.kind !== "authorized") return reply({ error: "저장 권한이 없습니다." }, 403);
   const read = await readBody(request, 4096);
@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   if (!isSameOriginRequest(request.url, request.headers.get("origin"))
-    || !isTestCategoryWriteAllowed(process.env)) return reply({ error: "이 배포에서 삭제할 수 없습니다." }, 403);
+    || !isCategoryWriteAllowed(process.env)) return reply({ error: "이 배포에서 삭제할 수 없습니다." }, 403);
   const access = await getOwnerAccess();
   if (access.kind !== "authorized") return reply({ error: "삭제 권한이 없습니다." }, 403);
   const read = await readBody(request, 512);

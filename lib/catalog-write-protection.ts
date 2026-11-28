@@ -1,3 +1,5 @@
+import { isTestCategoryWriteAllowed } from "./category-persistence-input";
+
 function httpsOrigin(value: string | undefined): string | null {
   if (!value) return null;
 
@@ -24,4 +26,14 @@ export function isCatalogWriteAllowed(env: Readonly<Record<string, string | unde
   return approvedOrigin !== null
     && approvedOrigin === httpsOrigin(env.NEXT_PUBLIC_SUPABASE_URL)
     && approvedOrigin === httpsOrigin(clientUrl);
+}
+
+/**
+ * Category / selection-group writes: allowed on the approved Production project
+ * (isCatalogWriteAllowed) or on the isolated test Preview (isTestCategoryWriteAllowed).
+ * Every category/group API route and its page must use this single guard.
+ */
+export function isCategoryWriteAllowed(env: Readonly<Record<string, string | undefined>>): boolean {
+  return isTestCategoryWriteAllowed(env)
+    || isCatalogWriteAllowed(env, env.NEXT_PUBLIC_SUPABASE_URL);
 }

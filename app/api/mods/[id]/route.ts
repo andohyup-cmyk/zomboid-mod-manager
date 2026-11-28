@@ -102,8 +102,11 @@ export async function DELETE(
     if (error.code === "P0002") {
       return reply({ error: "모드를 찾을 수 없습니다." }, 404);
     }
-    if (error.code === "42501" || error.code === "42883") {
-      return reply({ error: "DB 삭제 함수가 아직 적용되지 않았습니다. 시험 DB 마이그레이션 SQL을 실행해 주세요." }, 403);
+    if (error.code === "42883") {
+      return reply({ error: "DB 삭제 함수가 아직 적용되지 않았습니다. 해당 DB에 마이그레이션 SQL을 실행해 주세요." }, 503);
+    }
+    if (error.code === "42501") {
+      return reply({ error: "이 모드를 삭제할 권한이 없습니다." }, 403);
     }
     return reply({ error: "모드 삭제에 실패했습니다." }, 500);
   }

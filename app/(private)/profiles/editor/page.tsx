@@ -1,8 +1,7 @@
 import { ProfileModEditor } from "@/components/ProfileModEditor";
 import { getOwnerAccess } from "@/lib/auth";
 import { isCatalogModUuid } from "@/lib/catalog-read";
-import { isCatalogWriteAllowed } from "@/lib/catalog-write-protection";
-import { isTestCategoryWriteAllowed } from "@/lib/category-persistence-input";
+import { isCatalogWriteAllowed, isCategoryWriteAllowed } from "@/lib/catalog-write-protection";
 import { buildPrimaryCategoryMap } from "@/lib/data-sync";
 import {
   PROFILE_CATALOG_PAGE_SIZE,
@@ -151,7 +150,7 @@ export default async function ProfileEditorPage({
     }
   }
 
-  const testWriteEnabled = isTestCategoryWriteAllowed(process.env);
+  const testWriteEnabled = isCategoryWriteAllowed(process.env);
   const profileWriteEnabled = testWriteEnabled
     || isTestProfileSnapshotWriteAllowed(process.env, process.env.NEXT_PUBLIC_SUPABASE_URL)
     || isCatalogWriteAllowed(process.env, process.env.NEXT_PUBLIC_SUPABASE_URL);

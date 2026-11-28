@@ -1,9 +1,10 @@
+import { isCategoryWriteAllowed } from "@/lib/catalog-write-protection";
 import { NextRequest } from "next/server";
 import { getOwnerAccess } from "@/lib/auth";
 import { PRIVATE_NO_STORE_HEADERS, revalidateDomain } from "@/lib/data-sync";
 import { isSameOriginRequest } from "@/lib/write-origin";
 import {
- isStoredCategoryPrimaryConsistent, isTestCategoryWriteAllowed, parseCategoryAssignment
+ isStoredCategoryPrimaryConsistent, parseCategoryAssignment
 } from "@/lib/category-persistence-input";
 export const runtime="nodejs";
 export const dynamic="force-dynamic";
@@ -33,7 +34,7 @@ export async function GET(request:NextRequest){
 }
 export async function POST(request:NextRequest){
  if(!isSameOriginRequest(request.url,request.headers.get("origin"))
-  ||!isTestCategoryWriteAllowed(process.env))return reply({error:"이 배포에서는 저장할 수 없습니다."},403);
+  ||!isCategoryWriteAllowed(process.env))return reply({error:"이 배포에서는 저장할 수 없습니다."},403);
  const access=await getOwnerAccess();
  if(access.kind!=="authorized")return reply({error:"저장 권한이 없습니다."},403);
  let body:unknown;
